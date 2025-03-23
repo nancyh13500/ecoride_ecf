@@ -9,7 +9,7 @@
         </p>
         <p class="col-md-4 mb-0 text-body-secondary"></p>
 
-        <p class="col-md-4 text-center text-white align-items-center text-body-dark mt-3">by Nancy WebAgency @2025</p>
+        <p class="col-md-4 text-center text-white align-items-center text-body-dark mt-3">@ Nancy WebAgency @2025</p>
 
         <ul class="nav col-md-4 justify-content-center">
             <li class="ms-3"><a class="text-white" href="#"><i class="bi bi-facebook"></i></a></li>

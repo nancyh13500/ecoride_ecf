@@ -71,9 +71,30 @@
 /*end section navbar
 
 /*section search*/
-.geo {
-    font-size: 2rem;
+.hero {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
+
+.background-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('/assets/img/car.jpg') no-repeat center center;
+    background-size: cover;
+    opacity: 0.3;
+    z-index: 1;
+}
+
+.content {
+    position: relative;
+    z-index: 2;
+}
+
 
 
 
