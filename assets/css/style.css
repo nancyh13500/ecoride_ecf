@@ -68,6 +68,24 @@
     background-color: var(--light);
 }
 
+/*end section navbar
+
+/*section search*/
+.geo {
+    font-size: 2rem;
+}
+
+
+
+
+
+
+/*end section search*/
+
+
+
+
+
 /*scetion footer*/
 .footer {
     background-color: var(--dark);
