@@ -1,0 +1,15 @@
+:root {
+    --primary: #29C886;
+    --secondary: #00AFF5ff;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #fd7e14;
+    --info: #17a2b8;
+    --light: #E6E6E6;
+    --dark: #565554;
+    --white: #FFFFFF;
+    --bs-nav-link-color: var(--primary);
+    --bs-link-color: var(--primary);
+    --bs-link-hover-color: var(--secondary);
+    --bs-primary-rgb: 102, 198, 186;
+}
