@@ -150,7 +150,18 @@
 
 /*end section suggestion_route*/
 
-/*scetion footer*/
+/*section avis*/
+.avis {
+    background-color: var(--light);
+}
+
+
+
+
+
+/*end section avis*/
+
+/*section footer*/
 .footer {
     background-color: #565554;
 }
