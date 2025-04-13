@@ -15,7 +15,7 @@
 
 <body>
     <!-- section Header -->
-    <header class="navbar d-flex flex-wrap bg-white align-items-center justify-content-center">
+    <header class="navbar d-flex flex-wrap bg-white align-items-center justify-content-center fixed-top">
         <div class="col-md-3">
             <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
                 <img src="/assets/logo/logo.png" alt="logo ecoride" width="120">
