@@ -29,7 +29,7 @@
                 </div>
             </div>
             <div class="d-flex justify-content-center mt-3">
-                <button type="button" class="btn text-dark bg-primary w-50">Lancer la recherche<i class="bi bi-search text-white ms-2"></i></button>
+                <button type="button" class="btn btn_search w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
             </div>
         </div>
     </div>
@@ -38,9 +38,9 @@
 
 <!--section presentation -->
 <section class="presentation">
-    <div class="col-xxl-12 px-4 py-5 bg-dark">
-        <div class="row flex-lg align-items-center justify-content-center">
-            <div class="card_img col-lg-4 pt-2 pb-2">
+    <div class="col-xxl-12 px-4 py-5">
+        <div class="row flex-lg justify-content-center align-items-center">
+            <div class="card_img col-lg-6">
                 <img src="/assets/img/friends-car.jpg" class="d-flex mx-lg-auto img-fluid rounded" alt="friends-car" width="700" height="500" loading="lazy">
             </div>
             <div class="card_text col-lg-6 pt-2 pb-2">
@@ -53,7 +53,7 @@
                     Découvrez nos offres issues de plus de 15 ans d'expérience et éprouvées auprès de 360 employeurs et collectivités déjà accompagnés.
                 </p><br>
                 <div class="d-flex d-md-flex justify-content-center">
-                    <button type="button" class="bnt_contact btn btn-secondary btn-lg px-4 mb-2 me-2">Contactez-nous</button>
+                    <button type="button" class="btn_contact btn btn-lg px-4 mb-2 me-2">Contactez-nous</button>
                 </div>
             </div>
         </div>
@@ -74,7 +74,7 @@
                 <div class="card-body">
                     <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
                     <p class="card-text">Ville départ -> Ville arrivée</p>
-                    <p>Date</p>
+                    <p>Départ le : </p>
                     <p>Nom chauffeur : David</p>
                     <p>Places restantes : 3</p>
                     <p>Tarif : 20€</p>
@@ -90,7 +90,7 @@
                 <div class="card-body">
                     <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
                     <p class="card-text">Ville départ -> Ville arrivée</p>
-                    <p>Date</p>
+                    <p>Départ le : </p>
                     <p>Nom chauffeur : Nancy</p>
                     <p>Places restantes : 2</p>
                     <p>Tarif : 20€</p>
@@ -106,7 +106,7 @@
                 <div class="card-body">
                     <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
                     <p class="card-text">Ville départ -> Ville arrivée</p>
-                    <p>Date</p>
+                    <p>Départ le : </p>
                     <p>Nom chauffeur : Baptiste</p>
                     <p>Places restantes : 1</p>
                     <p>Tarif : 20€</p>
@@ -119,34 +119,31 @@
 
 <!-- end section trajet-->
 
-<!-- section proposition-->
+<!-- section proposition trajet-->
 
-<section class="suggesting_route bg-dark">
+<section class="suggesting_route">
     <div class="row flex-lg-row-reverse justify-content-center align-items-center py-5 text-white text-center">
         <div class="d-flex col-10 col-sm-8 col-lg-6 justify-content-center align-items-center">
             <img src="/assets/img/covoiturage.jpg" class="img_covoiturage image-fluid rounded" alt="covoiturage" width="400" height="250">
         </div>
         <div class="col-lg-6">
-            <h1 class="display-5 fw-bold mb-3">Vous avez une voiture ?</h1>
+            <h1 class="display-5 fw-bold mt-3 mb-3">Vous avez une voiture ?</h1>
             <p class="lead">Faites des économies, publiez une annonce.</p>
             <div class="d-flex mt-5 justify-content-center">
-                <button type="button" class="btn btn-secondary btn-lg px-4">Proposer des places</button>
+                <button type="button" class="btn_route btn btn-lg px-4">Proposer des places</button>
             </div>
         </div>
     </div>
 </section>
-
-
-
-
-
-
-
-
-
-
-
 <!-- end section proposition-->
+
+<!-- section avis -->
+
+
+
+
+
+<!-- end section avis -->
 
 
 <?php require_once __DIR__ . "/templates/footer.php";

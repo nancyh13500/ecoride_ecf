@@ -1,6 +1,6 @@
 :root {
     --primary: #29C886;
-    --secondary: #00AFF5ff;
+    --secondary: #00AFF5;
     --light: #E6E6E6;
     --dark: #565554;
     --white: #FFFFFF;
@@ -21,10 +21,10 @@
     --bs-btn-active-color: #fff;
     --bs-btn-active-bg: #ff8e31;
     --bs-btn-active-border-color: var(--secondary);
-    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-active-shadow: inset 0 3px 5px #565554;
     --bs-btn-disabled-color: #fff;
     --bs-btn-disabled-bg: #565554;
-    --bs-btn-disabled-border-color: #343434;
+    --bs-btn-disabled-border-color: #565554;
 }
 
 .btn-outline-primary {
@@ -37,8 +37,8 @@
     --bs-btn-active-color: #fff;
     --bs-btn-active-bg: var(--primary);
     --bs-btn-active-border-color: var(--primary);
-    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-    --bs-btn-disabled-color: var(--primary);
+    --bs-btn-active-shadow: inset 0 3px 5px #565554;
+    --bs-btn-disabled-color: #fff;
     --bs-btn-disabled-bg: transparent;
     --bs-btn-disabled-border-color: var(--primary);
     --bs-gradient: none;
@@ -60,9 +60,7 @@
 }
 
 /*section navbar*/
-.navbar {
-    background-color: white;
-}
+
 
 /*end section navbar
 
@@ -91,11 +89,33 @@
     z-index: 2;
 }
 
+.btn_search {
+    background-color: var(--primary);
+}
+
+.btn_search:hover {
+    background-color: var(--secondary);
+    color: white;
+}
+
+.bi-search:hover {
+    color: white;
+}
+
 /*end section search*/
 
 /*section presentation*/
 .presentation {
     background-color: #565554;
+}
+
+.btn_contact {
+    background-color: var(--secondary);
+}
+
+.btn_contact:hover {
+    background-color: var(--primary);
+    color: white;
 }
 
 
@@ -110,11 +130,25 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    border-color: #565554;
+    border-color: var(--dark);
 }
 
 /*en section trajet*/
 
+/*section suggestion_route*/
+.suggesting_route {
+    background-color: var(--dark);
+}
+
+.btn_route {
+    background-color: var(--secondary);
+}
+
+.btn_route:hover {
+    background-color: var(--primary);
+}
+
+/*end section suggestion_route*/
 
 /*scetion footer*/
 .footer {
