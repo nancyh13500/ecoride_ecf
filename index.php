@@ -63,59 +63,61 @@
 
 
 <!--section trajet-->
-<div class="container col-xxl-8 px-4 py-5">
-    <div class="row text-center">
-        <h2>Découvrez les trajets du moment</h2>
-        <div class="col-md-4 my-2">
-            <div class="card">
-                <div class="card-header bg-secondary">
-                    <p class="text-trajet mt-3 text-white">Trajet</p>
-                </div>
-                <div class="card-body">
-                    <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
-                    <p class="card-text">Ville départ -> Ville arrivée</p>
-                    <p>Départ le : </p>
-                    <p>Nom chauffeur : David</p>
-                    <p>Places restantes : 3</p>
-                    <p>Tarif : 20€</p>
-                    <a href="#" class="btn btn-primary">Voir le trajet</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 my-2">
-            <div class="card">
-                <div class="card-header bg-secondary">
-                    <p class="text-trajet mt-3 text-white">Trajet</p>
-                </div>
-                <div class="card-body">
-                    <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
-                    <p class="card-text">Ville départ -> Ville arrivée</p>
-                    <p>Départ le : </p>
-                    <p>Nom chauffeur : Nancy</p>
-                    <p>Places restantes : 2</p>
-                    <p>Tarif : 20€</p>
-                    <a href="#" class="btn btn-primary">Voir le trajet</a>
+<section class="trajet">
+    <div class="container col-xxl-8 px-4 py-5">
+        <div class="row text-center">
+            <h2>Découvrez les trajets du moment</h2>
+            <div class="col-md-4 my-2">
+                <div class="card">
+                    <div class="card-header bg-secondary">
+                        <p class="text-trajet mt-3 text-white">Trajet</p>
+                    </div>
+                    <div class="card-body">
+                        <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
+                        <p class="card-text">Ville départ -> Ville arrivée</p>
+                        <p>Date départ : </p>
+                        <p>Nom chauffeur : David</p>
+                        <p>Places restantes : 3</p>
+                        <p>Tarif : 20€</p>
+                        <a href="#" class="btn btn_card btn-primary text-dark">Voir le trajet</a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4 my-2">
-            <div class="card">
-                <div class="card-header bg-secondary">
-                    <p class="text-trajet mt-3 text-white">Trajet</p>
+            <div class="col-md-4 my-2">
+                <div class="card">
+                    <div class="card-header bg-secondary">
+                        <p class="text-trajet mt-3 text-white">Trajet</p>
+                    </div>
+                    <div class="card-body">
+                        <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
+                        <p class="card-text">Ville départ -> Ville arrivée</p>
+                        <p>Date départ : </p>
+                        <p>Nom chauffeur : Nancy</p>
+                        <p>Places restantes : 2</p>
+                        <p>Tarif : 20€</p>
+                        <a href="#" class="btn btn_card btn-primary text-dark">Voir le trajet</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
-                    <p class="card-text">Ville départ -> Ville arrivée</p>
-                    <p>Départ le : </p>
-                    <p>Nom chauffeur : Baptiste</p>
-                    <p>Places restantes : 1</p>
-                    <p>Tarif : 20€</p>
-                    <a href="#" class="btn btn-primary">Voir le trajet</a>
+            </div>
+            <div class="col-md-4 my-2">
+                <div class="card">
+                    <div class="card-header bg-secondary">
+                        <p class="text-trajet mt-3 text-white">Trajet</p>
+                    </div>
+                    <div class="card-body">
+                        <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
+                        <p class="card-text">Ville départ -> Ville arrivée</p>
+                        <p>Date départ : </p>
+                        <p>Nom chauffeur : Baptiste</p>
+                        <p>Places restantes : 1</p>
+                        <p>Tarif : 20€</p>
+                        <a href="#" class="btn btn_card btn-primary text-dark">Voir le trajet</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <!-- end section trajet-->
 
@@ -138,42 +140,67 @@
 <!-- end section proposition-->
 
 <!-- section avis -->
+
+
 <section class="avis">
-    <h1 class="text_avis text-center py-4">Chaque avis nous donne un peu plus envie</h1>
-    <div class="row row-cols-md-4 align-items-between py-5">
-        <div class="col">
-            <div class="card card-cover h-100 rounded-4 shadow-lg">
-                <div class="d-flex flex-column h-100 p-5 pb-3 text-shadow-1">
-                    <h3 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold">Short title, long jacket</h3>
+    <div class="container py-5">
+        <h1 class="text-center mb-5">Chaque avis nous donne un peu plus envie</h1>
+        <div class="row justify-content-center g-4">
+            <div class="col-md-3">
+                <div class="card p-3 shadow-sm">
+                    <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <h5 class="text-center fw-bold mb-2">Laura, Septembre 2025</h5>
+                    <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3 shadow-sm">
+                    <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <h5 class="text-center fw-bold mb-2">Nancy, mars 2024</h5>
+                    <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3 shadow-sm">
+                    <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <h5 class="text-center fw-bold mb-2">Baptiste, Octobre 2025</h5>
+                    <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-3 shadow-sm">
+                    <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <h5 class="text-center fw-bold mb-2">David, novembre 2023</h5>
+                    <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
                 </div>
             </div>
         </div>
-
-        <div class="col">
-            <div class="card card-cover h-100 rounded-4 shadow-lg">
-                <div class="d-flex flex-column h-100 p-5 pb-3 text-shadow-1">
-                    <h3 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold">Much longer title that wraps to multiple lines</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card card-cover h-100 rounded-4 shadow-lg">
-                <div class="d-flex flex-column h-100 p-5 pb-3 text-shadow-1">
-                    <h3 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold">Another longer title belongs here</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card card-cover h-100 rounded-4 shadow-lg">
-                <div class="d-flex flex-column h-100 p-5 pb-3 text-shadow-1">
-                    <h3 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold">Another longer title belongs here</h3>
-                </div>
-            </div>
+        <div class="text-center p-4">
+            <button class="btn btn-primary">Laisser un avis</button>
         </div>
     </div>
 </section>
+
 
 
 

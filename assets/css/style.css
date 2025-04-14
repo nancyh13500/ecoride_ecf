@@ -4,6 +4,7 @@
     --light: #E6E6E6;
     --dark: #565554;
     --white: #FFFFFF;
+    --warning: #EAFF80;
     --bs-nav-link-color: var(--primary);
     --bs-link-color: var(--primary);
     --bs-link-hover-color: var(--secondary);
@@ -60,7 +61,9 @@
 }
 
 /*section navbar*/
-
+.header {
+    background-color: var(--light);
+}
 
 /*end section navbar
 
@@ -106,7 +109,7 @@
 
 /*section presentation*/
 .presentation {
-    background-color: #565554;
+    background-color: var(--dark);
 }
 
 .btn_contact {
@@ -122,6 +125,10 @@
 /*en section presentation*/
 
 /*section trajet*/
+.trajet {
+    background-color: var(--light);
+}
+
 .text-trajet {
     font-size: 20px;
 }
@@ -133,7 +140,12 @@
     border-color: var(--dark);
 }
 
-/*en section trajet*/
+.btn_card:hover {
+    background-color: var(--secondary);
+    color: white;
+}
+
+/*end section trajet*/
 
 /*section suggestion_route*/
 .suggesting_route {
@@ -156,14 +168,11 @@
 }
 
 
-
-
-
 /*end section avis*/
 
 /*section footer*/
 .footer {
-    background-color: #565554;
+    background-color: var(--dark);
 }
 
 

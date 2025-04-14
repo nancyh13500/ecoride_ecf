@@ -15,24 +15,27 @@
 
 <body>
     <!-- section Header -->
-    <header class="navbar d-flex flex-wrap bg-white align-items-center justify-content-center">
-        <div class="col-md-3">
-            <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
-                <img src="/assets/logo/logo.png" alt="logo ecoride" width="120">
-            </a>
-        </div>
+    <section class="header">
 
-        <ul class="d-flex nav col-md-auto">
-            <li><a href="/index.php" class="nav-link px-2 text-dark link-secondary">Accueil</a></li>
-            <li><a href="#" class="nav-link px-2 text-dark link-secondary">Trajets</a></li>
-            <li><a href="#" class="nav-link px-2 text-dark link-secondary">Publier une annonce</a></li>
-            <li><a href="#" class="nav-link px-2 text-dark link-secondary">Contact</a></li>
-        </ul>
+        <header class="navbar d-flex flex-wrap bg-white align-items-center justify-content-center">
+            <div class="col-md-3">
+                <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
+                    <img src="/assets/logo/logo.png" alt="logo ecoride" width="120">
+                </a>
+            </div>
 
-        <div class="col-md-3 text-end mt-2 mb-2">
-            <button type="button" class="btn btn-outline-dark">Se connecter</button>
-        </div>
-    </header>
+            <ul class="d-flex nav col-md-auto">
+                <li><a href="/index.php" class="nav-link px-2 text-dark link-secondary">Accueil</a></li>
+                <li><a href="#" class="nav-link px-2 text-dark link-secondary">Trajets</a></li>
+                <li><a href="#" class="nav-link px-2 text-dark link-secondary">Publier une annonce</a></li>
+                <li><a href="#" class="nav-link px-2 text-dark link-secondary">Contact</a></li>
+            </ul>
+
+            <div class="col-md-3 text-end mt-2 mb-2">
+                <button type="button" class="btn btn-outline-dark">Se connecter</button>
+            </div>
+        </header>
+    </section>
 
 
 
