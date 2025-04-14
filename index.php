@@ -195,9 +195,17 @@
                 </div>
             </div>
         </div>
-        <div class="text-center p-4">
-            <button class="btn btn-primary">Laisser un avis</button>
+        <div class="container text-center p-4">
+            <div class="row justify-content-center gy-2">
+                <div class="col-12 col-md-auto">
+                    <button type="button" class="btn btn_tous_avis btn-primary text-dark w-100">Voir tous les avis</button>
+                </div>
+                <div class="col-12 col-md-auto">
+                    <button type="button" class="btn btn_avis w-100">Laisser un avis</button>
+                </div>
+            </div>
         </div>
+
     </div>
 </section>
 

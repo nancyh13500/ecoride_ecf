@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
 <body>
@@ -21,13 +21,12 @@
                 <a class="navbar-brand d-flex align-items-center" href="#">
                     <img src="/assets/logo/logo.png" alt="logo ecoride" width="120" />
                 </a>
-                <button aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbarNav" data-toggle="collapse" type="button">
-                    <span class="navbar-toggler-icon">
-                    </span>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav mx-auto">
-                        <li class="nav-item"><a class="nav-link text-dark" href="#">Accueil</a></li>
+                        <li class="nav-item"><a class="nav-link active text-dark" aria-current="page" href="#">Accueil</a></li>
                         <li class="nav-item"><a class="nav-link text-dark" href="#">Trajets</a></li>
                         <li class="nav-item"><a class="nav-link text-dark" href="#">Publier une annonce</a></li>
                         <li class="nav-item"><a class="nav-link text-dark" href="#">Contact</a></li>
