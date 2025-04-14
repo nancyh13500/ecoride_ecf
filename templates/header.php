@@ -16,26 +16,28 @@
 <body>
     <!-- section Header -->
     <section class="header">
-
-        <header class="navbar d-flex flex-wrap bg-white align-items-center justify-content-center">
-            <div class="col-md-3">
-                <a href="/" class="d-inline-flex link-body-emphasis text-decoration-none">
-                    <img src="/assets/logo/logo.png" alt="logo ecoride" width="120">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="#">
+                    <img src="/assets/logo/logo.png" alt="logo ecoride" width="120" />
                 </a>
+                <button aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbarNav" data-toggle="collapse" type="button">
+                    <span class="navbar-toggler-icon">
+                    </span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item"><a class="nav-link text-dark" href="#">Accueil</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="#">Trajets</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="#">Publier une annonce</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="#">Contact</a></li>
+                    </ul>
+                    <button class="btn btn-outline-secondary">Se connecter</button>
+                </div>
             </div>
-
-            <ul class="d-flex nav col-md-auto">
-                <li><a href="/index.php" class="nav-link px-2 text-dark link-secondary">Accueil</a></li>
-                <li><a href="#" class="nav-link px-2 text-dark link-secondary">Trajets</a></li>
-                <li><a href="#" class="nav-link px-2 text-dark link-secondary">Publier une annonce</a></li>
-                <li><a href="#" class="nav-link px-2 text-dark link-secondary">Contact</a></li>
-            </ul>
-
-            <div class="col-md-3 text-end mt-2 mb-2">
-                <button type="button" class="btn btn-outline-dark">Se connecter</button>
-            </div>
-        </header>
+        </nav>
     </section>
+
 
 
 
