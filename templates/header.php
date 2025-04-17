@@ -36,8 +36,3 @@
             </div>
         </nav>
     </section>
-
-
-
-
-    <!-- end section Header -->
