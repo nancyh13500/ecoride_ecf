@@ -129,7 +129,7 @@
 
 .btn_search:hover {
     background-color: var(--secondary);
-    color: white;
+    color: black !important;
 }
 
 .bi-search:hover {
@@ -173,7 +173,7 @@
 
 .btn_card:hover {
     background-color: var(--secondary);
-    color: white;
+    color: black !important;
 }
 
 .form-check-input {
@@ -217,6 +217,7 @@
 
 .btn_avis {
     background-color: var(--secondary);
+
 }
 
 .btn_avis:hover {
@@ -226,7 +227,7 @@
 
 .btn_tous_avis:hover {
     background-color: var(--secondary);
-    color: white;
+    color: black !important;
 }
 
 
@@ -276,10 +277,14 @@
     color: var(--secondary) !important;
 }
 
+.btn-inscription a:hover {
+    background-color: var(--primary) !important;
+    color: var(--white) !important;
+}
+
 /*end section login*/
 
 
-/*media queries*/
 /*media queries*/
 @media (max-width: 768px) {
     .login-hero .content {

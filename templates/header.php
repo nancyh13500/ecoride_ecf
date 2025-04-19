@@ -31,7 +31,12 @@
                         <li class="nav-item"><a class="nav-link" href="#">Publier une annonce</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
                     </ul>
-                    <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
+                    <div class="btn-login me-3">
+                        <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
+                    </div>
+                    <div class="btn-inscription">
+                        <a href="/inscription.php" type="button" class="btn btn-secondary text-dark">S'inscrire</a>
+                    </div>
                 </div>
             </div>
         </nav>

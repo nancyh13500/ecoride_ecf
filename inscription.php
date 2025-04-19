@@ -7,17 +7,13 @@
         <div class="row justify-content-center">
             <div class="col-md-3">
                 <div class="bg-dark text-white p-4 text-center mb-4">
-                    <h2>S'identifier</h2>
-                    <p class="mb-0">
-                        Pas encore membre,
-                        <a href="/inscription.php" class="inscription text-secondary fw-bold text-decoration-underline">inscrivez-vous</a>
-                    </p>
+                    <h3>Créer un compte</h3>
                 </div>
 
                 <section class="pb-4">
                     <div class="border border-dark rounded-5">
                         <section class="w-100 p-4 d-flex justify-content-center pb-4">
-                            <form class="login-form" method="POST" action="login.php">
+                            <form class="login-form" method="POST" action="inscription.php">
                                 <div class="form-outline mb-4">
                                     <input type="email" class="form-control bg-light border-dark" placeholder="Email" required>
                                     <label class="form-label" for="form2Example1"></label>
@@ -26,20 +22,7 @@
                                         <input type="password" class="form-control bg-light border-dark" placeholder="Mot de passe" required>
                                         <label class="form-label" for="form2Example2"></label>
                                     </div>
-
-                                    <div class="row mb-4">
-                                        <div class="col d-flex justify-content-start">
-                                            <div class="form-check">
-                                                <input class="form-check-input border-dark" type="checkbox" value="">
-                                                <label class="form-check-label">Rester connecté</label>
-                                            </div>
-                                        </div>
-                                        <div class="col d-flex justify-content-center">
-                                            <a class="" href="#!">Mot de passe oublié</a>
-                                        </div>
-                                    </div>
-
-                                    <button type="submit" class="btn btn-primary btn-block d-flex text-dark justify-content-center w-100 mb-4">Se connecter</button>
+                                    <button type="submit" class="btn btn-primary btn-block d-flex text-dark justify-content-center w-100 mb-4">Valider</button>
                             </form>
                         </section>
                     </div>
