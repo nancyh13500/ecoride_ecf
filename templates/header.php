@@ -18,7 +18,7 @@
     <section class="header">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container">
-                <a class="navbar-brand d-flex align-items-center" href="#">
+                <a class="navbar-brand d-flex align-items-center" href="/index.php">
                     <img src="/assets/logo/logo.png" alt="logo ecoride" width="120" />
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,12 +26,12 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav mx-auto">
-                        <li class="nav-item"><a class="nav-link active text-dark" aria-current="page" href="#">Accueil</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" href="#">Trajets</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" href="#">Publier une annonce</a></li>
-                        <li class="nav-item"><a class="nav-link text-dark" href="#">Contact</a></li>
+                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="/index.php">Accueil</a></li>
+                        <li class="nav-item"><a class="nav-link" href="trajets.php">Trajets</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Publier une annonce</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
                     </ul>
-                    <button class="btn btn-outline-secondary">Se connecter</button>
+                    <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
                 </div>
             </div>
         </nav>

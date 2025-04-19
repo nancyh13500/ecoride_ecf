@@ -5,7 +5,7 @@
             <img src="/assets/logo/logo_dark.png" alt="logo checkit" width="120">
         </a>
         <p class="col-md-12 text-center text-white align-items-center text-body-dark mt-3">
-            Ecoride votre partenaire de covoiturage régulier domicile travail à Marseille, ses alentours et dans toute la France.Un site dédié au covoiturage en semaine et le week-end.
+            Ecoride votre partenaire de covoiturage régulier domicile travail à Marseille, ses alentours et dans toute la France. Un site dédié au covoiturage en semaine et le week-end.
         </p>
         <p class="col-md-4 mb-0 text-body-secondary"></p>
 
