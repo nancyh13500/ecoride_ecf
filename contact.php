@@ -34,7 +34,7 @@
                 </div>
                 <p class="text-center mt-3">Une réponse vous sera envoyée par mail sous 48 heures</p>
                 <div class="text-center mt-2 mb-2">
-                    <a href="*" class="btn btn-primary">Envoyer le message</a>
+                    <a href="*" class="btn btn-secondary">Envoyer le message</a>
                 </div>
             </div>
         </form>
