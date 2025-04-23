@@ -29,7 +29,7 @@
                         <li class="nav-item"><a class="nav-link active" aria-current="page" href="/index.php">Accueil</a></li>
                         <li class="nav-item"><a class="nav-link" href="trajets.php">Trajets</a></li>
                         <li class="nav-item"><a class="nav-link" href="#">Publier une annonce</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
+                        <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
                     </ul>
                     <div class="btn-login me-3">
                         <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>

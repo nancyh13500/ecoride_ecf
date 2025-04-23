@@ -1,31 +1,46 @@
 <?php require_once __DIR__ . "/templates/header.php";
 ?>
 <section class="contact">
-    <div class="contact-title">
-        <h1 class="text-center fw-bold mt-5 mb-4">Contactez-nous</h1>
+
+
+
+    <div class=" contact text-center">
+        <div class="container pt-4">
+            <h1 class="contact-title">Contact</h1>
+        </div>
     </div>
-    <div class="container">
-        <div class="col">
-            <div class="col-md-4 d-flex justify-content-center mt-4 mb-4">
-                <label for="exampleFormControlInput1" class="form-label"></label>
-                <input type="name" class="name form-control border-dark bg-light" id="exampleFormControlInput1" placeholder="Nom" required>
+
+    <div class="container pt-3 pb-3">
+        <form action="" method="POST">
+            <div class="mb-4 row">
+                <label for="exampleFormControlInput1" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-6">
+                    <input type="email" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="Ex. Durand">
+                </div>
             </div>
-            <div class="col-md-4 d-flex justify-content-center mt-4 mb-4">
-                <label for="exampleFormControlInput1" class="form-label"></label>
-                <input type="email" class="email form-control border-dark bg-light" id="exampleFormControlInput1" placeholder="name@example.com" required>
+            <div class="mb-4 row">
+                <label for="exampleFormControlInput1" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-6">
+                    <input type="email" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="name@example.com">
+                </div>
             </div>
-            <div class="col-md-4 d-flex justify-content-center mt-4 mb-4">
-                <label for="exampleFormControlInput1" class="form-label"></label>
-                <input type="text" class="sujet form-control border-dark bg-light" id="exampleFormControlInput1" placeholder="Sujet" required>
+            <div class="mb-4 row">
+                <label for="exampleFormControlInput1" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-6">
+                    <input type="text" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="Sujet">
+                </div>
             </div>
-            <div class="col-md-4 d-flex justify-content-center mt-4 mb-4">
-                <label for="exampleFormControlTextarea1" class="form-label"></label>
-                <textarea class="message form-control border-dark bg-light" id="exampleFormControlTextarea1" rows="8" placeholder="Message" required></textarea>
+            <div class="mb-4 row">
+                <label for="exampleFormControlTextarea1" class="col-sm-3 col-form-label"></label>
+                <div class="col-sm-6">
+                    <textarea class="form-control bg-light border-dark rounded" id="exampleFormControlTextarea1" rows="6" placeholder="Message"></textarea>
+                </div>
+                <p class="text-center pt-3">Une réponse vous sera envoyée par mail sous 48 heures</p>
+                <div class="text-center pt-1 mb-2">
+                    <a href="*" class="btn btn-primary">Envoyer le message</a>
+                </div>
             </div>
-        </div>
-        <div class="mb-4 d-flex justify-content-center">
-            <button class="btn-contact btn btn-primary">Envoyer le message</button>
-        </div>
+        </form>
     </div>
 </section>
 
