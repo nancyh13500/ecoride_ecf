@@ -53,7 +53,7 @@
                     Découvrez nos offres issues de plus de 15 ans d'expérience et éprouvées auprès de 360 employeurs et collectivités déjà accompagnés.
                 </p><br>
                 <div class="d-flex d-md-flex justify-content-center">
-                    <button type="button" class="btn_contact btn btn-lg px-4 mb-2 me-2">Contactez-nous</button>
+                    <button type="button" class="btn_contact btn-secondary btn btn-lg px-4 mb-2 me-2">Contactez-nous</button>
                 </div>
             </div>
         </div>
@@ -132,7 +132,7 @@
             <h1 class="display-5 fw-bold mt-3 mb-3">Vous avez une voiture ?</h1>
             <p class="lead">Faites des économies, publiez une annonce.</p>
             <div class="d-flex mt-5 justify-content-center">
-                <button type="button" class="btn_route btn btn-lg px-4">Proposer des places</button>
+                <button type="button" class="btn_route btn btn-secondary btn-lg px-4">Proposer des places</button>
             </div>
         </div>
     </div>
@@ -203,7 +203,7 @@
                     <button type="button" class="btn btn_tous_avis btn-primary w-100">Voir tous les avis</button>
                 </div>
                 <div class="col-12 col-md-auto">
-                    <button type="button" class="btn btn_avis w-100">Laisser un avis</button>
+                    <button type="button" class="btn btn-secondary btn_avis w-100">Laisser un avis</button>
                 </div>
             </div>
         </div>

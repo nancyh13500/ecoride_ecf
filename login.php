@@ -81,7 +81,7 @@
 
                                 </div>
 
-                                <button type="submit" class="btn btn-connect btn-secondary text-dark btn-block mt-3 mb-3 w-100">S'inscrire</button>
+                                <button type="submit" class="btn btn-connect btn-secondary btn-block mt-3 mb-3 w-100">S'inscrire</button>
                             </form>
                         </div>
                     </div>
