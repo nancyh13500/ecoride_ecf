@@ -1,8 +1,6 @@
 <?php require_once __DIR__ . "/templates/header.php";
 ?>
 <section class="hero">
-
-
     <div class="background-login"></div>
     <div class="container login-register mt-4">
         <div class="row justify-content-center mb-4">

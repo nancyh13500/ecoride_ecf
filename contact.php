@@ -1,13 +1,16 @@
 <?php require_once __DIR__ . "/templates/header.php";
 ?>
-<section class="contact">
-    <div class="contact-title text-center">
+
+
+<section class="hero">
+    <div class="background-contact"></div>
+    <div class="contact-title text-black text-center">
         <div class="container">
             <h1 class="contact-title mt-3 mb-3 fw-bold">Contact</h1>
         </div>
     </div>
 
-    <div class="container mt-3 mb-3">
+    <div class="container  contact mt-3 mb-3">
         <form action="" method="POST">
             <div class="mb-4 row">
                 <label for="exampleFormControlInput1" class="col-sm-3 col-form-label"></label>

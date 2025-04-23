@@ -85,18 +85,18 @@
         <h5 class="mt-4 mb-4">Suggestions du moment :</h5>
         <div class="row justify-content-center">
             <div class="col-md-4">
-                <div class="card">
+                <div class="card-trajet">
                     <div class="card-header bg-dark text-white text-center py-3">
                         <h4 class="mb-0">Trajet</h4>
                     </div>
-                    <div class="card-body text-center">
+                    <div class="card-body bg-white text-center">
                         <img src="/assets/img/profil.jpg" alt="Profil" class="rounded-circle mb-3" style="width: 90px">
                         <h5 class="card-title">Martigues → Marseille</h5>
                         <p class="card-text">Le 25 avril 2025</p>
                         <p class="card-text">Chauffeur : David</p>
                         <p class="card-text">Places restantes : 1</p>
                         <p class="card-text">Tarif : 20 €</p>
-                        <button class="btn btn-primary">Voir le trajet</button>
+                        <button class="btn btn-primary mb-4">Voir le trajet</button>
                     </div>
                 </div>
             </div>
