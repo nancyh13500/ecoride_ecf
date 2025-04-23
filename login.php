@@ -47,7 +47,7 @@
                     </div>
 
                     <!-- Submit button -->
-                    <button type="submit" class="btn btn-primary btn-block mb-4">Se connecter</button>
+                    <button type="submit" class="btn btn-primary btn-block mb-4 w-100">Se connecter</button>
 
                     <!-- Register buttons -->
                 </form>
@@ -94,7 +94,7 @@
                     </div>
 
                     <!-- Submit button -->
-                    <button type="submit" class="btn btn-primary btn-block mb-3">S'inscrire</button>
+                    <button type="submit" class="btn btn-primary btn-block mb-3 w-100">S'inscrire</button>
 
                     <!-- Login link -->
                 </form>

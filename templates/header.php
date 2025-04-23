@@ -34,9 +34,9 @@
                     <div class="btn-login me-3">
                         <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
                     </div>
-                    <div class="btn-inscription">
+                    <!-- <div class="btn-inscription">
                         <a href="/inscription.php" type="button" class="btn btn-secondary text-dark">S'inscrire</a>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </nav>
