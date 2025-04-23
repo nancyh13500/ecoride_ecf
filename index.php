@@ -29,7 +29,7 @@
                 </div>
             </div>
             <div class="d-flex justify-content-center mt-3">
-                <button type="button" class="btn btn_search text-white w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
+                <button type="button" class="btn btn-primary text-white w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@
                     Découvrez nos offres issues de plus de 15 ans d'expérience et éprouvées auprès de 360 employeurs et collectivités déjà accompagnés.
                 </p><br>
                 <div class="d-flex d-md-flex justify-content-center">
-                    <button type="button" class="btn_contact btn-secondary btn btn-lg px-4 mb-2 me-2">Contactez-nous</button>
+                    <button type="button" class="btn-secondary btn btn-lg px-4 mb-2 me-2">Contactez-nous</button>
                 </div>
             </div>
         </div>

@@ -135,14 +135,6 @@
     z-index: 2;
 }
 
-.btn_search {
-    background-color: var(--primary);
-}
-
-.btn_search:hover {
-    background-color: var(--secondary);
-    color: black !important;
-}
 
 .bi-search:hover {
     color: white;
@@ -155,9 +147,6 @@
     background-color: var(--dark);
 }
 
-.btn_contact {
-    background-color: var(--secondary);
-}
 
 
 
