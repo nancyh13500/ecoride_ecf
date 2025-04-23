@@ -147,10 +147,7 @@
     background-color: var(--secondary);
 }
 
-.btn_contact:hover {
-    background-color: var(--primary);
-    color: white;
-}
+
 
 
 /*en section presentation*/
@@ -171,11 +168,6 @@
     border-color: var(--dark);
 }
 
-.btn_card:hover {
-    background-color: var(--secondary);
-    color: black !important;
-}
-
 .form-check-input {
     float: left;
     margin-left: -0.5em;
@@ -188,10 +180,6 @@
     margin-top: 0.5em;
 }
 
-.btn-filtre:hover {
-    background-color: var(--primary);
-    color: white;
-}
 
 /*end section trajet*/
 
@@ -204,9 +192,7 @@
     background-color: var(--secondary);
 }
 
-.btn_route:hover {
-    background-color: var(--primary);
-}
+
 
 /*end section suggestion_route*/
 
@@ -220,25 +206,16 @@
 
 }
 
-.btn_avis:hover {
-    background-color: var(--primary);
-    color: white;
-}
-
-.btn_tous_avis:hover {
-    background-color: var(--secondary);
-    color: black !important;
-}
-
-
 /*end section avis*/
 
-/*section footer*/
-.footer {
-    background-color: var(--dark);
+/*section contact*/
+
+.btn-contact:hover {
+    color: var(--dark) !important;
 }
 
-/*end footer*/
+/*end section contact*/
+
 
 /*section login*/
 .login-hero {
@@ -256,7 +233,7 @@
     height: 100%;
     background: url('/assets/img/road.jpg') no-repeat center center;
     background-size: cover;
-    opacity: 0.2;
+    opacity: 0.3;
     z-index: 1;
 }
 
@@ -269,21 +246,23 @@
     width: 19rem;
 }
 
-.btn-block:hover {
-    color: white;
+.btn-connect:hover {
+    background-color: var(--primary) !important;
+    color: var(--dark) !important;
 }
 
 .inscription {
     color: var(--secondary) !important;
 }
 
-.btn-inscription a:hover {
-    background-color: var(--primary) !important;
-    color: var(--white) !important;
-}
-
 /*end section login*/
 
+/*section footer*/
+.footer {
+    background-color: var(--dark);
+}
+
+/*end footer*/
 
 /*media queries*/
 @media (max-width: 768px) {
