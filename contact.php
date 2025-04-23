@@ -12,27 +12,23 @@
 
     <div class="container  contact mt-3 mb-3">
         <form action="" method="POST">
-            <div class="mb-4 row">
-                <label for="exampleFormControlInput1" class="col-sm-3 col-form-label"></label>
-                <div class="col-sm-6">
+            <div class="mb-4 row d-flex justify-content-center">
+                <div class="col-md-4">
                     <input type="email" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="Ex. Durand">
                 </div>
             </div>
-            <div class="mb-4 row">
-                <label for="exampleFormControlInput1" class="col-sm-3 col-form-label"></label>
-                <div class="col-sm-6">
+            <div class="mb-4 row d-flex justify-content-center">
+                <div class="col-md-4">
                     <input type="email" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="name@example.com">
                 </div>
             </div>
-            <div class="mb-4 row">
-                <label for="exampleFormControlInput1" class="col-sm-3 col-form-label"></label>
-                <div class="col-sm-6">
+            <div class="mb-4 row d-flex justify-content-center">
+                <div class="col-md-4">
                     <input type="text" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="Sujet">
                 </div>
             </div>
-            <div class="mb-4 row">
-                <label for="exampleFormControlTextarea1" class="col-sm-3 col-form-label"></label>
-                <div class="col-sm-6">
+            <div class="mb-4 row d-flex justify-content-center">
+                <div class="col-md-4">
                     <textarea class="form-control bg-light border-dark rounded" id="exampleFormControlTextarea1" rows="5" placeholder="Message"></textarea>
                 </div>
                 <p class="text-center mt-3">Une réponse vous sera envoyée par mail sous 48 heures</p>

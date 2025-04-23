@@ -80,12 +80,12 @@
         </div>
 
         <h5 class="mb-4">Résultat(s) trouvé(s) :</h5>
-        <p class="text-center lead">Aucun résultats trouvés pour ce trajet</p>
+        <p class="text-center">Aucun résultats trouvés pour ce trajet</p>
 
         <h5 class="mt-4 mb-4">Suggestions du moment :</h5>
         <div class="row justify-content-center">
             <div class="col-md-4">
-                <div class="card-trajet">
+                <div class="card-trajet rounded-top">
                     <div class="card-header bg-dark text-white text-center py-3">
                         <h4 class="mb-0">Trajet</h4>
                     </div>
