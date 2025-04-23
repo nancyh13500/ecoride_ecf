@@ -1,16 +1,13 @@
 <?php require_once __DIR__ . "/templates/header.php";
 ?>
 <section class="contact">
-
-
-
-    <div class=" contact text-center">
-        <div class="container pt-4">
-            <h1 class="contact-title">Contact</h1>
+    <div class="contact-title text-center">
+        <div class="container">
+            <h1 class="contact-title mt-3 mb-3">Contact</h1>
         </div>
     </div>
 
-    <div class="container pt-3 pb-3">
+    <div class="container mt-3 mb-3">
         <form action="" method="POST">
             <div class="mb-4 row">
                 <label for="exampleFormControlInput1" class="col-sm-3 col-form-label"></label>
@@ -33,10 +30,10 @@
             <div class="mb-4 row">
                 <label for="exampleFormControlTextarea1" class="col-sm-3 col-form-label"></label>
                 <div class="col-sm-6">
-                    <textarea class="form-control bg-light border-dark rounded" id="exampleFormControlTextarea1" rows="6" placeholder="Message"></textarea>
+                    <textarea class="form-control bg-light border-dark rounded" id="exampleFormControlTextarea1" rows="5" placeholder="Message"></textarea>
                 </div>
-                <p class="text-center pt-3">Une réponse vous sera envoyée par mail sous 48 heures</p>
-                <div class="text-center pt-1 mb-2">
+                <p class="text-center mt-3">Une réponse vous sera envoyée par mail sous 48 heures</p>
+                <div class="text-center mt-2 mb-2">
                     <a href="*" class="btn btn-primary">Envoyer le message</a>
                 </div>
             </div>
