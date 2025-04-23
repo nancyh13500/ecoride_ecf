@@ -219,6 +219,23 @@
 
 
 /*section login*/
+.background-login {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('/assets/img/road.jpg') no-repeat center center;
+    background-size: cover;
+    opacity: 0.5;
+    z-index: 1;
+}
+
+.login-register {
+    position: relative;
+    z-index: 2;
+}
+
 .password-forget {
     font-size: 13px;
 }
@@ -247,6 +264,8 @@
     width: 16em;
     height: 1em;
 }
+
+
 
 /*end section login*/
 
@@ -286,6 +305,17 @@
     .border.rounded-5 {
         margin: 0.5rem;
     }
+
+    .btn-filtre {
+        margin-top: 30px;
+    }
+
+    .price-min,
+    .price-max,
+    .note {
+        margin-top: 15px;
+    }
+
 }
 
 

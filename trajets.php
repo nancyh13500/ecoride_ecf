@@ -45,27 +45,27 @@
         </div>
 
         <!-- Filters -->
-        <div class="filters mb-5">
-            <div class="row g-3">
-                <div class="col-md-2">
-                    <div class="form-check d-flex flex-column align-items-center">
-                        <label class="form-check-label mb-2" for="ecoTrip">
+        <div class="filters mb-4">
+            <div class="row">
+                <div class="col-md-2 text-center">
+                    <div class="form-check d-flex flex-column justify-content-center align-items-center">
+                        <label class="form-check-label-eco mb-2" for="ecoTrip">
                             Voyage écologique
                         </label>
-                        <input class="form-check-input" type="checkbox" id="ecoTrip">
+                        <input class="form-check-input mt-3 border-dark align-items-end" type="checkbox" id="ecoTrip">
                     </div>
                 </div>
 
                 <div class="col-md-2 text-center">
-                    <label class="form-label">Prix minimum (€)</label>
+                    <label class="form-label price-min">Prix minimum (€)</label>
                     <input type="number" class="form-control" placeholder="Prix min">
                 </div>
                 <div class="col-md-2 text-center">
-                    <label class="form-label">Prix maximum (€)</label>
+                    <label class="form-label price-max">Prix maximum (€)</label>
                     <input type="number" class="form-control" placeholder="Prix max">
                 </div>
                 <div class="col-md-3 text-center">
-                    <label class="form-label">Note minimale</label>
+                    <label class="form-label note">Note minimale</label>
                     <select class="form-select">
                         <option selected>Toutes les notes</option>
                         <option value="5">5 étoiles</option>
@@ -73,16 +73,16 @@
                         <option value="3">3 étoiles et plus</option>
                     </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
+                <div class="col-md-3 d-flex justify-content-center align-items-end">
                     <button class="btn btn-filtre text-dark btn-secondary w-50">Filtrer</button>
                 </div>
             </div>
         </div>
 
-        <h3 class="mb-4">Résultats trouvés :</h3>
+        <h5 class="mb-4">Résultat(s) trouvé(s) :</h5>
         <p class="text-center lead">Aucun résultats trouvés pour ce trajet</p>
 
-        <h3 class="mt-4 mb-4">Suggestions du moment :</h3>
+        <h5 class="mt-4 mb-4">Suggestions du moment :</h5>
         <div class="row justify-content-center">
             <div class="col-md-4">
                 <div class="card">

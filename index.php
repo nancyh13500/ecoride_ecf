@@ -29,7 +29,7 @@
                 </div>
             </div>
             <div class="d-flex justify-content-center mt-3">
-                <button type="button" class="btn btn-primary text-white w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
+                <button type="submit" class="btn btn-primary text-white w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
             </div>
         </div>
     </div>
