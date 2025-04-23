@@ -216,6 +216,10 @@
 
 
 /*section login*/
+.password-forget {
+    font-size: 13px;
+}
+
 .login-register {
     min-height: 100vh;
     display: flex;
@@ -284,10 +288,22 @@
     color: var(--primary);
 }
 
-.form-check-label {
-    width: 11em;
+.form-check-login {
+    display: flex;
+    min-height: 1.5rem;
+    padding-left: 2.5em;
+    margin-bottom: .125rem;
+}
+
+.form-check-label-login {
+    width: 9em;
     height: 1em;
-    margin-top: 0.8em;
+    margin-left: 0.5em;
+}
+
+.form-check-label-register {
+    width: 16em;
+    height: 1em;
 }
 
 /*end section login*/

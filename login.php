@@ -27,15 +27,18 @@
                                     <label class="form-label" for="loginPassword"></label>
                                 </div>
 
-                                <div class="row mb-4 align-items-center">
-                                    <div class="col-md-8 d-flex justify-content-center">
-                                        <div class="form-check">
-                                            <input class="form-check-input border-dark" type="checkbox" value="" id="loginCheck" />
-                                            <label class="form-check-label justify-content-center" for="loginCheck">Se souvenir de moi</label>
+                                <div class="row mb-4">
+                                    <div class="col-md-6 d-flex justify-content-center align-items-center">
+                                        <!-- Checkbox -->
+                                        <div class="form-check-login">
+                                            <input class="form-check-input border-dark" type="checkbox" value="" id="loginCheck">
+                                            <label class="form-check-label-login" for="loginCheck">Rester connecté</label>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 d-flex justify-content-center">
-                                        <a href="#">Mot de passe oublié ?</a>
+
+                                    <div class="col-md-6 d-flex justify-content-center">
+                                        <!-- Simple link -->
+                                        <a href="#">Mot de passe oublié</a>
                                     </div>
                                 </div>
 
@@ -69,15 +72,19 @@
                                     <input type="password" id="registerRepeatPassword" class="form-control border-dark bg-light" placeholder="Confirmer mot de passe" required>
                                     <label class="form-label" for="registerRepeatPassword"></label>
                                 </div>
+                                <div class="row mb-4 align-items-center">
 
-                                <div class="form-check d-flex justify-content-center mb-4">
-                                    <input class="form-check-input me-2 border-dark" type="checkbox" value="" id="registerCheck" required>
-                                    <label class="form-check-label" for="registerCheck">
-                                        J'accepte les conditions d'utilisation
-                                    </label>
+                                    <div class="form-check col-md-2 d-flex justify-content-center mb-4">
+                                        <input class="form-check-input me-2 border-dark" type="checkbox" value="" id="registerCheck" required>
+                                    </div>
+                                    <div class="form-check col-md-10 d-flex justify-content-center mb-4">
+                                        <label class="form-check-label-register" for="registerCheck">
+                                            J'accepte les conditions d'utilisation
+                                        </label>
+                                    </div>
                                 </div>
 
-                                <button type="submit" class="btn btn-connect btn-secondary text-dark btn-block mb-3 w-100">S'inscrire</button>
+                                <button type="submit" class="btn btn-connect btn-secondary text-dark btn-block mt-3 mb-3 w-100">S'inscrire</button>
                             </form>
                         </div>
                     </div>

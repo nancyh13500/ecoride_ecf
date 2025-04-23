@@ -3,7 +3,7 @@
 <section class="contact">
     <div class="contact-title text-center">
         <div class="container">
-            <h1 class="contact-title mt-3 mb-3">Contact</h1>
+            <h1 class="contact-title mt-3 mb-3 fw-bold">Contact</h1>
         </div>
     </div>
 
