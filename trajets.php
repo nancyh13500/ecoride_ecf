@@ -91,7 +91,7 @@
                     </div>
                     <div class="card-body bg-white text-center">
                         <img src="/assets/img/profil.jpg" alt="Profil" class="rounded-circle mb-3" style="width: 90px">
-                        <h5 class="card-title">Martigues → Marseille</h5>
+                        <h5 class="card-title mb-3">Martigues → Marseille</h5>
                         <p class="card-text">Le 25 avril 2025</p>
                         <p class="card-text">Chauffeur : David</p>
                         <p class="card-text">Places restantes : 1</p>
