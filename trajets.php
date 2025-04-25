@@ -83,13 +83,13 @@
         <p class="text-center">Aucun résultats trouvés pour ce trajet</p>
 
         <h5 class="mt-4 mb-4">Suggestions du moment :</h5>
-        <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div class="card-trajet rounded-top">
-                    <div class="card-header bg-dark text-white text-center py-3">
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-3">
+                <div class="card-trajet">
+                    <div class="card-header bg-dark text-white text-center rounded-top py-3">
                         <h4 class="mb-0">Trajet</h4>
                     </div>
-                    <div class="card-body bg-white text-center">
+                    <div class="card-body bg-white text-center rounded-bottom">
                         <img src="/assets/img/profil.jpg" alt="Profil" class="rounded-circle mb-3" style="width: 90px">
                         <h5 class="card-title mb-3">Martigues → Marseille</h5>
                         <p class="card-text">Le 25 avril 2025</p>
@@ -101,6 +101,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 </section>
 

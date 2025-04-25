@@ -213,10 +213,6 @@
 
 /*section contact*/
 
-.btn-contact:hover {
-    color: var(--dark) !important;
-}
-
 .background-contact {
     position: absolute;
     top: 0;
@@ -333,10 +329,6 @@
     .price-max,
     .note {
         margin-top: 15px;
-    }
-
-    .card-trajet {
-        width: 50%;
     }
 
 }
