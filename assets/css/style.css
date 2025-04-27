@@ -148,10 +148,6 @@
     background-color: var(--dark);
 }
 
-
-
-
-
 /*en section presentation*/
 
 /*section trajet*/
@@ -194,9 +190,35 @@
     background-color: var(--secondary);
 }
 
-
-
 /*end section suggestion_route*/
+
+/*section publish*/
+
+.form-name,
+.form-adress {
+    margin-left: 0;
+}
+
+/* .form-outline,
+.form-control,
+.form-label {
+    position: absolute;
+    top: 0;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    left: .75rem;
+    padding-top: .37rem;
+    pointer-events: none;
+    transform-origin: 0 0;
+    transition: all .2s ease-out;
+    color: var(--mdb-form-control-label-color);
+    margin-bottom: 0;
+} */
+
+
+/*end section publish*/
 
 /*section avis*/
 .avis {
@@ -331,6 +353,12 @@
         margin-top: 15px;
     }
 
+}
+
+@media (min-width: 1025px) {
+    .h-custom {
+        height: 100vh !important;
+    }
 }
 
 
