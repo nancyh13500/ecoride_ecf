@@ -14,26 +14,26 @@
         <form action="" method="POST">
             <div class="mb-4 row d-flex justify-content-center">
                 <div class="col-md-4">
-                    <input type="email" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="Ex. Durand">
+                    <input type="text" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="Ex. Durand" required>
                 </div>
             </div>
             <div class="mb-4 row d-flex justify-content-center">
                 <div class="col-md-4">
-                    <input type="email" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="name@example.com">
+                    <input type="email" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="name@example.com" required>
                 </div>
             </div>
             <div class="mb-4 row d-flex justify-content-center">
                 <div class="col-md-4">
-                    <input type="text" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="Sujet">
+                    <input type="text" class="form-control bg-light border-dark rounded" id="exampleFormControlInput1" placeholder="Sujet" required>
                 </div>
             </div>
             <div class="mb-4 row d-flex justify-content-center">
                 <div class="col-md-4">
-                    <textarea class="form-control bg-light border-dark rounded" id="exampleFormControlTextarea1" rows="5" placeholder="Message"></textarea>
+                    <textarea class="form-control bg-light border-dark rounded" id="exampleFormControlTextarea1" rows="5" placeholder="Message" required></textarea>
                 </div>
                 <p class="text-center mt-3">Une réponse vous sera envoyée par mail sous 48 heures</p>
                 <div class="text-center mt-2 mb-2">
-                    <a href="*" class="btn btn-secondary">Envoyer le message</a>
+                    <button type="submit" class="btn btn-secondary">Envoyer le message</button>
                 </div>
             </div>
         </form>

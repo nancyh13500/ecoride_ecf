@@ -53,7 +53,7 @@
                     Découvrez nos offres issues de plus de 15 ans d'expérience et éprouvées auprès de 360 employeurs et collectivités déjà accompagnés.
                 </p><br>
                 <div class="d-flex d-md-flex justify-content-center">
-                    <button type="button" class="btn-secondary btn btn-lg px-4 mb-2 me-2">Contactez-nous</button>
+                    <a type="button" href="/contact.php" role="button" class="btn-secondary btn btn-lg px-4 mb-2 me-2">Contactez-nous</a>
                 </div>
             </div>
         </div>
@@ -132,7 +132,7 @@
             <h1 class="display-5 fw-bold mt-3 mb-3">Vous avez une voiture ?</h1>
             <p class="lead">Faites des économies, publiez une annonce.</p>
             <div class="d-flex mt-5 justify-content-center">
-                <button type="button" class="btn_route btn btn-secondary btn-lg px-4">Proposer des places</button>
+                <a type="button" href="/publish.php" role="button" class="btn_route btn btn-secondary btn-lg px-4">Proposer des places</a>
             </div>
         </div>
     </div>

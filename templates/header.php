@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="http://localhost/ecoride_ecf/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
 
 
 </head>
@@ -30,7 +30,7 @@
                     <ul class="navbar-nav mx-auto">
                         <li class="nav-item"><a class="nav-link active" aria-current="page" href="/index.php">Accueil</a></li>
                         <li class="nav-item"><a class="nav-link" href="trajets.php">Trajets</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Publier une annonce</a></li>
+                        <li class="nav-item"><a class="nav-link" href="publish.php">Publier une annonce</a></li>
                         <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
                     </ul>
                     <div class="btn-login me-3">
