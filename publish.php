@@ -1,7 +1,7 @@
 <?php require_once __DIR__ . "/templates/header.php";
 ?>
 
-<section class="publish w-100 px-4 py-5">
+<section class="hero publish w-100 px-4 py-5">
 
     <div class="publish-title text-center ">
         <div class="container">

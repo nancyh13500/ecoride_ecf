@@ -1,18 +1,27 @@
 // Navbar scroll effect
 document.addEventListener('DOMContentLoaded', function() {
     const navbar = document.querySelector('.navbar');
+    let lastScrollTop = 0;
     
-    // Hide navbar initially
-    navbar.style.transform = 'translateY(-100%)';
+    // Add transition for smooth effect
+    navbar.style.transition = 'transform 0.3s ease-in-out';
     
     window.addEventListener('scroll', function() {
-        if (window.scrollY > 0) {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (scrollTop > lastScrollTop) {
+            // Scrolling down
+            if (scrollTop > 50) {
+                navbar.style.transform = 'translateY(0)';
+                navbar.classList.add('navbar-scrolled');
+            }
+        } else {
+            // Scrolling up
             navbar.style.transform = 'translateY(0)';
             navbar.classList.add('navbar-scrolled');
-        } else {
-            navbar.style.transform = 'translateY(-100%)';
-            navbar.classList.remove('navbar-scrolled');
         }
+        
+        lastScrollTop = scrollTop;
     });
 
     // Mobile menu toggle

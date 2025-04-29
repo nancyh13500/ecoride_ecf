@@ -2,7 +2,7 @@
 ?>
 
 
-<section class="hero">
+<section class="hero px-4 py-5">
     <div class="background-contact"></div>
     <div class="contact-title text-black text-center">
         <div class="container">

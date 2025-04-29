@@ -108,6 +108,8 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
+    margin-top: 100px;
+
 }
 
 /*section navbar*/
@@ -117,16 +119,13 @@
 
 nav {
     display: flex;
-    /* Juste flex ou juste grid, pas les deux */
-    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100px;
-    background-color: var(--light);
+    background: var(--light);
+    height: -150px;
     transition: top 0.3s;
-    z-index: 999;
-    /* pour passer au-dessus du contenu */
+    z-index: 5;
 }
 
 /*end section navbar

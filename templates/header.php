@@ -17,26 +17,25 @@
 
 <body>
     <!-- section Header -->
-    <section class="header">
-        <nav class="navbar navbar-expand-lg bg-light" id="navbar">
-            <div class="container">
-                <a class="navbar-brand d-flex align-items-center" href="/index.php">
-                    <img src="/assets/logo/logo.png" alt="logo ecoride" width="120" />
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav mx-auto">
-                        <li class="nav-item"><a class="nav-link active" aria-current="page" href="/index.php">Accueil</a></li>
-                        <li class="nav-item"><a class="nav-link" href="trajets.php">Trajets</a></li>
-                        <li class="nav-item"><a class="nav-link" href="publish.php">Publier une annonce</a></li>
-                        <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
-                    </ul>
-                    <div class="btn-login me-3">
-                        <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
-                    </div>
+
+    <nav class="navbar navbar-expand-lg bg-light position-fixed" id="navbar">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/index.php">
+                <img src="/assets/logo/logo.png" alt="logo ecoride" width="120" />
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="/index.php">Accueil</a></li>
+                    <li class="nav-item"><a class="nav-link" href="trajets.php">Trajets</a></li>
+                    <li class="nav-item"><a class="nav-link" href="publish.php">Publier une annonce</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
+                </ul>
+                <div class="btn-login me-3">
+                    <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
                 </div>
             </div>
-        </nav>
-    </section>
+        </div>
+    </nav>
