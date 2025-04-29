@@ -41,7 +41,7 @@
     <div class="col-xxl-12 px-4 py-5">
         <div class="row flex-lg justify-content-center align-items-center">
             <div class="card_img col-lg-6">
-                <img src="/assets/img/friends-car.jpg" class="d-flex mx-lg-auto img-fluid rounded" alt="friends-car" width="700" height="500" loading="lazy">
+                <img src="/assets/img/friends-car.jpg" class="d-flex mx-lg-auto img-fluid rounded" alt="friends-car" width="700" height="500" loading="lazy" id="imageFriends">
             </div>
             <div class="card_text col-lg-6 pt-2 pb-2">
                 <h1 class="fw-bold text-center text-white mb-3">Pourquoi choisir EcoRide ?</h1>
@@ -126,7 +126,7 @@
 <section class="suggesting_route">
     <div class="row flex-lg-row-reverse justify-content-center align-items-center py-5 text-white text-center">
         <div class="d-flex col-10 col-sm-8 col-lg-6 justify-content-center align-items-center">
-            <img src="/assets/img/covoiturage.jpg" class="img_covoiturage image-fluid rounded" alt="covoiturage" width="400" height="250">
+            <img src="/assets/img/covoiturage.jpg" class="img_covoiturage image-fluid rounded" alt="covoiturage" width="400" height="250" id="img_covoiturage">
         </div>
         <div class="col-lg-6">
             <h1 class="display-5 fw-bold mt-3 mb-3">Vous avez une voiture ?</h1>

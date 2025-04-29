@@ -18,7 +18,7 @@
 <body>
     <!-- section Header -->
     <section class="header">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand-lg bg-light" id="navbar">
             <div class="container">
                 <a class="navbar-brand d-flex align-items-center" href="/index.php">
                     <img src="/assets/logo/logo.png" alt="logo ecoride" width="120" />

@@ -115,6 +115,20 @@
     background-color: var(--light);
 }
 
+nav {
+    display: flex;
+    /* Juste flex ou juste grid, pas les deux */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background-color: var(--light);
+    transition: top 0.3s;
+    z-index: 999;
+    /* pour passer au-dessus du contenu */
+}
+
 /*end section navbar
 
 /*section search*/
@@ -146,6 +160,14 @@
 /*section presentation*/
 .presentation {
     background-color: var(--dark);
+}
+
+#img_covoiturage {
+    width: 100%;
+    padding: 2rem;
+    opacity: 0;
+    transform: translateX(-200px);
+    transition: 1s ease-in;
 }
 
 /*en section presentation*/
@@ -198,24 +220,6 @@
 .form-adress {
     margin-left: 0;
 }
-
-/* .form-outline,
-.form-control,
-.form-label {
-    position: absolute;
-    top: 0;
-    max-width: 90%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    left: .75rem;
-    padding-top: .37rem;
-    pointer-events: none;
-    transform-origin: 0 0;
-    transition: all .2s ease-out;
-    color: var(--mdb-form-control-label-color);
-    margin-bottom: 0;
-} */
 
 
 /*end section publish*/

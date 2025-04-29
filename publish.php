@@ -19,7 +19,7 @@
                 <div class="card-body p-4 p-md-5">
                     <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 px-md-2">Informations</h3>
 
-                    <form class="px-md-2" data-gtm-form-interact-id="0">
+                    <form class="px-md-2">
                         <div class="row">
                             <div data-mdb-input-init="" class="col-md-6 form-outline form-name mb-4" data-mdb-input-initialized="true">
                                 <label class="form-label" for="form3Example1q">Nom</label>
@@ -33,13 +33,13 @@
 
                         <div class="row">
                             <div class="col-md-6">
-                                <div data-mdb-input-init="" class="form-outline datepicker" data-mdb-input-initialized="true">
+                                <div data-mdb-input-init="" class="form-outline datepicker mb-4" data-mdb-input-initialized="true">
                                     <label for="exampleDatepicker1" class="form-label form-adress">Adresse</label>
                                     <input type="text" class="form-control bg-light" id="exampleDatepicker1" required>
                                 </div>
                             </div>
                             <div class=" col-md-6">
-                                <div id="select-wrapper-644779" class="select-wrapper">
+                                <div id="select-wrapper-644779" class="select-wrapper mb-4">
                                     <div class="form-label select-fake-value">Complément adresse</div>
                                     <div class="form-outline" data-mdb-input-init="" data-mdb-input-initialized="true"><input class="form-control select-input placeholder-active active bg-light mb-3" type="text" role="combobox" aria-disabled="false" aria-haspopup="listbox" aria-expanded="false" aria-controls="select-dropdown-container-206827" id="select-input-849282" readonly="true"><span class="select-arrow"></span>
                                     </div>
@@ -49,21 +49,38 @@
 
                         <div class="row">
                             <div class="col-md-4">
-                                <div data-mdb-input-init="" class="form-outline" data-mdb-input-initialized="true">
+                                <div data-mdb-input-init="" class="form-outline mb-4" data-mdb-input-initialized="true">
                                     <label class="form-label" for="form3Example1w">CP</label>
                                     <input type="text" id="form3Example1w" class="form-control bg-light" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div data-mdb-input-init="" class="form-outline" data-mdb-input-initialized="true">
+                                <div data-mdb-input-init="" class="form-outline mb-4" data-mdb-input-initialized="true">
                                     <label class="form-label" for="form3Example1w">Ville</label>
                                     <input type="text" id="form3Example1w" class="form-control bg-light" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div data-mdb-input-init="" class="form-outline" data-mdb-input-initialized="true">
+                                <div data-mdb-input-init="" class="form-outline mb-4" data-mdb-input-initialized="true">
                                     <label class="form-label" for="form3Example1w">Téléphone</label>
                                     <input type="text" id="form3Example1w" class="form-control bg-light" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                <label class="form-label" for="form3Example1q">Nombre de places</label>
+                                <input type="text" id="form3Example1q" class="form-control bg-light" required>
+                            </div>
+                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                <label class="form-label" for="form3Example1q">Prix / personne</label>
+                                <input type="text" id="form3Example1q" class="form-control bg-light" required>
+                            </div>
+                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                <label class="form-label text-center w-100" for="gridCheck">Voyage écologique</label>
+                                <div class="mt-2 d-flex justify-content-center">
+                                    <input class="form-check-input border-dark" type="checkbox" id="gridCheck">
                                 </div>
                             </div>
                         </div>
