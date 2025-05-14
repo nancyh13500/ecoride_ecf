@@ -1,4 +1,5 @@
-<?php require_once __DIR__ . "/templates/header.php";
+<?php require_once __DIR__ . "/../templates/header.php";
+
 ?>
 
 <section class="hero publish w-100 px-4 py-5">
@@ -15,7 +16,7 @@
     <div class="row d-flex justify-content-center">
         <div class="col-lg-8 col-xl-7">
             <div class="card rounded-3">
-                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-registration/img3.webp" class="w-100" style="border-top-left-radius: .3rem; border-top-right-radius: .3rem;" alt="Sample photo">
+                <img src="/assets/img/city.webp" class="img_city w-100 rounded-top" alt="city">
                 <div class="card-body p-4 p-md-5">
                     <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 px-md-2">Informations</h3>
 
@@ -96,5 +97,5 @@
 
 </section>
 
-<?php require_once __DIR__ . "/templates/footer.php";
+<?php require_once __DIR__ . "/../templates/footer.php";
 ?>

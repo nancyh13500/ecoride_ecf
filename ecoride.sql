@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 02 mai 2025 à 16:37
+-- Généré le : jeu. 08 mai 2025 à 08:47
 -- Version du serveur : 8.3.0
 -- Version de PHP : 8.2.18
 
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `covoiturage` (
   `date_arrivee` date NOT NULL,
   `heure_arrivee` date NOT NULL,
   `lieu_arrivee` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `statut` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `statut` tinyint(1) NOT NULL,
   `nb_place` int NOT NULL,
   `prix_personne` float NOT NULL,
   `user_id` int NOT NULL,
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `nom` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `prenom` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `email` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `telephone` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `adresse` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `date_naissance` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
@@ -143,7 +143,14 @@ CREATE TABLE IF NOT EXISTS `user` (
   `role_id` int NOT NULL,
   PRIMARY KEY (`user_id`),
   KEY `user_ibfk_1` (`role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `user`
+--
+
+INSERT INTO `user` (`user_id`, `nom`, `prenom`, `email`, `password`, `telephone`, `adresse`, `date_naissance`, `photo`, `pseudo`, `role_id`) VALUES
+(1, 'test', 'test', 'test@test.com', '\'$2y$10$slFhjE6RYtM9dAhV7dbI2eipc.Mj939Ez0rrGAz10d', '', '', '', '', '', 1);
 
 -- --------------------------------------------------------
 

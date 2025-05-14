@@ -29,12 +29,16 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item"><a class="nav-link active" aria-current="page" href="/index.php">Accueil</a></li>
-                    <li class="nav-item"><a class="nav-link" href="trajets.php">Trajets</a></li>
-                    <li class="nav-item"><a class="nav-link" href="publish.php">Publier une annonce</a></li>
-                    <li class="nav-item"><a class="nav-link" href="contact.php">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/pages/trajets.php">Trajets</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/pages/publish.php">Publier une annonce</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/pages/contact.php">Contact</a></li>
                 </ul>
-                <div class="btn-login me-3">
-                    <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
+                <div class="col-md-3">
+                    <?php if (isset($_session['user'])) { ?>
+                        <a href="/logout.php" type="button" class="btn bg-dark btn-outline-secondary">Déconnexion</a>
+                    <?php } else { ?>
+                        <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
+                    <?php } ?>
                 </div>
             </div>
         </div>

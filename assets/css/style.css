@@ -161,13 +161,12 @@ nav {
     background-color: var(--dark);
 }
 
-#img_covoiturage {
+/* #imageFriends {
     width: 100%;
-    padding: 2rem;
     opacity: 0;
     transform: translateX(-200px);
     transition: 1s ease-in;
-}
+} */
 
 /*en section presentation*/
 
@@ -197,6 +196,20 @@ nav {
     width: 1em;
     height: 1em;
     margin-top: 0.5em;
+}
+
+.img_covoiturage {
+    display: flex;
+    width: 25%;
+    align-items: center;
+    text-align: center;
+}
+
+#img_covoiturage {
+    width: 100%;
+    opacity: 0;
+    transform: translateX(0px);
+    transition: 1s ease-in;
 }
 
 
@@ -309,6 +322,15 @@ nav {
 
 /*end section login*/
 
+/*section mentions legales*/
+
+.mentions_legales {
+    position: absolute;
+    margin-top: 20px;
+}
+
+/*end section mentions legales
+
 /*section footer*/
 .footer {
     background-color: var(--dark);
@@ -354,6 +376,13 @@ nav {
     .price-max,
     .note {
         margin-top: 15px;
+    }
+
+    .img_covoiturage {
+        display: flex;
+        width: 90%;
+        align-items: center;
+        text-align: center;
     }
 
 }
