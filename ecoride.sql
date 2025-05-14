@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 02 mai 2025 à 16:24
+-- Généré le : ven. 02 mai 2025 à 16:37
 -- Version du serveur : 8.3.0
 -- Version de PHP : 8.2.18
 
@@ -66,6 +66,28 @@ CREATE TABLE IF NOT EXISTS `covoiturage` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `energie`
+--
+
+DROP TABLE IF EXISTS `energie`;
+CREATE TABLE IF NOT EXISTS `energie` (
+  `energie_id` int NOT NULL AUTO_INCREMENT,
+  `libelle` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`energie_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `energie`
+--
+
+INSERT INTO `energie` (`energie_id`, `libelle`) VALUES
+(1, 'Essence'),
+(2, 'Diesel'),
+(3, 'Elèctrique');
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `marque`
 --
 
@@ -90,6 +112,15 @@ CREATE TABLE IF NOT EXISTS `role` (
   `libelle` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`role_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `role`
+--
+
+INSERT INTO `role` (`role_id`, `libelle`) VALUES
+(1, 'Administrateur'),
+(2, 'Employé'),
+(3, 'Utilisateur');
 
 -- --------------------------------------------------------
 
@@ -130,9 +161,11 @@ CREATE TABLE IF NOT EXISTS `voiture` (
   `date_premire_immatriculation` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `marque_id` int NOT NULL,
   `user_id` int NOT NULL,
+  `energie_id` int NOT NULL,
   PRIMARY KEY (`voiture_id`),
   KEY `voiture_ibfk_1` (`marque_id`),
-  KEY `voiture_ibfk_2` (`user_id`)
+  KEY `voiture_ibfk_2` (`user_id`),
+  KEY `voiture_ibfk_3` (`energie_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -163,7 +196,8 @@ ALTER TABLE `user`
 --
 ALTER TABLE `voiture`
   ADD CONSTRAINT `voiture_ibfk_1` FOREIGN KEY (`marque_id`) REFERENCES `marque` (`marque_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  ADD CONSTRAINT `voiture_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+  ADD CONSTRAINT `voiture_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `voiture_ibfk_3` FOREIGN KEY (`energie_id`) REFERENCES `energie` (`energie_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
