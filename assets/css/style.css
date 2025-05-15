@@ -333,6 +333,10 @@ nav {
     background-color: var(--dark);
 }
 
+.bi-person {
+    font-size: 3rem;
+}
+
 /*end footer*/
 
 /*media queries*/
