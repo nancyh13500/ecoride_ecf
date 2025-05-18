@@ -123,7 +123,6 @@
 <!-- end section trajet-->
 
 <!-- section proposition trajet-->
-
 <section class="suggesting_route">
     <div class="row flex-lg-row-reverse justify-content-center align-items-center py-5 text-white text-center">
         <div class="img_covoiturage d-flex col-sm-12 col-md-6 col-lg-6 justify-content-center align-items-center">
@@ -141,13 +140,10 @@
 <!-- end section proposition-->
 
 <!-- section avis -->
-
-
 <section class="avis">
     <div class="container py-5">
         <h1 class="text-center mb-5">Chaque avis nous donne un peu plus envie</h1>
         <div class="row justify-content-center g-4">
-            <button class="btn btn-link fs-2"><i class="fas fa-chevron-left"></i></button>
             <div class="col-md-3">
                 <div class="card p-3 shadow-sm">
                     <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
@@ -195,7 +191,6 @@
                     <h5 class="text-center fw-bold mb-2">David, novembre 2023</h5>
                     <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
                 </div>
-                <button class="btn btn-link fs-2"><i class="fas fa-chevron-right"></i></button>
             </div>
         </div>
         <div class="container text-center p-4">
@@ -211,10 +206,6 @@
 
     </div>
 </section>
-
-
-
-
 <!-- end section avis -->
 
 

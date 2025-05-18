@@ -7,9 +7,10 @@ EcoRide est une plateforme web de covoiturage mettant en avant une démarche éc
 📌Prérequis
 
 Avant toute utilisation, vous devez installer :
-Git
-PHP 8+
-Composer
-MySQL et MongoDB
-Un serveur local comme WAMP, XAMPP ou autre pour exécuter l'application en local
-Un navigateur web moderne comme CHROME ou FIREFOX
+* Git
+* PHP 8+
+* Composer
+* MySQL et MongoDB
+* Un serveur local comme WAMP, XAMPP ou autre pour exécuter l'application en local
+* Un navigateur web moderne comme CHROME ou FIREFOX
+
