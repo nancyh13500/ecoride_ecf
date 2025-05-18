@@ -109,7 +109,6 @@
     height: 100%;
     overflow: hidden;
     margin-top: 100px;
-
 }
 
 /*section navbar*/
@@ -250,6 +249,14 @@ nav {
 /*end section avis*/
 
 /*section contact*/
+
+/* .hero_contact {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    margin-top: 49px;
+} */
 
 .background-contact {
     position: absolute;

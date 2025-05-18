@@ -4,7 +4,7 @@
 
 <section class="hero px-4 py-5">
     <div class="background-contact"></div>
-    <div class="contact-title text-black text-center">
+    <div class="contact-title text-black text-center mt-5">
         <div class="container">
             <h1 class="contact-title mt-3 mb-3 fw-bold">Contact</h1>
         </div>

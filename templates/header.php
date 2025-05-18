@@ -21,7 +21,7 @@
     <nav class="navbar navbar-expand-lg bg-light position-fixed" id="navbar">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="/index.php">
-                <img src="/assets/logo/logo.png" alt="logo ecoride" width="120" />
+                <img src="/assets/logo/logo.png" alt="logo ecoride" width="80" />
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>

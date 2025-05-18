@@ -1,24 +1,28 @@
 <!-- section footer-->
 <div class="footer">
     <footer class="d-flex flex-wrap justify-content-center align-items-center">
-        <a href="/index.php" class="col-md-12 d-flex align-items-center justify-content-center mb-0">
-            <img src="/assets/logo/logo_dark.png" alt="logo checkit" width="120">
-        </a>
-        <p class="col-md-12 text-center text-white align-items-center text-body-dark mt-3">
-            Ecoride votre partenaire de covoiturage régulier domicile travail à Marseille, ses alentours et dans toute la France. Un site dédié au covoiturage en semaine et le week-end.
-        </p>
-        <p class="col-md-4 justify-content-center align-items-center">
-            <a href="/pages/mentions_legales.php" class="text-white">Mentions légales</a>
+        <div class="row">
 
-        </p>
+            <a href="/index.php" class="col-md-12 d-flex align-items-center justify-content-center mb-0">
+                <img src="/assets/logo/logo_dark.png" alt="logo checkit" width="120">
+            </a>
+            <p class="col-md-12 text-center text-white align-items-center text-body-dark mt-3">
+                Ecoride votre partenaire de covoiturage régulier domicile travail à Marseille, ses alentours et dans toute la France. Un site dédié au covoiturage en semaine et le week-end.
+            </p>
+            <p class="col-md-4 text-center justify-content-center align-items-center mt-3">
+                <a href="/pages/mentions_legales.php" class="text-white">Mentions légales</a>
 
-        <p class="col-md-4 text-center text-white align-items-center text-body-dark mt-3">@ Nancy WebAgency @2025</p>
+            </p>
 
-        <ul class="nav col-md-4 justify-content-center align-items-end">
-            <li class="ms-3"><a class="text-white" href="#"><i class="bi bi-facebook"></i></a></li>
-            <li class="ms-3"><a class="text-white" href="#"><i class="bi bi-instagram"></i></a></li>
-            <li class="ms-3"><a class="text-white" href="#"><i class="bi bi-envelope-open"></i></i></a></li>
-        </ul>
+            <p class="col-md-4 text-center text-white align-items-center text-body-dark mt-3">@ Nancy WebAgency @2025</p>
+
+            <ul class="nav col-md-4 justify-content-center align-items-center">
+                <li class="ms-3 me-3"><a class="text-white" href="#"><i class="bi bi-facebook"></i></a></li>
+                <li class="ms-3 me-3"><a class="text-white" href="#"><i class="bi bi-instagram"></i></a></li>
+                <li class="ms-3 me-3"><a class="text-white" href="#"><i class="bi bi-envelope-open"></i></i></a></li>
+            </ul>
+        </div>
+
     </footer>
 </div>
 <!-- end section footer-->
