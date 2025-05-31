@@ -1,6 +1,6 @@
 <?php
 session_set_cookie_params([
-    'lifetime' => 4200,
+    'lifetime' => 3600,
     'path' => '/',
     'domain' => '.ecoride',
     'httponly' => true

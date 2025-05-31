@@ -31,56 +31,66 @@
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div data-mdb-input-init="" class="form-outline datepicker mb-4" data-mdb-input-initialized="true">
-                                    <label for="exampleDatepicker1" class="form-label form-adress">Adresse</label>
+                        <!-- <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div data-mdb-input-init="" class="form-outline mb-4" data-mdb-input-initialized="true">
+                                    <label for="exampleDatepicker1" class="form-label form-adress lieu_depart">Adresse départ</label>
                                     <input type="text" class="form-control bg-light" id="exampleDatepicker1" required>
                                 </div>
                             </div>
-                            <div class=" col-md-6">
-                                <div id="select-wrapper-644779" class="select-wrapper mb-4">
-                                    <div class="form-label select-fake-value">Complément adresse</div>
-                                    <div class="form-outline" data-mdb-input-init="" data-mdb-input-initialized="true"><input class="form-control select-input placeholder-active active bg-light mb-3" type="text" role="combobox" aria-disabled="false" aria-haspopup="listbox" aria-expanded="false" aria-controls="select-dropdown-container-206827" id="select-input-849282" readonly="true"><span class="select-arrow"></span>
-                                    </div>
+                            <div class="col-md-6 mb-4">
+                                <div data-mdb-input-init="" class="form-outline mb-4" data-mdb-input-initialized="true">
+                                    <label for="exampleDatepicker2" class="form-label form-adress lieu_arrivee">Adresse d'arrivée</label>
+                                    <input type="text" class="form-control bg-light" id="exampleDatepicker1" required>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
 
                         <div class="row">
-                            <div class="col-md-4">
-                                <div data-mdb-input-init="" class="form-outline mb-4" data-mdb-input-initialized="true">
-                                    <label class="form-label" for="form3Example1w">CP</label>
-                                    <input type="text" id="form3Example1w" class="form-control bg-light" required>
-                                </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label city_depart" for="form3Example1w">Ville de départ</label>
+                                <input type="text" id="form3Example1w" class="form-control bg-light" required>
                             </div>
-                            <div class="col-md-4">
-                                <div data-mdb-input-init="" class="form-outline mb-4" data-mdb-input-initialized="true">
-                                    <label class="form-label" for="form3Example1w">Ville</label>
-                                    <input type="text" id="form3Example1w" class="form-control bg-light" required>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div data-mdb-input-init="" class="form-outline mb-4" data-mdb-input-initialized="true">
-                                    <label class="form-label" for="form3Example1w">Téléphone</label>
-                                    <input type="text" id="form3Example1w" class="form-control bg-light" required>
-                                </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label city_arrivee" for="form3Example1w">Ville d'arrivée</label>
+                                <input type="text" id="form3Example1w" class="form-control bg-light" required>
                             </div>
                         </div>
-
                         <div class="row">
+                            <div class="col-md-4 mb-4">
+                                <label class="form-label" for="form3Example1w">Téléphone</label>
+                                <input type="text" id="form3Example1w" class="form-control bg-light" required>
+                            </div>
                             <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
                                 <label class="form-label" for="form3Example1q">Nombre de places</label>
-                                <input type="text" id="form3Example1q" class="form-control bg-light" required>
+                                <input type="number" id="form3Example1q" class="form-control bg-light" required>
                             </div>
                             <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
                                 <label class="form-label" for="form3Example1q">Prix / personne</label>
                                 <input type="text" id="form3Example1q" class="form-control bg-light" required>
                             </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
                                 <label class="form-label text-center w-100" for="gridCheck">Voyage écologique</label>
                                 <div class="mt-2 d-flex justify-content-center">
                                     <input class="form-check-input border-dark" type="checkbox" id="gridCheck">
+                                </div>
+                            </div>
+                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                <label class="form-label text-center w-100" for="gridCheck">Fumeur / Non fumeur</label>
+                                <select class="form-select" aria-label="Default select example">
+                                    <option selected>Choisissez une option</option>
+                                    <option value="1">Fumeur</option>
+                                    <option value="2">Non fumeur</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                <label class="form-label text-center w-100" for="checkNativeSwitch">Animal / pas d'animal</label>
+                                <div class="d-flex justify-content-center align-items-center mt-2">
+                                    <input class="form-check-input border-dark me-2" type="checkbox" id="checkNativeSwitch">
+                                    <label class="form-label mb-0" for="checkNativeSwitch">Autorisé</label>
                                 </div>
                             </div>
                         </div>

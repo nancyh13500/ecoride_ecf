@@ -33,13 +33,17 @@ require_once __DIR__ . "/../lib/session.php";
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item"><a class="nav-link active" aria-current="page" href="/index.php">Accueil</a></li>
                     <li class="nav-item"><a class="nav-link" href="/pages/trajets.php">Trajets</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/pages/publish.php">Publier une annonce</a></li>
+                    <?php if (isset($_SESSION['user'])) { ?>
+                        <li class="nav-item"><a class="nav-link" href="/pages/covoiturage.php">Mon Covoiturage</a></li>
+                    <?php } else { ?>
+                        <li class="nav-item"><a class="nav-link" href="/pages/publish.php">Publier une annonce</a></li>
+                    <?php } ?>
                     <li class="nav-item"><a class="nav-link" href="/pages/contact.php">Contact</a></li>
                 </ul>
                 <div class="col-md-3 d-flex align-items-center">
                     <?php if (isset($_SESSION['user'])) { ?>
-                        <a href="/logout.php" type="button" class="btn bg-dark text-white btn-outline-secondary me-2">Déconnexion</a>
-                        <span class="text-black ms-2">Bienvenue <?= htmlspecialchars($_SESSION['user']['prenom']) ?></span>
+                        <a href="/logout.php" type="button" class="btn bg-dark text-white btn-outline-secondary">Déconnexion</a>
+                        <span class="text-black text-center ms-3">Bienvenue <?= htmlspecialchars($_SESSION['user']['prenom']) ?></span>
                     <?php } else { ?>
                         <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
                     <?php } ?>
