@@ -1,12 +1,14 @@
 <?php
-session_start();
+require_once __DIR__ . "/lib/session.php";
 
-// Détruire toutes les variables de session
-$_SESSION = array();
+//prévient les attaques de fixation de session
+session_regenerate_id(true);
 
-// Détruire la session
+//supprime les données du serveur
 session_destroy();
 
-// Rediriger vers la page d'accueil
-header('Location: index.php');
-exit();
+
+//enleve la session de la memoire des variables $_session
+unset($_SESSION);
+
+header('location: login.php');

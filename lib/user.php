@@ -9,7 +9,6 @@ function verifyUserLoginPassword(PDO $pdo, string $email, string $password): boo
     //fetch() nous permet de récupérer une seule ligne
     $user = $query->fetch(PDO::FETCH_ASSOC);
 
-    var_dump($user);
 
     if ($user && password_verify($password, $user['password'])) {
         // verif ok

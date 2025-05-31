@@ -1,3 +1,6 @@
+<?php
+require_once __DIR__ . "/../lib/session.php";
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -33,9 +36,10 @@
                     <li class="nav-item"><a class="nav-link" href="/pages/publish.php">Publier une annonce</a></li>
                     <li class="nav-item"><a class="nav-link" href="/pages/contact.php">Contact</a></li>
                 </ul>
-                <div class="col-md-3">
-                    <?php if (isset($_session['user'])) { ?>
-                        <a href="/logout.php" type="button" class="btn bg-dark btn-outline-secondary">Déconnexion</a>
+                <div class="col-md-3 d-flex align-items-center">
+                    <?php if (isset($_SESSION['user'])) { ?>
+                        <a href="/logout.php" type="button" class="btn bg-dark text-white btn-outline-secondary me-2">Déconnexion</a>
+                        <span class="text-black ms-2">Bienvenue <?= htmlspecialchars($_SESSION['user']['prenom']) ?></span>
                     <?php } else { ?>
                         <a href="/login.php" type="button" class="btn bg-white btn-outline-secondary">Se connecter</a>
                     <?php } ?>

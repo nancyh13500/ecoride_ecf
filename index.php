@@ -7,8 +7,8 @@
     <div class="background-img"></div>
     <div class="content px-4 py-5 my-5 text-center">
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
+        <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
-            <p class="lead mb-4 ">La solution accessible et durable pour tous.</p>
             <div class="search-bar row">
                 <div class="search-field col-md-4">
                     <div class="input-group">
