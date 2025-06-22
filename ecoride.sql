@@ -254,3 +254,19 @@ COMMIT;
 ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */
 ;
+
+INSERT INTO
+    `marque` (`marque_id`, `libelle`)
+VALUES (1, 'Renault'),
+    (2, 'Peugeot'),
+    (3, 'Tesla'),
+    (4, 'Mercedes'),
+    (5, 'BMW'),
+    (6, 'Porshe'),
+    (7, 'Kia'),
+    (8, 'Audi'),
+    (9, 'Citroen'),
+    (10, 'Volkswagen'),
+    (11, 'Toyota'),
+    (12, 'Ford'),
+    (13, 'Fiat');

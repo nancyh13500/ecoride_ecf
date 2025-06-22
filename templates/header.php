@@ -2,7 +2,7 @@
 require_once __DIR__ . "/../lib/session.php";
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
     <meta charset="UTF-8">
@@ -35,6 +35,7 @@ require_once __DIR__ . "/../lib/session.php";
                     <li class="nav-item"><a class="nav-link" href="/pages/trajets.php">Trajets</a></li>
                     <?php if (isset($_SESSION['user'])) { ?>
                         <li class="nav-item"><a class="nav-link" href="/pages/covoiturage.php">Mon Covoiturage</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/pages/user_count.php">Mon compte</a></li>
                     <?php } else { ?>
                         <li class="nav-item"><a class="nav-link" href="/pages/publish.php">Publier une annonce</a></li>
                     <?php } ?>

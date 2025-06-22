@@ -60,11 +60,11 @@ require_once __DIR__ . "/../lib/pdo.php"
 
                 <div class="col-md-2 text-center">
                     <label class="form-label price-min">Prix minimum (€)</label>
-                    <input type="number" class="form-control" placeholder="Prix min">
+                    <input type="number" class="form-control filter-price" placeholder="Prix min">
                 </div>
                 <div class="col-md-2 text-center">
-                    <label class="form-label price-max">Prix maximum (€)</label>
-                    <input type="number" class="form-control" placeholder="Prix max">
+                    <label class="form-label price-max">Durée maximum</label>
+                    <input type="number" class="form-control filter-duration" placeholder="Durée  max">
                 </div>
                 <div class="col-md-3 text-center">
                     <label class="form-label note">Note minimale</label>

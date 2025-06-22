@@ -1,0 +1,104 @@
+<?php
+require_once __DIR__ . "/session.php";
+require_once __DIR__ . "/pdo.php";
+
+// Vérifier si l'utilisateur est connecté
+if (!isset($_SESSION['user'])) {
+    header("Location: /login.php");
+    exit();
+}
+
+// Vérifier si le formulaire a été soumis
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    try {
+        // Récupérer les données du formulaire
+        $nom = $_POST['nom'];
+        $prenom = $_POST['prenom'];
+        $email = $_POST['email'];
+        $telephone = $_POST['telephone'];
+        $adresse = $_POST['adresse'];
+        $date_naissance = $_POST['date_naissance'];
+        $pseudo = $_POST['pseudo'];
+        $user_id = $_SESSION['user']['user_id'];
+
+        // Préparer la requête de base
+        $sql = "UPDATE user SET 
+                nom = :nom,
+                prenom = :prenom,
+                email = :email,
+                telephone = :telephone,
+                adresse = :adresse,
+                date_naissance = :date_naissance,
+                pseudo = :pseudo";
+
+        // Gérer le mot de passe si fourni
+        if (!empty($_POST['password'])) {
+            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $sql .= ", password = :password";
+        }
+
+        // Gérer la photo si fournie
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] == 0) {
+            $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+            $filename = $_FILES['photo']['name'];
+            $filetype = pathinfo($filename, PATHINFO_EXTENSION);
+
+            if (in_array(strtolower($filetype), $allowed)) {
+                $photo = file_get_contents($_FILES['photo']['tmp_name']);
+                $sql .= ", photo = :photo";
+            }
+        }
+
+        $sql .= " WHERE user_id = :user_id";
+
+        // Préparer et exécuter la requête
+        $stmt = $pdo->prepare($sql);
+        $params = [
+            ':nom' => $nom,
+            ':prenom' => $prenom,
+            ':email' => $email,
+            ':telephone' => $telephone,
+            ':adresse' => $adresse,
+            ':date_naissance' => $date_naissance,
+            ':pseudo' => $pseudo,
+            ':user_id' => $user_id
+        ];
+
+        // Ajouter le mot de passe aux paramètres si fourni
+        if (!empty($_POST['password'])) {
+            $params[':password'] = $password;
+        }
+
+        // Ajouter la photo aux paramètres si fournie
+        if (isset($photo)) {
+            $params[':photo'] = $photo;
+        }
+
+        $stmt->execute($params);
+
+        // Mettre à jour la session avec les nouvelles informations
+        $_SESSION['user'] = array_merge($_SESSION['user'], [
+            'nom' => $nom,
+            'prenom' => $prenom,
+            'email' => $email,
+            'telephone' => $telephone,
+            'adresse' => $adresse,
+            'date_naissance' => $date_naissance,
+            'pseudo' => $pseudo
+        ]);
+
+        // Rediriger avec un message de succès
+        $_SESSION['success'] = "Vos informations ont été mises à jour avec succès.";
+        header("Location: /pages/user_count.php");
+        exit();
+    } catch (PDOException $e) {
+        // En cas d'erreur, rediriger avec un message d'erreur
+        $_SESSION['error'] = "Une erreur est survenue lors de la mise à jour de vos informations.";
+        header("Location: /pages/user_count.php");
+        exit();
+    }
+} else {
+    // Si le formulaire n'a pas été soumis, rediriger vers la page du compte
+    header("Location: /pages/user_count.php");
+    exit();
+}
