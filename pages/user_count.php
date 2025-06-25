@@ -14,7 +14,7 @@ require_once __DIR__ . "/../templates/header.php";
 <section class="hero count-section py-5">
     <div class="container">
 
-        <nav aria-label="breadcrumb" class="mb-4">
+        <nav aria-label="breadcrumb" class="ps-2 pt-3">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item "><a href="/index.php">Accueil</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Mon compte</li>
@@ -67,40 +67,52 @@ require_once __DIR__ . "/../templates/header.php";
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="adresse" class="form-label">Adresse</label>
-                                <input type="text" class="form-control" id="adresse" name="adresse" value="<?= htmlspecialchars($_SESSION['user']['adresse']) ?>">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="adresse" class="form-label">Adresse</label>
+                                    <input type="text" class="form-control" id="adresse" name="adresse" value="<?= htmlspecialchars($_SESSION['user']['adresse']) ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="adresse" class="form-label">CP</label>
+                                    <input type="text" class="form-control" id="adresse" name="adresse" value="<?= htmlspecialchars($_SESSION['user']['adresse']) ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="adresse" class="form-label">Ville</label>
+                                    <input type="text" class="form-control" id="adresse" name="adresse" value="<?= htmlspecialchars($_SESSION['user']['adresse']) ?>">
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="date_naissance" class="form-label">Date de naissance</label>
-                                <input type="date" class="form-control" id="date_naissance" name="date_naissance" value="<?= htmlspecialchars($_SESSION['user']['date_naissance']) ?>">
+                            <div class="row mb-3">
+
+                                <div class="col-md-4">
+                                    <label for="date_naissance" class="form-label">Date de naissance</label>
+                                    <input type="date" class="form-control" id="date_naissance" name="date_naissance" value="<?= htmlspecialchars($_SESSION['user']['date_naissance']) ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="pseudo" class="form-label">Pseudo</label>
+                                    <input type="text" class="form-control" id="pseudo" name="pseudo" value="<?= htmlspecialchars($_SESSION['user']['pseudo'] ?? '') ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="role_covoiturage" class="form-label">Je suis...</label>
+                                    <select class="form-select" id="role_covoiturage" name="role_covoiturage" required>
+                                        <option value="Passager" <?= (($_SESSION['user']['role_covoiturage'] ?? '') === 'Passager') ? 'selected' : '' ?>>Passager</option>
+                                        <option value="Chauffeur" <?= (($_SESSION['user']['role_covoiturage'] ?? '') === 'Chauffeur') ? 'selected' : '' ?>>Chauffeur</option>
+                                        <option value="Les deux" <?= (($_SESSION['user']['role_covoiturage'] ?? '') === 'Les deux') ? 'selected' : '' ?>>Les deux</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="photo" class="form-label">Photo de profil</label>
-                                <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
-                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="photo" class="form-label">Photo de profil</label>
+                                    <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                                </div>
 
-                            <div class="mb-3">
-                                <label for="pseudo" class="form-label">Pseudo</label>
-                                <input type="text" class="form-control" id="pseudo" name="pseudo" value="<?= htmlspecialchars($_SESSION['user']['pseudo'] ?? '') ?>">
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="role_covoiturage" class="form-label">Je suis...</label>
-                                <select class="form-select" id="role_covoiturage" name="role_covoiturage" required>
-                                    <option value="Passager" <?= (($_SESSION['user']['role_covoiturage'] ?? '') === 'Passager') ? 'selected' : '' ?>>Passager</option>
-                                    <option value="Chauffeur" <?= (($_SESSION['user']['role_covoiturage'] ?? '') === 'Chauffeur') ? 'selected' : '' ?>>Chauffeur</option>
-                                    <option value="Les deux" <?= (($_SESSION['user']['role_covoiturage'] ?? '') === 'Les deux') ? 'selected' : '' ?>>Les deux</option>
-                                </select>
-                            </div>
-
-
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Nouveau mot de passe</label>
-                                <input type="password" class="form-control" id="password" name="password">
-                                <small class="text-muted">Laissez vide pour ne pas changer le mot de passe</small>
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label">Nouveau mot de passe</label>
+                                    <input type="password" class="form-control" id="password" name="password">
+                                    <small class="text-muted">Laissez vide pour ne pas changer le mot de passe</small>
+                                </div>
                             </div>
 
                             <div class="text-end">
