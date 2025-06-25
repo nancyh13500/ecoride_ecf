@@ -274,3 +274,17 @@ VALUES (1, 'Renault'),
 ALTER TABLE covoiturage ADD COLUMN duree INT DEFAULT NULL;
 
 INSERT INTO marque (libelle, voiture_id) VALUES ('SEAT', 14);
+
+INSERT INTO marque (libelle, voiture_id) VALUES ('Nissan', 15);
+
+CREATE TABLE `statuts` (
+    `statut_id` int NOT NULL AUTO_INCREMENT,
+    `libelle` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+    PRIMARY KEY (`statut_id`)
+)
+
+insert into
+    `statuts` (`statuts_id`, `libelle`)
+values (1, 'En cours'),
+    (2, 'En attente'),
+    (3, 'Terminé');

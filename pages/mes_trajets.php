@@ -12,9 +12,11 @@ $user = $_SESSION['user'];
 
 // Récupérer les trajets de l'utilisateur
 $stmt_trajets = $pdo->prepare("
-    SELECT c.*, v.modele, v.immatriculation
+    SELECT c.*, v.modele, v.immatriculation, v.couleur, v.date_premire_immatriculation, m.libelle AS marque_libelle, e.libelle AS energie_libelle
     FROM covoiturage c
     LEFT JOIN voiture v ON c.voiture_id = v.voiture_id
+    LEFT JOIN marque m ON v.marque_id = m.marque_id
+    LEFT JOIN energie e ON v.energie_id = e.energie_id
     WHERE c.user_id = :user_id
     ORDER BY c.covoiturage_id DESC
 ");
@@ -132,20 +134,18 @@ require_once __DIR__ . "/../templates/header.php";
                         <?php if (empty($trajets)): ?>
                             <p>Vous n'avez pas encore de trajet enregistré.</p>
                         <?php else: ?>
-                            <form method="POST" action="mes_trajets.php" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer les trajets sélectionnés ?');">
+                            <form method="POST" action="mes_trajets.php">
                                 <div class="table-responsive">
                                     <table class="table table-striped text-center">
                                         <thead>
                                             <tr>
                                                 <th></th>
                                                 <th>Date</th>
-                                                <th>Heure</th>
                                                 <th>Départ</th>
                                                 <th>Arrivée</th>
-                                                <th>Places</th>
                                                 <th>Prix (€)</th>
                                                 <th>Voiture</th>
-                                                <th>Action</th>
+                                                <th>Statut et action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -155,32 +155,25 @@ require_once __DIR__ . "/../templates/header.php";
                                                         <input type="checkbox" name="delete_trajet_ids[]" value="<?= $trajet['covoiturage_id'] ?>" class="form-check-input ms-2 border-dark">
                                                     </td>
                                                     <td><?= htmlspecialchars(date("d/m/Y", strtotime($trajet['date_depart']))) ?></td>
-                                                    <td><?= htmlspecialchars(substr($trajet['heure_depart'], 0, 5)) ?></td>
                                                     <td><?= htmlspecialchars($trajet['lieu_depart']) ?></td>
                                                     <td><?= htmlspecialchars($trajet['lieu_arrivee']) ?></td>
-                                                    <td><?= htmlspecialchars($trajet['nb_place']) ?></td>
                                                     <td><?= htmlspecialchars($trajet['prix_personne']) ?></td>
                                                     <td><?= htmlspecialchars($trajet['modele']) ?> (<?= htmlspecialchars($trajet['immatriculation']) ?>)</td>
                                                     <td>
                                                         <?php
-                                                        if (!isset($trajet['statut']) || $trajet['statut'] == 1): // Non démarré
+                                                        $statutLabels = [1 => 'En attente', 2 => 'En cours', 3 => 'Terminé'];
+                                                        $statut = $trajet['statut'] ?? 1;
+                                                        echo '<span class="badge bg-secondary me-2">' . (isset($statutLabels[$statut]) ? $statutLabels[$statut] : 'Inconnu') . '</span>';
+                                                        if ($statut != 3): // Affiche le bouton Démarrer sauf si terminé
                                                         ?>
                                                             <form method="POST" action="mes_trajets.php" style="display:inline">
                                                                 <input type="hidden" name="start_trajet_id" value="<?= $trajet['covoiturage_id'] ?>">
-                                                                <button type="submit" class="btn btn-success btn-sm">Démarrer le covoiturage</button>
+                                                                <button type="submit" class="btn btn-primary btn-sm">Démarrer le covoiturage</button>
                                                             </form>
-                                                        <?php
-                                                        elseif ($trajet['statut'] == 2): // En cours
-                                                        ?>
                                                             <form method="POST" action="mes_trajets.php" style="display:inline">
-                                                                <input type="hidden" name="stop_trajet_id" value="<?= $trajet['covoiturage_id'] ?>">
-                                                                <button type="submit" class="btn btn-warning btn-sm">Stopper le trajet</button>
+                                                                <input type="hidden" name="start_trajet_id" value="<?= $trajet['covoiturage_id'] ?>">
+                                                                <button type="submit" class="btn btn-secondary btn-sm">Terminer</button>
                                                             </form>
-                                                            <span class="badge bg-success ms-2">En cours</span>
-                                                        <?php
-                                                        elseif ($trajet['statut'] == 3): // Terminé
-                                                        ?>
-                                                            <span class="badge bg-secondary">Terminé</span>
                                                         <?php
                                                         endif;
                                                         ?>

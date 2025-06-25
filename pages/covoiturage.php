@@ -6,6 +6,11 @@ require_once __DIR__ . "/../lib/session.php";
 $stmt = $pdo->prepare("SELECT marque_id, libelle FROM marque ORDER BY libelle");
 $stmt->execute();
 $marques = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Récupération des énergies depuis la base de données
+$stmt_energies = $pdo->prepare("SELECT energie_id, libelle FROM energie ORDER BY libelle");
+$stmt_energies->execute();
+$energies = $stmt_energies->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <section class="hero publish w-100 px-4 py-5">
@@ -95,7 +100,7 @@ $marques = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <div class="col-md-8 form-outline form-name mb-4" data-mdb-input-initialized="true">
                                     <label class="form-label text-center w-100" for="gridCheck">Energie véhicule</label>
                                     <select class="form-select" aria-label="Default select example" name="energie_id" required>
-                                        <option selected>Choisissez une option</option>
+                                        <option value="">Choisissez une option</option>
                                         <?php foreach ($energies as $energie): ?>
                                             <option value="<?= htmlspecialchars($energie['energie_id']) ?>">
                                                 <?= htmlspecialchars($energie['libelle']) ?>
