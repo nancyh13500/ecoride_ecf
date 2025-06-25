@@ -270,3 +270,7 @@ VALUES (1, 'Renault'),
     (11, 'Toyota'),
     (12, 'Ford'),
     (13, 'Fiat');
+
+ALTER TABLE covoiturage ADD COLUMN duree INT DEFAULT NULL;
+
+INSERT INTO marque (libelle, voiture_id) VALUES ('SEAT', 14);

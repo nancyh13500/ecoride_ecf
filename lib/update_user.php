@@ -19,6 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $adresse = $_POST['adresse'];
         $date_naissance = $_POST['date_naissance'];
         $pseudo = $_POST['pseudo'];
+        $role_covoiturage = $_POST['role_covoiturage'];
         $user_id = $_SESSION['user']['user_id'];
 
         // Préparer la requête de base
@@ -29,7 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 telephone = :telephone,
                 adresse = :adresse,
                 date_naissance = :date_naissance,
-                pseudo = :pseudo";
+                pseudo = :pseudo,
+                role_covoiturage = :role_covoiturage";
 
         // Gérer le mot de passe si fourni
         if (!empty($_POST['password'])) {
@@ -61,6 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':adresse' => $adresse,
             ':date_naissance' => $date_naissance,
             ':pseudo' => $pseudo,
+            ':role_covoiturage' => $role_covoiturage,
             ':user_id' => $user_id
         ];
 
@@ -84,7 +87,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'telephone' => $telephone,
             'adresse' => $adresse,
             'date_naissance' => $date_naissance,
-            'pseudo' => $pseudo
+            'pseudo' => $pseudo,
+            'role_covoiturage' => $role_covoiturage
         ]);
 
         // Rediriger avec un message de succès
@@ -92,8 +96,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("Location: /pages/user_count.php");
         exit();
     } catch (PDOException $e) {
-        // En cas d'erreur, rediriger avec un message d'erreur
-        $_SESSION['error'] = "Une erreur est survenue lors de la mise à jour de vos informations.";
+        // Gestion des erreurs
+        // Si l'erreur est une contrainte de colonne inconnue
+        if ($e->getCode() == '42S22') {
+            try {
+                // Ajouter la colonne
+                $pdo->exec("ALTER TABLE `user` ADD `role_covoiturage` VARCHAR(20) NOT NULL DEFAULT 'Passager'");
+                // Relancer l'update
+                $stmt->execute($params);
+                // Mettre à jour la session
+                $_SESSION['user']['role_covoiturage'] = $role_covoiturage;
+                // Rediriger avec succès
+                $_SESSION['success'] = "Vos informations ont été mises à jour avec succès.";
+                header("Location: /pages/user_count.php");
+                exit();
+            } catch (PDOException $e2) {
+                $_SESSION['error'] = "Erreur lors de la création de la colonne : " . $e2->getMessage();
+                header("Location: /pages/user_count.php");
+                exit();
+            }
+        }
+        $_SESSION['error'] = "Une erreur est survenue lors de la mise à jour de vos informations : " . $e->getMessage();
         header("Location: /pages/user_count.php");
         exit();
     }

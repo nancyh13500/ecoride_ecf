@@ -13,10 +13,10 @@ require_once __DIR__ . "/../templates/header.php";
 
 <section class="hero count-section py-5">
     <div class="container">
-        <!-- Fil d'Ariane -->
+
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/index.php">Accueil</a></li>
+                <li class="breadcrumb-item "><a href="/index.php">Accueil</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Mon compte</li>
             </ol>
         </nav>
@@ -84,8 +84,18 @@ require_once __DIR__ . "/../templates/header.php";
 
                             <div class="mb-3">
                                 <label for="pseudo" class="form-label">Pseudo</label>
-                                <input type="text" class="form-control" id="pseudo" name="pseudo" value="<?= htmlspecialchars($_SESSION['user']['pseudo']) ?>">
+                                <input type="text" class="form-control" id="pseudo" name="pseudo" value="<?= htmlspecialchars($_SESSION['user']['pseudo'] ?? '') ?>">
                             </div>
+
+                            <div class="mb-3">
+                                <label for="role_covoiturage" class="form-label">Je suis...</label>
+                                <select class="form-select" id="role_covoiturage" name="role_covoiturage" required>
+                                    <option value="Passager" <?= (($_SESSION['user']['role_covoiturage'] ?? '') === 'Passager') ? 'selected' : '' ?>>Passager</option>
+                                    <option value="Chauffeur" <?= (($_SESSION['user']['role_covoiturage'] ?? '') === 'Chauffeur') ? 'selected' : '' ?>>Chauffeur</option>
+                                    <option value="Les deux" <?= (($_SESSION['user']['role_covoiturage'] ?? '') === 'Les deux') ? 'selected' : '' ?>>Les deux</option>
+                                </select>
+                            </div>
+
 
                             <div class="mb-3">
                                 <label for="password" class="form-label">Nouveau mot de passe</label>

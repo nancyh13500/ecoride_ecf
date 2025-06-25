@@ -48,20 +48,7 @@ $marques = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <input type="text" id="form3Example1w" class="form-control bg-light" required>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-4 mb-4">
-                                <label class="form-label immatriculation" for="form3Example1w">Immatriculation</label>
-                                <input type="text" id="form3Example1w" class="form-control bg-light" required>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <label class="form-label first_circulation" for="form3Example1w">Date 1ère circulation</label>
-                                <input type="text" id="form3Example1w" class="form-control bg-light" required>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <label class="form-label modele" for="form3Example1w">Modèle</label>
-                                <input type="text" id="form3Example1w" class="form-control bg-light" required>
-                            </div>
-                        </div>
+
                         <div class="row">
                             <div class="col-md-4 mb-4">
                                 <label class="form-label" for="form3Example1w">Téléphone</label>
@@ -82,7 +69,7 @@ $marques = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <div class="col-md-4 mb-4">
                                     <div class="col-md-8 form-outline form-name mb-4" data-mdb-input-initialized="true">
                                         <label class="form-label text-center w-100" for="gridCheck">Chauffeur / Passager</label>
-                                        <select class="form-select" aria-label="Default select example">
+                                        <select class="form-select" aria-label="Default select example" required>
                                             <option selected>Choisissez une option</option>
                                             <option value="1">Chauffeur</option>
                                             <option value="2">Passager</option>
@@ -107,7 +94,7 @@ $marques = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <div class="col-md-4 mb-4">
                                 <div class="col-md-8 form-outline form-name mb-4" data-mdb-input-initialized="true">
                                     <label class="form-label text-center w-100" for="gridCheck">Energie véhicule</label>
-                                    <select class="form-select" aria-label="Default select example">
+                                    <select class="form-select" aria-label="Default select example" name="energie_id" required>
                                         <option selected>Choisissez une option</option>
                                         <?php foreach ($energies as $energie): ?>
                                             <option value="<?= htmlspecialchars($energie['energie_id']) ?>">
