@@ -51,6 +51,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
+        // Gérer la suppression de la photo
+        if (isset($_POST['delete_photo']) && $_POST['delete_photo'] == '1') {
+            $sql .= ", photo = NULL";
+        }
+
         $sql .= " WHERE user_id = :user_id";
 
         // Préparer et exécuter la requête
@@ -80,7 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute($params);
 
         // Mettre à jour la session avec les nouvelles informations
-        $_SESSION['user'] = array_merge($_SESSION['user'], [
+        $sessionUpdate = [
             'nom' => $nom,
             'prenom' => $prenom,
             'email' => $email,
@@ -89,7 +94,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'date_naissance' => $date_naissance,
             'pseudo' => $pseudo,
             'role_covoiturage' => $role_covoiturage
-        ]);
+        ];
+
+        // Ajouter la photo à la session si fournie
+        if (isset($photo)) {
+            $sessionUpdate['photo'] = $photo;
+        }
+
+        // Supprimer la photo de la session si demandé
+        if (isset($_POST['delete_photo']) && $_POST['delete_photo'] == '1') {
+            $sessionUpdate['photo'] = null;
+        }
+
+        $_SESSION['user'] = array_merge($_SESSION['user'], $sessionUpdate);
 
         // Rediriger avec un message de succès
         $_SESSION['success'] = "Vos informations ont été mises à jour avec succès.";

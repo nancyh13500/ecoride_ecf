@@ -164,15 +164,18 @@ require_once __DIR__ . "/../templates/header.php";
                                                         $statutLabels = [1 => 'En attente', 2 => 'En cours', 3 => 'Terminé'];
                                                         $statut = $trajet['statut'] ?? 1;
                                                         echo '<span class="badge bg-secondary me-2">' . (isset($statutLabels[$statut]) ? $statutLabels[$statut] : 'Inconnu') . '</span>';
-                                                        if ($statut != 3): // Affiche le bouton Démarrer sauf si terminé
+                                                        if ($statut == 1): // En attente
                                                         ?>
                                                             <form method="POST" action="mes_trajets.php" style="display:inline">
                                                                 <input type="hidden" name="start_trajet_id" value="<?= $trajet['covoiturage_id'] ?>">
                                                                 <button type="submit" class="btn btn-primary btn-sm">Démarrer le covoiturage</button>
                                                             </form>
+                                                        <?php
+                                                        elseif ($statut == 2): // En cours
+                                                        ?>
                                                             <form method="POST" action="mes_trajets.php" style="display:inline">
-                                                                <input type="hidden" name="start_trajet_id" value="<?= $trajet['covoiturage_id'] ?>">
-                                                                <button type="submit" class="btn btn-secondary btn-sm">Terminer</button>
+                                                                <input type="hidden" name="stop_trajet_id" value="<?= $trajet['covoiturage_id'] ?>">
+                                                                <button type="submit" class="btn btn-warning btn-sm">Terminer</button>
                                                             </form>
                                                         <?php
                                                         endif;

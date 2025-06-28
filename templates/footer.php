@@ -14,7 +14,7 @@
 
             </p>
 
-            <p class="copyright col-md-4 text-center text-white align-items-center text-body-dark mt-3">@ Nancy WebAgency @2025</p>
+            <p class="copyright col-md-4 text-center text-white align-items-center text-body-dark mt-3">@ Nancy WebAgency 2025</p>
 
             <ul class="nav social_network col-md-4 justify-content-center align-items-center">
                 <li class="ms-3 me-3"><a class="text-white" href="#"><i class="bi bi-facebook"></i></a></li>

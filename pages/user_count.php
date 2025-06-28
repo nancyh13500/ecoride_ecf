@@ -14,7 +14,7 @@ require_once __DIR__ . "/../templates/header.php";
 <section class="hero count-section py-5">
     <div class="container">
 
-        <nav aria-label="breadcrumb" class="ps-2 pt-3">
+        <nav aria-label="breadcrumb" class="ps-3 pt-3 mb-4">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item "><a href="/index.php">Accueil</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Mon compte</li>
@@ -115,6 +115,49 @@ require_once __DIR__ . "/../templates/header.php";
                                 </div>
                             </div>
 
+                            <!-- Encart pour afficher la photo - visible seulement si une photo existe -->
+                            <?php if (!empty($_SESSION['user']['photo'])): ?>
+                                <div class="row mb-3" id="photo-display-section">
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0 text-center">Photo de profil</h6>
+                                            </div>
+                                            <div class="card-body text-center">
+                                                <!-- Photo actuelle -->
+                                                <img id="current-photo" src="data:image/jpeg;base64,<?= base64_encode($_SESSION['user']['photo']) ?>"
+                                                    alt="Photo de profil" class="img-fluid rounded" style="max-width: 100px; max-height: 100px;">
+                                                <div class="mt-2">
+                                                    <button type="button" id="delete-photo-btn" class="btn btn-sm btn-outline-danger">
+                                                        Supprimer la photo
+                                                    </button>
+                                                </div>
+
+                                                <!-- Prévisualisation de la nouvelle photo -->
+                                                <div id="photo-preview" class="mt-3" style="display: none;">
+                                                    <h6>Nouvelle photo</h6>
+                                                    <img id="preview-image" src="" alt="Prévisualisation" class="img-fluid rounded" style="max-width: 100px; max-height: 100px;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- Placeholder pour la prévisualisation quand aucune photo n'existe -->
+                            <div id="photo-preview-section" class="row mb-3" style="display: none;">
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0 text-center">Nouvelle photo</h6>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <img id="preview-image-new" src="" alt="Prévisualisation" class="img-fluid rounded" style="max-width: 100px; max-height: 100px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="text-end">
                                 <button type="submit" class="btn btn-primary">Mettre à jour mes informations</button>
                             </div>
@@ -125,5 +168,7 @@ require_once __DIR__ . "/../templates/header.php";
         </div>
     </div>
 </section>
+
+<script src="/assets/js/photo-preview.js"></script>
 
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>
