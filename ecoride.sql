@@ -36,13 +36,14 @@ DROP TABLE IF EXISTS `avis`;
 
 CREATE TABLE IF NOT EXISTS `avis` (
     `avis_id` int NOT NULL AUTO_INCREMENT,
-    `commentaire` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-    `note` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-    `statut` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
     `user_id` int NOT NULL,
+    `note` int NOT NULL DEFAULT 5,
+    `commentaire` text,
+    `date_avis` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`avis_id`),
-    KEY `avis_ibfk_1` (`user_id`)
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+    KEY `avis_ibfk_1` (`user_id`),
+    CONSTRAINT `avis_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -223,7 +224,7 @@ CREATE TABLE IF NOT EXISTS `voiture` (
 -- Contraintes pour la table `avis`
 --
 ALTER TABLE `avis`
-ADD CONSTRAINT `avis_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ADD CONSTRAINT `avis_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Contraintes pour la table `covoiturage`
@@ -288,3 +289,30 @@ insert into
 values (1, 'En cours'),
     (2, 'En attente'),
     (3, 'Terminé');
+
+-- Insertion de quelques avis d'exemple
+INSERT INTO
+    `avis` (
+        `user_id`,
+        `note`,
+        `commentaire`,
+        `date_avis`
+    )
+VALUES (
+        1,
+        5,
+        'Excellent service, très pratique pour mes déplacements quotidiens !',
+        '2025-01-15 10:30:00'
+    ),
+    (
+        2,
+        4,
+        'Très bonne expérience, les chauffeurs sont ponctuels.',
+        '2025-01-20 14:15:00'
+    ),
+    (
+        3,
+        5,
+        'Je recommande vivement, économies garanties !',
+        '2025-01-25 09:45:00'
+    );
