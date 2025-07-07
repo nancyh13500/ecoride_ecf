@@ -39,6 +39,7 @@ require_once __DIR__ . "/../lib/session.php";
                     <?php } else { ?>
                         <li class="nav-item"><a class="nav-link" href="/pages/publish.php">Publier une annonce</a></li>
                     <?php } ?>
+                    <li class="nav-item"><a class="nav-link" href="/pages/avis.php">Vos avis</a></li>
                     <li class="nav-item"><a class="nav-link" href="/pages/contact.php">Contact</a></li>
                 </ul>
                 <div class="col-md-3 d-flex align-items-center">

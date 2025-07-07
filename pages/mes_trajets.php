@@ -11,7 +11,7 @@ if (!isUserConnected()) {
 $user = $_SESSION['user'];
 
 // Récupérer les trajets de l'utilisateur
-$stmt_trajets = $pdo->prepare("
+$query_trajets = $pdo->prepare("
     SELECT c.*, v.modele, v.immatriculation, v.couleur, v.date_premire_immatriculation, m.libelle AS marque_libelle, e.libelle AS energie_libelle
     FROM covoiturage c
     LEFT JOIN voiture v ON c.voiture_id = v.voiture_id
@@ -20,13 +20,13 @@ $stmt_trajets = $pdo->prepare("
     WHERE c.user_id = :user_id
     ORDER BY c.covoiturage_id DESC
 ");
-$stmt_trajets->execute(['user_id' => $user['user_id']]);
-$trajets = $stmt_trajets->fetchAll(PDO::FETCH_ASSOC);
+$query_trajets->execute(['user_id' => $user['user_id']]);
+$trajets = $query_trajets->fetchAll(PDO::FETCH_ASSOC);
 
 // Récupérer les voitures de l'utilisateur pour le formulaire d'ajout
-$stmt_voitures = $pdo->prepare("SELECT voiture_id, modele, immatriculation FROM voiture WHERE user_id = :user_id ORDER BY modele");
-$stmt_voitures->execute(['user_id' => $user['user_id']]);
-$voitures = $stmt_voitures->fetchAll(PDO::FETCH_ASSOC);
+$query_voitures = $pdo->prepare("SELECT voiture_id, modele, immatriculation FROM voiture WHERE user_id = :user_id ORDER BY modele");
+$query_voitures->execute(['user_id' => $user['user_id']]);
+$voitures = $query_voitures->fetchAll(PDO::FETCH_ASSOC);
 
 // Gérer la soumission du formulaire d'ajout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_trajet'])) {
@@ -39,11 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_trajet'])) {
     $voiture_id = $_POST['voiture_id'];
 
     try {
-        $stmt = $pdo->prepare("
+        $query = $pdo->prepare("
             INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id)
             VALUES (:date_depart, :heure_depart, :lieu_depart, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id)
         ");
-        $stmt->execute([
+        $query->execute([
             'date_depart' => $date_depart,
             'heure_depart' => $heure_depart,
             'lieu_depart' => $lieu_depart,
@@ -68,10 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_selection'])) 
         $placeholders = implode(',', array_fill(0, count($ids_to_delete), '?'));
 
         try {
-            $stmt = $pdo->prepare("DELETE FROM covoiturage WHERE covoiturage_id IN ($placeholders) AND user_id = ?");
+            $query = $pdo->prepare("DELETE FROM covoiturage WHERE covoiturage_id IN ($placeholders) AND user_id = ?");
             $params = $ids_to_delete;
             $params[] = $user['user_id'];
-            $stmt->execute($params);
+            $query->execute($params);
             header("Location: mes_trajets.php?delete_success=1");
             exit();
         } catch (PDOException $e) {

@@ -3,9 +3,9 @@ require_once __DIR__ . "/../lib/pdo.php";
 require_once __DIR__ . "/../lib/session.php";
 
 // Récupération des marques depuis la base de données
-$stmt = $pdo->prepare("SELECT marque_id, libelle FROM marque ORDER BY libelle");
-$stmt->execute();
-$marques = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$query = $pdo->prepare("SELECT marque_id, libelle FROM marque ORDER BY libelle");
+$query->execute();
+$marques = $query->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div class="row">

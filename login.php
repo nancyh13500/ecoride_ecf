@@ -49,10 +49,10 @@ if (isset($_POST['registerUser'])) {
     }
 
     // Vérifier si l'email existe déjà
-    $query = $pdo->prepare("SELECT COUNT(*) FROM user WHERE email = :email");
-    $query->bindValue(':email', $email, PDO::PARAM_STR);
-    $query->execute();
-    if ($query->fetchColumn() > 0) {
+    $emailQuery = $pdo->prepare("SELECT COUNT(*) FROM user WHERE email = :email");
+    $emailQuery->bindValue(':email', $email, PDO::PARAM_STR);
+    $emailQuery->execute();
+    if ($emailQuery->fetchColumn() > 0) {
         $errors[] = "Cette adresse email est déjà utilisée.";
     }
 
@@ -60,21 +60,21 @@ if (isset($_POST['registerUser'])) {
     if (empty($errors)) {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-        $query = $pdo->prepare("INSERT INTO user (nom, prenom, email, password, telephone, adresse, date_naissance, photo, pseudo, role_id) 
+        $registerQuery = $pdo->prepare("INSERT INTO user (nom, prenom, email, password, telephone, adresse, date_naissance, photo, pseudo, role_id) 
                                VALUES (:nom, :prenom, :email, :password, :telephone, :adresse, :date_naissance, :photo, :pseudo, :role_id)");
 
-        $query->bindValue(':nom', $nom, PDO::PARAM_STR);
-        $query->bindValue(':prenom', $prenom, PDO::PARAM_STR);
-        $query->bindValue(':email', $email, PDO::PARAM_STR);
-        $query->bindValue(':password', $hashedPassword, PDO::PARAM_STR);
-        $query->bindValue(':telephone', $telephone, PDO::PARAM_STR);
-        $query->bindValue(':adresse', $adresse . ', ' . $cp . ' ' . $ville, PDO::PARAM_STR);
-        $query->bindValue(':date_naissance', $date_naissance, PDO::PARAM_STR);
-        $query->bindValue(':photo', '', PDO::PARAM_STR);
-        $query->bindValue(':pseudo', $prenom . ' ' . $nom, PDO::PARAM_STR);
-        $query->bindValue(':role_id', 3, PDO::PARAM_INT); // 3 = Utilisateur par défaut
+        $registerQuery->bindValue(':nom', $nom, PDO::PARAM_STR);
+        $registerQuery->bindValue(':prenom', $prenom, PDO::PARAM_STR);
+        $registerQuery->bindValue(':email', $email, PDO::PARAM_STR);
+        $registerQuery->bindValue(':password', $hashedPassword, PDO::PARAM_STR);
+        $registerQuery->bindValue(':telephone', $telephone, PDO::PARAM_STR);
+        $registerQuery->bindValue(':adresse', $adresse . ', ' . $cp . ' ' . $ville, PDO::PARAM_STR);
+        $registerQuery->bindValue(':date_naissance', $date_naissance, PDO::PARAM_STR);
+        $registerQuery->bindValue(':photo', '', PDO::PARAM_STR);
+        $registerQuery->bindValue(':pseudo', $prenom . ' ' . $nom, PDO::PARAM_STR);
+        $registerQuery->bindValue(':role_id', 3, PDO::PARAM_INT); // 3 = Utilisateur par défaut
 
-        if ($query->execute()) {
+        if ($registerQuery->execute()) {
             $_SESSION['success'] = "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.";
             header('location: index.php');
             exit();

@@ -1,4 +1,6 @@
-<?php require_once __DIR__ . "/templates/header.php";
+<?php
+require_once __DIR__ . "/lib/session.php";
+require_once __DIR__ . "/templates/header.php";
 
 ?>
 
@@ -132,7 +134,7 @@
             <h1 class="display-5 fw-bold mt-3 mb-3">Vous avez une voiture ?</h1>
             <p class="lead">Faites des économies, publiez une annonce.</p>
             <div class="d-flex mt-5 justify-content-center">
-                <a type="button" href="/pages/publish.php" role="button" class="btn_route btn btn-secondary btn-lg px-4">Proposer des places</a>
+                <a type="button" href="<?= isset($_SESSION['user']) ? '/pages/covoiturage.php' : '/pages/publish.php' ?>" role="button" class="btn_route btn btn-secondary btn-lg px-4">Proposer des places</a>
             </div>
         </div>
     </div>
@@ -196,10 +198,10 @@
         <div class="container text-center p-4">
             <div class="row justify-content-center gy-2">
                 <div class="col-12 col-md-auto">
-                    <button type="button" class="btn btn_tous_avis btn-primary w-100">Voir tous les avis</button>
+                    <a href="/pages/avis.php" type="button" class="btn btn_tous_avis btn-primary w-100">Voir tous les avis</a>
                 </div>
                 <div class="col-12 col-md-auto">
-                    <button type="button" class="btn btn-secondary btn_avis w-100">Laisser un avis</button>
+                    <a href="/pages/deposer_avis.php" type="button" class="btn btn-secondary btn_avis w-100">Laisser un avis</a>
                 </div>
             </div>
         </div>

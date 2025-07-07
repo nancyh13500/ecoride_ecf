@@ -80,5 +80,3 @@ window.addEventListener("scroll", () => {
         img_covoiturage.style.transform = "none";
     }
 });
-
-

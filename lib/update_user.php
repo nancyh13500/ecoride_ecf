@@ -59,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $sql .= " WHERE user_id = :user_id";
 
         // Préparer et exécuter la requête
-        $stmt = $pdo->prepare($sql);
+        $query = $pdo->prepare($sql);
         $params = [
             ':nom' => $nom,
             ':prenom' => $prenom,
@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $params[':photo'] = $photo;
         }
 
-        $stmt->execute($params);
+        $query->execute($params);
 
         // Mettre à jour la session avec les nouvelles informations
         $sessionUpdate = [
@@ -120,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Ajouter la colonne
                 $pdo->exec("ALTER TABLE `user` ADD `role_covoiturage` VARCHAR(20) NOT NULL DEFAULT 'Passager'");
                 // Relancer l'update
-                $stmt->execute($params);
+                $query->execute($params);
                 // Mettre à jour la session
                 $_SESSION['user']['role_covoiturage'] = $role_covoiturage;
                 // Rediriger avec succès

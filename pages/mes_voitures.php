@@ -11,7 +11,7 @@ if (!isUserConnected()) {
 $user = $_SESSION['user'];
 
 // Récupérer les voitures de l'utilisateur
-$stmt_voitures = $pdo->prepare("
+$query_voitures = $pdo->prepare("
     SELECT v.*, m.libelle AS marque_libelle, e.libelle AS energie_libelle
     FROM voiture v
     LEFT JOIN marque m ON v.marque_id = m.marque_id
@@ -19,15 +19,15 @@ $stmt_voitures = $pdo->prepare("
     WHERE v.user_id = :user_id
     ORDER BY v.voiture_id DESC
 ");
-$stmt_voitures->execute(['user_id' => $user['user_id']]);
-$voitures = $stmt_voitures->fetchAll(PDO::FETCH_ASSOC);
+$query_voitures->execute(['user_id' => $user['user_id']]);
+$voitures = $query_voitures->fetchAll(PDO::FETCH_ASSOC);
 
 // Récupérer les listes pour les formulaires
-$marques_stmt = $pdo->query("SELECT marque_id, libelle FROM marque ORDER BY libelle");
-$marques = $marques_stmt->fetchAll(PDO::FETCH_ASSOC);
+$marques_query = $pdo->query("SELECT marque_id, libelle FROM marque ORDER BY libelle");
+$marques = $marques_query->fetchAll(PDO::FETCH_ASSOC);
 
-$energies_stmt = $pdo->query("SELECT energie_id, libelle FROM energie ORDER BY libelle");
-$energies = $energies_stmt->fetchAll(PDO::FETCH_ASSOC);
+$energies_query = $pdo->query("SELECT energie_id, libelle FROM energie ORDER BY libelle");
+$energies = $energies_query->fetchAll(PDO::FETCH_ASSOC);
 
 // Gérer la soumission du formulaire d'ajout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_voiture'])) {
@@ -39,11 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_voiture'])) {
     $energie_id = $_POST['energie_id'];
 
     try {
-        $stmt = $pdo->prepare("
+        $query = $pdo->prepare("
             INSERT INTO voiture (modele, immatriculation, couleur, date_premire_immatriculation, marque_id, energie_id, user_id)
             VALUES (:modele, :immatriculation, :couleur, :date_premire_immatriculation, :marque_id, :energie_id, :user_id)
         ");
-        $stmt->execute([
+        $query->execute([
             'modele' => $modele,
             'immatriculation' => $immatriculation,
             'couleur' => $couleur,
@@ -67,10 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_selection'])) 
         $placeholders = implode(',', array_fill(0, count($ids_to_delete), '?'));
 
         try {
-            $stmt = $pdo->prepare("DELETE FROM voiture WHERE voiture_id IN ($placeholders) AND user_id = ?");
+            $query = $pdo->prepare("DELETE FROM voiture WHERE voiture_id IN ($placeholders) AND user_id = ?");
             $params = $ids_to_delete;
             $params[] = $user['user_id'];
-            $stmt->execute($params);
+            $query->execute($params);
             header("Location: mes_voitures.php?delete_success=1");
             exit();
         } catch (PDOException $e) {
