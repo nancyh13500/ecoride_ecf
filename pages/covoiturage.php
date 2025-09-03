@@ -64,7 +64,7 @@ $energies = $stmt_energies->fetchAll(PDO::FETCH_ASSOC);
                                 <input type="number" id="form3Example1q" class="form-control bg-light" required>
                             </div>
                             <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label" for="form3Example1q">Prix / personne</label>
+                                <label class="form-label" for="form3Example1q">Crédit / personne</label>
                                 <input type="text" id="form3Example1q" class="form-control bg-light" required>
                             </div>
                         </div>

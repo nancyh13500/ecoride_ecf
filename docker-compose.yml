@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Base de données MySQL
+  db:
+    image: mysql:8.0
+    container_name: ecoride_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root        # mot de passe root
+      MYSQL_DATABASE: ecoride          # ta base créée automatiquement
+      MYSQL_USER: ecoride_user        # un utilisateur dédié (optionnel mais recommandé)
+      MYSQL_PASSWORD: ecoride_pass
+    ports:
+      - "3307:3306"                    # expose MySQL sur localhost:3307
+    volumes:
+      - mysql_data:/var/lib/mysql      # persistance des données
+      - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
+  # optionnel : script d’init (si tu veux importer ton dump SQL)
+
+  # Serveur Apache + PHP
+  app:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM php:8.2-apache
+        RUN docker-php-ext-install pdo_mysql mysqli
+
+    container_name: ecoride_app
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - DOCKER_ENV=1
+    depends_on:
+      - db
+
+  # phpMyAdmin (pour gérer MySQL depuis le navigateur)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ecoride_phpmyadmin
+    ports:
+      - "8080:80"    # accessible sur http://localhost:8080
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:

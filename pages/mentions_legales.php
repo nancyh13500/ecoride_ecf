@@ -13,7 +13,7 @@ require_once __DIR__ . "/../templates/header.php";
         <section class="bg-white p-4 rounded shadow-sm mb-4 border-start border-primary border-4">
             <h3 class="text-secondary mb-3"><i class="bi bi-person-circle"></i> 1. Éditeur du site</h3>
             <p>
-                <strong>Nom du site : </strong>EcoRide.fr<br>
+                <strong>Nom du site : </strong>Ecoride.fr<br>
                 <strong>Responsable de la publication : </strong>José<br>
                 <strong>Adresse : </strong>123 Rue de la Route, 75000 Paris, France<br>
                 <strong>Téléphone : </strong>+33 1 23 45 67 89<br>
@@ -39,7 +39,7 @@ require_once __DIR__ . "/../templates/header.php";
         <section class="bg-white p-4 rounded shadow-sm mb-4 border-start border-warning border-4">
             <h3 class="text-secondary mb-3"><i class="bi bi-shield-lock"></i> 3. Propriété intellectuelle</h3>
             <p>
-                Les contenus du site (textes, images, design, etc.) sont la propriété exclusive de EcoRide.fr.
+                Les contenus du site (textes, images, design, etc.) sont la propriété exclusive de Ecoride.fr.
                 Toute reproduction ou utilisation sans autorisation est interdite.
             </p>
         </section>

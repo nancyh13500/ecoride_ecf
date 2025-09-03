@@ -82,6 +82,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_selection'])) 
     }
 }
 
+// Gérer le démarrage du trajet
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_id'])) {
+    $trajet_id = intval($_POST['start_trajet_id']);
+    $query = $pdo->prepare("UPDATE covoiturage SET statut = 2 WHERE covoiturage_id = :id AND user_id = :user_id");
+    $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
+    header("Location: mes_trajets.php");
+    exit();
+}
+// Gérer l'arrêt du trajet
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stop_trajet_id'])) {
+    $trajet_id = intval($_POST['stop_trajet_id']);
+    $query = $pdo->prepare("UPDATE covoiturage SET statut = 3 WHERE covoiturage_id = :id AND user_id = :user_id");
+    $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
+    header("Location: mes_trajets.php");
+    exit();
+}
+
 require_once __DIR__ . "/../templates/header.php";
 ?>
 
@@ -143,7 +160,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                 <th>Date</th>
                                                 <th>Départ</th>
                                                 <th>Arrivée</th>
-                                                <th>Prix (€)</th>
+                                                <th>Crédits</th>
                                                 <th>Voiture</th>
                                                 <th>Statut et action</th>
                                             </tr>
@@ -166,20 +183,11 @@ require_once __DIR__ . "/../templates/header.php";
                                                         echo '<span class="badge bg-secondary me-2">' . (isset($statutLabels[$statut]) ? $statutLabels[$statut] : 'Inconnu') . '</span>';
                                                         if ($statut == 1): // En attente
                                                         ?>
-                                                            <form method="POST" action="mes_trajets.php" style="display:inline">
-                                                                <input type="hidden" name="start_trajet_id" value="<?= $trajet['covoiturage_id'] ?>">
-                                                                <button type="submit" class="btn btn-primary btn-sm">Démarrer le covoiturage</button>
-                                                            </form>
-                                                        <?php
-                                                        elseif ($statut == 2): // En cours
+                                                            <button type="submit" name="start_trajet_id" value="<?= $trajet['covoiturage_id'] ?>" class="btn btn-primary btn-sm">Démarrer le covoiturage</button>
+                                                        <?php elseif ($statut == 2): // En cours 
                                                         ?>
-                                                            <form method="POST" action="mes_trajets.php" style="display:inline">
-                                                                <input type="hidden" name="stop_trajet_id" value="<?= $trajet['covoiturage_id'] ?>">
-                                                                <button type="submit" class="btn btn-warning btn-sm">Terminer</button>
-                                                            </form>
-                                                        <?php
-                                                        endif;
-                                                        ?>
+                                                            <button type="submit" name="stop_trajet_id" value="<?= $trajet['covoiturage_id'] ?>" class="btn btn-warning btn-sm">Arrêter le covoiturage</button>
+                                                        <?php endif; ?>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>

@@ -39,13 +39,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_voiture'])) {
     $energie_id = $_POST['energie_id'];
 
     try {
+        // Récupérer le libellé d'énergie pour remplir la colonne non nulle `energie`
+        $energie_libelle_stmt = $pdo->prepare("SELECT libelle FROM energie WHERE energie_id = :energie_id");
+        $energie_libelle_stmt->execute(['energie_id' => $energie_id]);
+        $energie_libelle = $energie_libelle_stmt->fetchColumn();
+        if ($energie_libelle === false) {
+            $energie_libelle = '';
+        }
+
         $query = $pdo->prepare("
-            INSERT INTO voiture (modele, immatriculation, couleur, date_premire_immatriculation, marque_id, energie_id, user_id)
-            VALUES (:modele, :immatriculation, :couleur, :date_premire_immatriculation, :marque_id, :energie_id, :user_id)
+            INSERT INTO voiture (modele, immatriculation, energie, couleur, date_premire_immatriculation, marque_id, energie_id, user_id)
+            VALUES (:modele, :immatriculation, :energie, :couleur, :date_premire_immatriculation, :marque_id, :energie_id, :user_id)
         ");
         $query->execute([
             'modele' => $modele,
             'immatriculation' => $immatriculation,
+            'energie' => $energie_libelle,
             'couleur' => $couleur,
             'date_premire_immatriculation' => $date_immatriculation,
             'marque_id' => $marque_id,
@@ -91,7 +100,7 @@ require_once __DIR__ . "/../templates/header.php";
 <section class="hero count-section py-5">
     <div class="container">
 
-        <nav aria-label="breadcrumb" class="me-2 mb-4">
+        <nav aria-label="breadcrumb" class="me-2 ps-2 mb-4 rounded">
             <ol class="breadcrumb ms-2 pt-3">
                 <li class="breadcrumb-item "><a href="/index.php">Accueil</a></li>
                 <li class="breadcrumb-item"><a href="/pages/user_count.php">Mon compte</a></li>
@@ -104,7 +113,7 @@ require_once __DIR__ . "/../templates/header.php";
             <div class="col-md-3">
                 <div class="card mb-4">
                     <div class="card-header bg-light">
-                        <h5 class="mb-0">Mon compte</h5>
+                        <h4 class="mb-0">Mon compte</h4>
                     </div>
                     <div class="list-group list-group-flush">
                         <a href="/pages/user_count.php" class="list-group-item list-group-item-action">Mes informations</a>
@@ -132,7 +141,7 @@ require_once __DIR__ . "/../templates/header.php";
                 <div class="card mb-4">
                     <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Mes voitures</h4>
-                        <div class="text-end w-100">
+                        <div class="text-end w-50">
 
                         </div>
                     </div>

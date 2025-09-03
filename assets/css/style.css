@@ -239,9 +239,14 @@ nav {
 
 .btn_avis {
     background-color: var(--secondary);
-
 }
 
+.avis-card {
+    max-width: 280px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
 
 
 /*end section avis*/

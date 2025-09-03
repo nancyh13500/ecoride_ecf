@@ -73,12 +73,12 @@ require_once __DIR__ . "/../templates/header.php";
                                     <input type="text" class="form-control" id="adresse" name="adresse" value="<?= htmlspecialchars($_SESSION['user']['adresse']) ?>">
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="adresse" class="form-label">CP</label>
-                                    <input type="text" class="form-control" id="adresse" name="adresse" value="<?= htmlspecialchars($_SESSION['user']['adresse']) ?>">
+                                    <label for="cp" class="form-label">CP</label>
+                                    <input type="text" class="form-control" id="cp" name="cp" value="">
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="adresse" class="form-label">Ville</label>
-                                    <input type="text" class="form-control" id="adresse" name="adresse" value="<?= htmlspecialchars($_SESSION['user']['adresse']) ?>">
+                                    <label for="ville" class="form-label">Ville</label>
+                                    <input type="text" class="form-control" id="ville" name="ville" value="">
                                 </div>
                             </div>
 

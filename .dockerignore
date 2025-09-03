@@ -1,0 +1,25 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers de développement
+.git
+.gitignore
+README.md
+*.log
+
+# Fichiers Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Fichiers temporaires
+*.tmp
+*.temp
+node_modules/
+vendor/
+
+# Fichiers de configuration sensibles
+.env
+.env.local
+.env.production

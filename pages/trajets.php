@@ -59,12 +59,12 @@ require_once __DIR__ . "/../lib/pdo.php"
                 </div>
 
                 <div class="col-md-2 text-center">
-                    <label class="form-label price-min">Prix minimum (€)</label>
-                    <input type="number" class="form-control filter-price" placeholder="Prix min">
+                    <label class="form-label credit-min">Crédit minimum (C)</label>
+                    <input type="number" class="form-control filter-price" placeholder="Crédit min">
                 </div>
                 <div class="col-md-2 text-center">
                     <label class="form-label price-max">Durée maximum</label>
-                    <input type="number" class="form-control filter-duration" placeholder="Durée  max">
+                    <input type="number" class="form-control filter-duration" placeholder="Durée max">
                 </div>
                 <div class="col-md-3 text-center">
                     <label class="form-label note">Note minimale</label>
@@ -97,7 +97,7 @@ require_once __DIR__ . "/../lib/pdo.php"
                         <p class="card-text">Le 25 avril 2025</p>
                         <p class="card-text">Chauffeur : David</p>
                         <p class="card-text">Places restantes : 1</p>
-                        <p class="card-text">Tarif : 20 €</p>
+                        <p class="card-text">Crédit : 20 C</p>
                         <button class="btn btn-primary mb-4">Voir le trajet</button>
                     </div>
                 </div>

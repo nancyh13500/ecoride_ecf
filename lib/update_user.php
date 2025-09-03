@@ -16,7 +16,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $prenom = $_POST['prenom'];
         $email = $_POST['email'];
         $telephone = $_POST['telephone'];
-        $adresse = $_POST['adresse'];
+        $adresse = trim($_POST['adresse'] ?? '');
+        $cp = trim($_POST['cp'] ?? '');
+        $ville = trim($_POST['ville'] ?? '');
+        // Concaténer adresse complète si CP/Ville fournis
+        $adresseComplete = $adresse;
+        if ($cp !== '' || $ville !== '') {
+            $adresseComplete = trim($adresse . ', ' . $cp . ' ' . $ville);
+        }
         $date_naissance = $_POST['date_naissance'];
         $pseudo = $_POST['pseudo'];
         $role_covoiturage = $_POST['role_covoiturage'];
@@ -65,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':prenom' => $prenom,
             ':email' => $email,
             ':telephone' => $telephone,
-            ':adresse' => $adresse,
+            ':adresse' => $adresseComplete,
             ':date_naissance' => $date_naissance,
             ':pseudo' => $pseudo,
             ':role_covoiturage' => $role_covoiturage,

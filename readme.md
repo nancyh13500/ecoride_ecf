@@ -2,7 +2,7 @@
 
 ## 🌍 À propos du projet
 
-EcoRide est une plateforme web de covoiturage française qui met en avant une démarche écologique en favorisant les déplacements en voitures électriques et en optimisant le partage des trajets. L'application permet aux utilisateurs de proposer et réserver des trajets en covoiturage tout en privilégiant les véhicules respectueux de l'environnement.
+EcoRide est une plateforme web de covoiturage fictive qui met en avant une démarche écologique en favorisant les déplacements en voitures électriques et en optimisant le partage des trajets. L'application permet aux utilisateurs de proposer et réserver des trajets en covoiturage tout en privilégiant les véhicules respectueux de l'environnement.
 
 ## ✨ Fonctionnalités principales
 

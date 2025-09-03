@@ -16,6 +16,7 @@ if (isset($_POST['loginUser'])) {
         // on va le connecter => session
         $_SESSION['user'] = $user;
         header('location: index.php');
+        exit();
     } else {
         // afficher une erreur
         $errors[] = "Identifiants incorrects. Veuillez réessayer.";

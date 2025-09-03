@@ -81,7 +81,7 @@ require_once __DIR__ . "/templates/header.php";
                         <p>Date départ : </p>
                         <p>Nom chauffeur : David</p>
                         <p>Places restantes : 3</p>
-                        <p>Tarif : 20€</p>
+                        <p>Crédit : 5 C</p>
                         <a href="#" class="btn btn_card btn-primary">Voir le trajet</a>
                     </div>
                 </div>
@@ -97,7 +97,7 @@ require_once __DIR__ . "/templates/header.php";
                         <p>Date départ : </p>
                         <p>Nom chauffeur : Nancy</p>
                         <p>Places restantes : 2</p>
-                        <p>Tarif : 20€</p>
+                        <p>Crédit : 5 C</p>
                         <a href="#" class="btn btn_card btn-primary">Voir le trajet</a>
                     </div>
                 </div>
@@ -113,7 +113,7 @@ require_once __DIR__ . "/templates/header.php";
                         <p>Date départ : </p>
                         <p>Nom chauffeur : Baptiste</p>
                         <p>Places restantes : 1</p>
-                        <p>Tarif : 20€</p>
+                        <p>Crédit : 5 C</p>
                         <a href="#" class="btn btn_card btn-primary">Voir le trajet</a>
                     </div>
                 </div>
@@ -145,56 +145,91 @@ require_once __DIR__ . "/templates/header.php";
 <section class="avis">
     <div class="container py-5">
         <h1 class="text-center mb-5">Chaque avis nous donne un peu plus envie</h1>
-        <div class="row justify-content-center g-4">
-            <div class="col-md-3">
-                <div class="card p-3 shadow-sm">
-                    <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
+        <div id="avisCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="row justify-content-center g-4">
+                        <div class="col-12 col-md-4 d-flex justify-content-center">
+                            <div class="card p-3 shadow-sm avis-card">
+                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                                <h5 class="text-center fw-bold mb-2">Laura, Septembre 2025</h5>
+                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
+                            </div>
+                        </div>
                     </div>
-                    <h5 class="text-center fw-bold mb-2">Laura, Septembre 2025</h5>
-                    <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
+                </div>
+                <div class="carousel-item">
+                    <div class="row justify-content-center g-4">
+                        <div class="col-12 col-md-4 d-flex justify-content-center">
+                            <div class="card p-3 shadow-sm avis-card">
+                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                                <h5 class="text-center fw-bold mb-2">Nancy, mars 2024</h5>
+                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="row justify-content-center g-4">
+                        <div class="col-12 col-md-4 d-flex justify-content-center">
+                            <div class="card p-3 shadow-sm avis-card">
+                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                                <h5 class="text-center fw-bold mb-2">Baptiste, Octobre 2025</h5>
+                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <div class="row justify-content-center g-4">
+                        <div class="col-12 col-md-4 d-flex justify-content-center">
+                            <div class="card p-3 shadow-sm avis-card">
+                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                                <h5 class="text-center fw-bold mb-2">David, novembre 2023</h5>
+                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card p-3 shadow-sm">
-                    <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                    </div>
-                    <h5 class="text-center fw-bold mb-2">Nancy, mars 2024</h5>
-                    <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3 shadow-sm">
-                    <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                    </div>
-                    <h5 class="text-center fw-bold mb-2">Baptiste, Octobre 2025</h5>
-                    <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3 shadow-sm">
-                    <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                        <i class="bi bi-star-fill"></i>
-                    </div>
-                    <h5 class="text-center fw-bold mb-2">David, novembre 2023</h5>
-                    <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
-                </div>
-            </div>
+            <button class="carousel-control-prev d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="prev" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; left: -80px;">
+                <span aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                    </svg>
+                </span>
+                <span class="visually-hidden">Précédent</span>
+            </button>
+            <button class="carousel-control-next d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="next" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; right: -80px;">
+                <span aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+                    </svg>
+                </span>
+                <span class="visually-hidden">Suivant</span>
+            </button>
         </div>
+
         <div class="container text-center p-4">
             <div class="row justify-content-center gy-2">
                 <div class="col-12 col-md-auto">
@@ -205,11 +240,11 @@ require_once __DIR__ . "/templates/header.php";
                 </div>
             </div>
         </div>
-
     </div>
 </section>
 <!-- end section avis -->
 
+<script src="/assets/js/avis.js"></script>
 
 <?php require_once __DIR__ . "/templates/footer.php";
 ?>
