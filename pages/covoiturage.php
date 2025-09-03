@@ -2,6 +2,16 @@
 require_once __DIR__ . "/../lib/pdo.php";
 require_once __DIR__ . "/../lib/session.php";
 
+// Vérifier si l'utilisateur est connecté
+if (!isUserConnected()) {
+    header("Location: /login.php");
+    exit();
+}
+
+$user = $_SESSION['user'];
+$success_message = '';
+$error_message = '';
+
 // Récupération des marques depuis la base de données
 $stmt = $pdo->prepare("SELECT marque_id, libelle FROM marque ORDER BY libelle");
 $stmt->execute();
@@ -11,6 +21,47 @@ $marques = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt_energies = $pdo->prepare("SELECT energie_id, libelle FROM energie ORDER BY libelle");
 $stmt_energies->execute();
 $energies = $stmt_energies->fetchAll(PDO::FETCH_ASSOC);
+
+// Récupérer les voitures de l'utilisateur pour le formulaire
+$query_voitures = $pdo->prepare("SELECT voiture_id, modele, immatriculation FROM voiture WHERE user_id = :user_id ORDER BY modele");
+$query_voitures->execute(['user_id' => $user['user_id']]);
+$voitures = $query_voitures->fetchAll(PDO::FETCH_ASSOC);
+
+// Traitement du formulaire
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
+    $date_depart = $_POST['date_depart'];
+    $heure_depart = $_POST['heure_depart'];
+    $lieu_depart = $_POST['lieu_depart'];
+    $lieu_arrivee = $_POST['lieu_arrivee'];
+    $nb_place = $_POST['nb_place'];
+    $prix_personne = $_POST['prix_personne'];
+    $voiture_id = $_POST['voiture_id'];
+
+    // Normaliser l'heure au format HH:MM:SS
+    if (preg_match('/^\d{2}:\d{2}$/', $heure_depart)) {
+        $heure_depart .= ':00';
+    }
+
+    try {
+        $query = $pdo->prepare("
+            INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id, statut)
+            VALUES (:date_depart, :heure_depart, :lieu_depart, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id, 1)
+        ");
+        $query->execute([
+            'date_depart' => $date_depart,
+            'heure_depart' => $heure_depart,
+            'lieu_depart' => $lieu_depart,
+            'lieu_arrivee' => $lieu_arrivee,
+            'nb_place' => $nb_place,
+            'prix_personne' => $prix_personne,
+            'user_id' => $user['user_id'],
+            'voiture_id' => $voiture_id,
+        ]);
+        $success_message = "Votre covoiturage a été créé avec succès !";
+    } catch (PDOException $e) {
+        $error_message = "Erreur lors de la création du covoiturage : " . $e->getMessage();
+    }
+}
 ?>
 
 <section class="hero publish w-100 px-4 py-5">
@@ -31,41 +82,55 @@ $energies = $stmt_energies->fetchAll(PDO::FETCH_ASSOC);
                 <div class="card-body p-4 p-md-5">
                     <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 px-md-2">Informations</h3>
 
-                    <form class="px-md-2">
+                    <?php if ($success_message): ?>
+                        <div class="alert alert-success"><?= htmlspecialchars($success_message) ?></div>
+                    <?php endif; ?>
+                    <?php if ($error_message): ?>
+                        <div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
+                    <?php endif; ?>
+
+                    <form class="px-md-2" method="POST" action="">
                         <div class="row">
-                            <div data-mdb-input-init="" class="col-md-6 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label" for="form3Example1q">Nom</label>
-                                <input type="text" id="form3Example1q" class="form-control bg-light" required>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label" for="date_depart">Date de départ</label>
+                                <input type="date" id="date_depart" name="date_depart" class="form-control bg-light" required>
                             </div>
-                            <div data-mdb-input-init="" class="col-md-6 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label" for="form3Example1q">Prénom</label>
-                                <input type="text" id="form3Example1q" class="form-control bg-light" required>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label" for="heure_depart">Heure de départ</label>
+                                <input type="time" id="heure_depart" name="heure_depart" class="form-control bg-light" required>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-4">
-                                <label class="form-label city_depart" for="form3Example1w">Ville de départ</label>
-                                <input type="text" id="form3Example1w" class="form-control bg-light" required>
+                                <label class="form-label city_depart" for="lieu_depart">Ville de départ</label>
+                                <input type="text" id="lieu_depart" name="lieu_depart" class="form-control bg-light" required>
                             </div>
                             <div class="col-md-6 mb-4">
-                                <label class="form-label city_arrivee" for="form3Example1w">Ville d'arrivée</label>
-                                <input type="text" id="form3Example1w" class="form-control bg-light" required>
+                                <label class="form-label city_arrivee" for="lieu_arrivee">Ville d'arrivée</label>
+                                <input type="text" id="lieu_arrivee" name="lieu_arrivee" class="form-control bg-light" required>
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-4 mb-4">
-                                <label class="form-label" for="form3Example1w">Téléphone</label>
-                                <input type="text" id="form3Example1w" class="form-control bg-light" required>
+                                <label class="form-label" for="voiture_id">Voiture</label>
+                                <select id="voiture_id" name="voiture_id" class="form-control bg-light" required>
+                                    <option value="">Sélectionnez une voiture</option>
+                                    <?php foreach ($voitures as $voiture): ?>
+                                        <option value="<?= $voiture['voiture_id'] ?>">
+                                            <?= htmlspecialchars($voiture['modele']) ?> (<?= htmlspecialchars($voiture['immatriculation']) ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label" for="form3Example1q">Nombre de places</label>
-                                <input type="number" id="form3Example1q" class="form-control bg-light" required>
+                                <label class="form-label" for="nb_place">Nombre de places</label>
+                                <input type="number" id="nb_place" name="nb_place" min="1" class="form-control bg-light" required>
                             </div>
                             <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label" for="form3Example1q">Crédit / personne</label>
-                                <input type="text" id="form3Example1q" class="form-control bg-light" required>
+                                <label class="form-label" for="prix_personne">Prix / personne (€)</label>
+                                <input type="number" step="0.01" id="prix_personne" name="prix_personne" class="form-control bg-light" required>
                             </div>
                         </div>
 
@@ -137,10 +202,8 @@ $energies = $stmt_energies->fetchAll(PDO::FETCH_ASSOC);
 
                         <div class="row text-center">
                             <div class="col">
-                                <button type="submit" data-mdb-button-init="" data-mdb-ripple-init="" class="btn btn-secondary btn-lg mt-1 mb-1" data-mdb-button-initialized="true">Proposer votre trajet</button>
-
+                                <button type="submit" name="add_covoiturage" class="btn btn-secondary btn-lg mt-1 mb-1">Proposer votre trajet</button>
                             </div>
-
                         </div>
 
                     </form>
