@@ -10,6 +10,12 @@ if (!isUserConnected()) {
 
 $user = $_SESSION['user'];
 
+// Gérer les messages de succès
+$success_message = '';
+if (isset($_GET['success']) && $_GET['success'] === 'voiture_ajoutee') {
+    $success_message = "Votre voiture a été ajoutée avec succès depuis la page covoiturage !";
+}
+
 // Récupérer les voitures de l'utilisateur
 $query_voitures = $pdo->prepare("
     SELECT v.*, m.libelle AS marque_libelle, e.libelle AS energie_libelle
@@ -127,7 +133,15 @@ require_once __DIR__ . "/../templates/header.php";
             <!-- Contenu principal -->
             <div class="col-md-9">
 
-                <?php if (isset($_GET['success'])): ?>
+                <?php if ($success_message): ?>
+                    <div class="alert alert-success">
+                        <?= htmlspecialchars($success_message) ?>
+                        <div class="mt-2">
+                            <a href="/pages/covoiturage.php" class="btn btn-primary btn-sm">Retourner au covoiturage</a>
+                        </div>
+                    </div>
+                <?php endif; ?>
+                <?php if (isset($_GET['success']) && $_GET['success'] !== 'voiture_ajoutee'): ?>
                     <div class="alert alert-success">Votre voiture a été ajoutée avec succès !</div>
                 <?php endif; ?>
                 <?php if (isset($_GET['delete_success'])): ?>

@@ -1,4 +1,6 @@
-<?php require_once __DIR__ . "/../templates/header.php";
+<?php
+ob_start();
+require_once __DIR__ . "/../templates/header.php";
 require_once __DIR__ . "/../lib/pdo.php";
 require_once __DIR__ . "/../lib/session.php";
 
@@ -27,7 +29,47 @@ $query_voitures = $pdo->prepare("SELECT voiture_id, modele, immatriculation FROM
 $query_voitures->execute(['user_id' => $user['user_id']]);
 $voitures = $query_voitures->fetchAll(PDO::FETCH_ASSOC);
 
-// Traitement du formulaire
+// Traitement du formulaire d'ajout de voiture
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_voiture'])) {
+    $modele = $_POST['modele'];
+    $immatriculation = $_POST['immatriculation'];
+    $couleur = $_POST['couleur'];
+    $date_immatriculation = $_POST['date_premire_immatriculation'];
+    $marque_id = $_POST['marque_id'];
+    $energie_id = $_POST['energie_id'];
+
+    try {
+        // Récupérer le libellé d'énergie pour remplir la colonne non nulle `energie`
+        $energie_libelle_stmt = $pdo->prepare("SELECT libelle FROM energie WHERE energie_id = :energie_id");
+        $energie_libelle_stmt->execute(['energie_id' => $energie_id]);
+        $energie_libelle = $energie_libelle_stmt->fetchColumn();
+        if ($energie_libelle === false) {
+            $energie_libelle = '';
+        }
+
+        $query = $pdo->prepare("
+            INSERT INTO voiture (modele, immatriculation, energie, couleur, date_premire_immatriculation, marque_id, energie_id, user_id)
+            VALUES (:modele, :immatriculation, :energie, :couleur, :date_premire_immatriculation, :marque_id, :energie_id, :user_id)
+        ");
+        $query->execute([
+            'modele' => $modele,
+            'immatriculation' => $immatriculation,
+            'energie' => $energie_libelle,
+            'couleur' => $couleur,
+            'date_premire_immatriculation' => $date_immatriculation,
+            'marque_id' => $marque_id,
+            'energie_id' => $energie_id,
+            'user_id' => $user['user_id'],
+        ]);
+        // Rediriger vers mes_voitures.php avec un message de succès
+        header("Location: mes_voitures.php?success=voiture_ajoutee");
+        exit();
+    } catch (PDOException $e) {
+        $error_message = "Erreur lors de l'ajout de la voiture : " . $e->getMessage();
+    }
+}
+
+// Traitement du formulaire de covoiturage
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
     $date_depart = $_POST['date_depart'];
     $heure_depart = $_POST['heure_depart'];
@@ -57,7 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
             'user_id' => $user['user_id'],
             'voiture_id' => $voiture_id,
         ]);
-        $success_message = "Votre covoiturage a été créé avec succès !";
+        header("Location: mes_trajets.php?success=1");
+        exit();
     } catch (PDOException $e) {
         $error_message = "Erreur lors de la création du covoiturage : " . $e->getMessage();
     }
@@ -89,124 +132,188 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                         <div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
                     <?php endif; ?>
 
-                    <form class="px-md-2" method="POST" action="">
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label" for="date_depart">Date de départ</label>
-                                <input type="date" id="date_depart" name="date_depart" class="form-control bg-light" required>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label" for="heure_depart">Heure de départ</label>
-                                <input type="time" id="heure_depart" name="heure_depart" class="form-control bg-light" required>
-                            </div>
+                    <!-- Formulaire d'ajout de voiture -->
+                    <?php if (empty($voitures)): ?>
+                        <div class="alert alert-info mb-4">
+                            <h5>Vous n'avez pas encore de voiture enregistrée</h5>
+                            <p>Ajoutez d'abord une voiture pour pouvoir proposer un covoiturage.</p>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label city_depart" for="lieu_depart">Ville de départ</label>
-                                <input type="text" id="lieu_depart" name="lieu_depart" class="form-control bg-light" required>
+                        <div class="card mb-4">
+                            <div class="card-header bg-light">
+                                <h4 class="mb-0">Ajouter ma voiture</h4>
                             </div>
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label city_arrivee" for="lieu_arrivee">Ville d'arrivée</label>
-                                <input type="text" id="lieu_arrivee" name="lieu_arrivee" class="form-control bg-light" required>
+                            <div class="card-body">
+                                <form method="POST" action="">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="marque_id" class="form-label">Marque</label>
+                                            <select class="form-select" id="marque_id" name="marque_id" required>
+                                                <option value="">Sélectionnez une marque</option>
+                                                <?php foreach ($marques as $marque): ?>
+                                                    <option value="<?= $marque['marque_id'] ?>"><?= htmlspecialchars($marque['libelle']) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="modele" class="form-label">Modèle</label>
+                                            <input type="text" class="form-control" id="modele" name="modele" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="immatriculation" class="form-label">Immatriculation</label>
+                                            <input type="text" class="form-control" id="immatriculation" name="immatriculation" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="couleur" class="form-label">Couleur</label>
+                                            <input type="text" class="form-control" id="couleur" name="couleur" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="energie_id" class="form-label">Énergie</label>
+                                            <select class="form-select" id="energie_id" name="energie_id" required>
+                                                <option value="">Sélectionnez une énergie</option>
+                                                <?php foreach ($energies as $energie): ?>
+                                                    <option value="<?= $energie['energie_id'] ?>"><?= htmlspecialchars($energie['libelle']) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="date_premire_immatriculation" class="form-label">Date de 1ère immatriculation</label>
+                                            <input type="date" class="form-control" id="date_premire_immatriculation" name="date_premire_immatriculation" required>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <button type="submit" name="add_voiture" class="btn btn-primary">Ajouter ma voiture</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
+                    <?php endif; ?>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-4">
-                                <label class="form-label" for="voiture_id">Voiture</label>
-                                <select id="voiture_id" name="voiture_id" class="form-control bg-light" required>
-                                    <option value="">Sélectionnez une voiture</option>
-                                    <?php foreach ($voitures as $voiture): ?>
-                                        <option value="<?= $voiture['voiture_id'] ?>">
-                                            <?= htmlspecialchars($voiture['modele']) ?> (<?= htmlspecialchars($voiture['immatriculation']) ?>)
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                    <!-- Formulaire de covoiturage -->
+                    <?php if (!empty($voitures)): ?>
+                        <form class="px-md-2" method="POST" action="">
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label" for="date_depart">Date de départ</label>
+                                    <input type="date" id="date_depart" name="date_depart" class="form-control bg-light" required>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label" for="heure_depart">Heure de départ</label>
+                                    <input type="time" id="heure_depart" name="heure_depart" class="form-control bg-light" required>
+                                </div>
                             </div>
-                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label" for="nb_place">Nombre de places</label>
-                                <input type="number" id="nb_place" name="nb_place" min="1" class="form-control bg-light" required>
-                            </div>
-                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label" for="prix_personne">Prix / personne (€)</label>
-                                <input type="number" step="0.01" id="prix_personne" name="prix_personne" class="form-control bg-light" required>
-                            </div>
-                        </div>
 
-                        <div class="row">
-                            <?php if (isUserConnected()): ?>
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label city_depart" for="lieu_depart">Ville de départ</label>
+                                    <input type="text" id="lieu_depart" name="lieu_depart" class="form-control bg-light" required>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <label class="form-label city_arrivee" for="lieu_arrivee">Ville d'arrivée</label>
+                                    <input type="text" id="lieu_arrivee" name="lieu_arrivee" class="form-control bg-light" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-4">
+                                    <label class="form-label" for="voiture_id">Voiture</label>
+                                    <select id="voiture_id" name="voiture_id" class="form-control bg-light" required>
+                                        <option value="">Sélectionnez une voiture</option>
+                                        <?php foreach ($voitures as $voiture): ?>
+                                            <option value="<?= $voiture['voiture_id'] ?>">
+                                                <?= htmlspecialchars($voiture['modele']) ?> (<?= htmlspecialchars($voiture['immatriculation']) ?>)
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                    <label class="form-label" for="nb_place">Nombre de places</label>
+                                    <input type="number" id="nb_place" name="nb_place" min="1" class="form-control bg-light" required>
+                                </div>
+                                <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                    <label class="form-label" for="prix_personne">Prix / personne (€)</label>
+                                    <input type="number" step="0.01" id="prix_personne" name="prix_personne" class="form-control bg-light" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <?php if (isUserConnected()): ?>
+                                    <div class="col-md-4 mb-4">
+                                        <div class="col-md-8 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                            <label class="form-label text-center w-100" for="gridCheck">Chauffeur / Passager</label>
+                                            <select class="form-select" aria-label="Default select example" required>
+                                                <option selected>Choisissez une option</option>
+                                                <option value="1">Chauffeur</option>
+                                                <option value="2">Passager</option>
+                                                <option value="3">Les deux</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="col-md-4 mb-4">
                                     <div class="col-md-8 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                        <label class="form-label text-center w-100" for="gridCheck">Chauffeur / Passager</label>
-                                        <select class="form-select" aria-label="Default select example" required>
-                                            <option selected>Choisissez une option</option>
-                                            <option value="1">Chauffeur</option>
-                                            <option value="2">Passager</option>
-                                            <option value="3">Les deux</option>
+                                        <label class="form-label text-center w-100" for="gridCheck">Marque véhicule</label>
+                                        <select class="form-select" aria-label="Default select example" name="marque_id">
+                                            <option value="">Choisissez une marque</option>
+                                            <?php foreach ($marques as $marque): ?>
+                                                <option value="<?= htmlspecialchars($marque['marque_id']) ?>">
+                                                    <?= htmlspecialchars($marque['libelle']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
                                         </select>
                                     </div>
                                 </div>
-                            <?php endif; ?>
-                            <div class="col-md-4 mb-4">
-                                <div class="col-md-8 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                    <label class="form-label text-center w-100" for="gridCheck">Marque véhicule</label>
-                                    <select class="form-select" aria-label="Default select example" name="marque_id" required>
-                                        <option value="">Choisissez une marque</option>
-                                        <?php foreach ($marques as $marque): ?>
-                                            <option value="<?= htmlspecialchars($marque['marque_id']) ?>">
-                                                <?= htmlspecialchars($marque['libelle']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
+                                <div class="col-md-4 mb-4">
+                                    <div class="col-md-8 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                        <label class="form-label text-center w-100" for="gridCheck">Energie véhicule</label>
+                                        <select class="form-select" aria-label="Default select example" name="energie_id">
+                                            <option value="">Choisissez une option</option>
+                                            <?php foreach ($energies as $energie): ?>
+                                                <option value="<?= htmlspecialchars($energie['energie_id']) ?>">
+                                                    <?= htmlspecialchars($energie['libelle']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                    <label class="form-label text-center w-100" for="gridCheck">Voyage écologique</label>
+                                    <div class="mt-2 d-flex justify-content-center">
+                                        <input class="form-check-input border-dark" type="checkbox" id="gridCheck">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                    <label class="form-label text-center w-100" for="gridCheck">Fumeur / Non fumeur</label>
+                                    <select class="form-select" aria-label="Default select example">
+                                        <option selected>Choisissez une option</option>
+                                        <option value="1">Fumeur</option>
+                                        <option value="2">Non fumeur</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div class="col-md-4 mb-4">
-                                <div class="col-md-8 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                    <label class="form-label text-center w-100" for="gridCheck">Energie véhicule</label>
-                                    <select class="form-select" aria-label="Default select example" name="energie_id" required>
-                                        <option value="">Choisissez une option</option>
-                                        <?php foreach ($energies as $energie): ?>
-                                            <option value="<?= htmlspecialchars($energie['energie_id']) ?>">
-                                                <?= htmlspecialchars($energie['libelle']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
+                                    <label class="form-label text-center w-100" for="checkNativeSwitch">Animal / pas d'animal</label>
+                                    <div class="d-flex justify-content-center align-items-center mt-2">
+                                        <input class="form-check-input border-dark me-2" type="checkbox" id="checkNativeSwitch">
+                                        <label class="form-label mb-0" for="checkNativeSwitch">Autorisé</label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label text-center w-100" for="gridCheck">Voyage écologique</label>
-                                <div class="mt-2 d-flex justify-content-center">
-                                    <input class="form-check-input border-dark" type="checkbox" id="gridCheck">
+                            <div class="row text-center">
+                                <div class="col">
+                                    <button type="submit" name="add_covoiturage" class="btn btn-secondary btn-lg mt-1 mb-1">Proposer votre trajet</button>
                                 </div>
                             </div>
-                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label text-center w-100" for="gridCheck">Fumeur / Non fumeur</label>
-                                <select class="form-select" aria-label="Default select example">
-                                    <option selected>Choisissez une option</option>
-                                    <option value="1">Fumeur</option>
-                                    <option value="2">Non fumeur</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                <label class="form-label text-center w-100" for="checkNativeSwitch">Animal / pas d'animal</label>
-                                <div class="d-flex justify-content-center align-items-center mt-2">
-                                    <input class="form-check-input border-dark me-2" type="checkbox" id="checkNativeSwitch">
-                                    <label class="form-label mb-0" for="checkNativeSwitch">Autorisé</label>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="row text-center">
-                            <div class="col">
-                                <button type="submit" name="add_covoiturage" class="btn btn-secondary btn-lg mt-1 mb-1">Proposer votre trajet</button>
-                            </div>
-                        </div>
-
-                    </form>
+                        </form>
+                    <?php endif; ?>
 
                 </div>
             </div>

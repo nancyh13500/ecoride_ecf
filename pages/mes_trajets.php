@@ -40,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_trajet'])) {
 
     try {
         $query = $pdo->prepare("
-            INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id)
-            VALUES (:date_depart, :heure_depart, :lieu_depart, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id)
+            INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id, statut)
+            VALUES (:date_depart, :heure_depart, :lieu_depart, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id, 1)
         ");
         $query->execute([
             'date_depart' => $date_depart,
@@ -95,6 +95,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stop_trajet_id'])) {
     $trajet_id = intval($_POST['stop_trajet_id']);
     $query = $pdo->prepare("UPDATE covoiturage SET statut = 3 WHERE covoiturage_id = :id AND user_id = :user_id");
     $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
+    header("Location: mes_trajets.php");
+    exit();
+}
+
+// Gérer la mise à jour de la durée
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_duree_trajet_id'])) {
+    $trajet_id = intval($_POST['update_duree_trajet_id']);
+    $duree_minutes = intval($_POST['duree_minutes']);
+
+    $query = $pdo->prepare("UPDATE covoiturage SET duree = :duree WHERE covoiturage_id = :id AND user_id = :user_id");
+    $query->execute([
+        'duree' => $duree_minutes,
+        'id' => $trajet_id,
+        'user_id' => $user['user_id']
+    ]);
     header("Location: mes_trajets.php");
     exit();
 }
@@ -162,11 +177,15 @@ require_once __DIR__ . "/../templates/header.php";
                                                 <th>Arrivée</th>
                                                 <th>Crédits</th>
                                                 <th>Voiture</th>
+                                                <th>Durée</th>
                                                 <th>Statut et action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($trajets as $trajet): ?>
+                                            <?php foreach ($trajets as $trajet):
+                                                $statutLabels = [1 => 'En attente', 2 => 'En cours', 3 => 'Terminé'];
+                                                $statut = $trajet['statut'] ?? 1;
+                                            ?>
                                                 <tr>
                                                     <td>
                                                         <input type="checkbox" name="delete_trajet_ids[]" value="<?= $trajet['covoiturage_id'] ?>" class="form-check-input ms-2 border-dark">
@@ -177,9 +196,20 @@ require_once __DIR__ . "/../templates/header.php";
                                                     <td><?= htmlspecialchars($trajet['prix_personne']) ?></td>
                                                     <td><?= htmlspecialchars($trajet['modele']) ?> (<?= htmlspecialchars($trajet['immatriculation']) ?>)</td>
                                                     <td>
+                                                        <?php if ($trajet['duree']): ?>
+                                                            <?php
+                                                            $heures = floor($trajet['duree'] / 60);
+                                                            $minutes = $trajet['duree'] % 60;
+                                                            echo $heures > 0 ? "{$heures}h {$minutes}min" : "{$minutes}min";
+                                                            ?>
+                                                        <?php elseif ($statut == 2): ?>
+                                                            <span id="temps-<?= $trajet['covoiturage_id'] ?>" class="text-primary">En cours...</span>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">-</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
                                                         <?php
-                                                        $statutLabels = [1 => 'En attente', 2 => 'En cours', 3 => 'Terminé'];
-                                                        $statut = $trajet['statut'] ?? 1;
                                                         echo '<span class="badge bg-secondary me-2">' . (isset($statutLabels[$statut]) ? $statutLabels[$statut] : 'Inconnu') . '</span>';
                                                         if ($statut == 1): // En attente
                                                         ?>
@@ -267,4 +297,5 @@ require_once __DIR__ . "/../templates/header.php";
     </div>
 </section>
 
+<script src="/assets/js/temps_trajet.js"></script>
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>
