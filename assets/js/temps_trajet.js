@@ -6,7 +6,7 @@ class TempsTrajet {
     }
 
     init() {
-        // Écouter les clics sur les boutons de démarrage et d'arrêt
+        // clics sur les boutons de démarrage et d'arrêt
         document.addEventListener('click', (e) => {
             if (e.target.name === 'start_trajet_id') {
                 this.demarrerTrajet(e.target.value);
