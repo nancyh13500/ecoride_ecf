@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../lib/session.php";
 require_once __DIR__ . "/../lib/pdo.php";
+// MongoDB désactivé
 
 // Vérifier si l'utilisateur est connecté
 if (!isUserConnected()) {
@@ -104,17 +105,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_duree_trajet_i
     $trajet_id = intval($_POST['update_duree_trajet_id']);
     $duree_minutes = intval($_POST['duree_minutes']);
 
-    $query = $pdo->prepare("UPDATE covoiturage SET duree = :duree WHERE covoiturage_id = :id AND user_id = :user_id");
-    $query->execute([
-        'duree' => $duree_minutes,
-        'id' => $trajet_id,
-        'user_id' => $user['user_id']
-    ]);
-    header("Location: mes_trajets.php");
-    exit();
+    try {
+        // Mise à jour MySQL
+        $query = $pdo->prepare("UPDATE covoiturage SET duree = :duree WHERE covoiturage_id = :id AND user_id = :user_id");
+        $query->execute([
+            'duree' => $duree_minutes,
+            'id' => $trajet_id,
+            'user_id' => $user['user_id']
+        ]);
+        header("Location: mes_trajets.php");
+        exit();
+    } catch (Exception $e) {
+        $error_message = "Erreur lors de la mise à jour de la durée : " . $e->getMessage();
+    }
 }
 
 require_once __DIR__ . "/../templates/header.php";
+
+// Messages de succès
+$success_message = '';
+if (isset($_GET['started']) && $_GET['started'] == '1') {
+    $success_message = 'Trajet démarré avec succès !';
+} elseif (isset($_GET['from_covoiturage']) && $_GET['from_covoiturage'] == '1') {
+    $success_message = 'Connecté avec succès ! Vous pouvez maintenant démarrer votre trajet.';
+}
 ?>
 
 <section class="hero count-section py-5">
@@ -128,6 +142,13 @@ require_once __DIR__ . "/../templates/header.php";
             </ol>
         </nav>
 
+        <?php if (!empty($success_message)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($success_message) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <?php endif; ?>
+
         <div class="row">
             <!-- Menu latéral -->
             <div class="col-md-3">
@@ -138,7 +159,7 @@ require_once __DIR__ . "/../templates/header.php";
                     <div class="list-group list-group-flush">
                         <a href="/pages/user_count.php" class="list-group-item list-group-item-action">Mes informations</a>
                         <a href="/pages/mes_trajets.php" class="list-group-item list-group-item-action active">Mes trajets</a>
-                        <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">Mes réservations</a>
+                        <!-- <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">Mes réservations</a> -->
                         <a href="/pages/mes_voitures.php" class="list-group-item list-group-item-action">Mes voitures</a>
                     </div>
                 </div>

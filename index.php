@@ -1,6 +1,44 @@
 <?php
 require_once __DIR__ . "/lib/session.php";
+require_once __DIR__ . "/lib/pdo.php";
 require_once __DIR__ . "/templates/header.php";
+
+// Récupérer les villes disponibles depuis la base de données
+$villes_depart = [];
+$villes_arrivee = [];
+
+try {
+    // Récupérer les villes de départ
+    $query_depart = $pdo->prepare("SELECT DISTINCT lieu_depart FROM covoiturage WHERE statut = 1 ORDER BY lieu_depart ASC");
+    $query_depart->execute();
+    $villes_depart = $query_depart->fetchAll(PDO::FETCH_COLUMN);
+
+    // Récupérer les villes d'arrivée
+    $query_arrivee = $pdo->prepare("SELECT DISTINCT lieu_arrivee FROM covoiturage WHERE statut = 1 ORDER BY lieu_arrivee ASC");
+    $query_arrivee->execute();
+    $villes_arrivee = $query_arrivee->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $e) {
+    // En cas d'erreur, on continue avec des listes vides
+    $villes_depart = [];
+    $villes_arrivee = [];
+}
+
+// Traitement de la recherche
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
+    $depart = $_POST['depart'] ?? '';
+    $arrivee = $_POST['arrivee'] ?? '';
+    $date = $_POST['date'] ?? '';
+
+    // Redirection vers trajets.php avec les paramètres de recherche
+    $params = http_build_query([
+        'depart' => $depart,
+        'arrivee' => $arrivee,
+        'date' => $date
+    ]);
+
+    header("Location: /pages/trajets.php?$params");
+    exit();
+}
 
 ?>
 
@@ -11,29 +49,41 @@ require_once __DIR__ . "/templates/header.php";
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
         <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
-            <div class="search-bar row">
-                <div class="search-field col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-primary"></i></span>
-                        <input type="text" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" required>
+            <form method="POST" action="">
+                <div class="search-bar row">
+                    <div class="search-field col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-primary"></i></span>
+                            <select name="depart" class="form-select border-start-0 text-center" required>
+                                <option value="">Ville de départ</option>
+                                <?php foreach ($villes_depart as $ville): ?>
+                                    <option value="<?= htmlspecialchars($ville) ?>"><?= htmlspecialchars($ville) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="search-field col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
+                            <select name="arrivee" class="form-select border-start-0 text-center" required>
+                                <option value="">Ville d'arrivée</option>
+                                <?php foreach ($villes_arrivee as $ville): ?>
+                                    <option value="<?= htmlspecialchars($ville) ?>"><?= htmlspecialchars($ville) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="search-field col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar text-primary"></i></span>
+                            <input type="date" name="date" class="form-control border-start-0 text-center" required>
+                        </div>
                     </div>
                 </div>
-                <div class="search-field col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
-                        <input type="text" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" required>
-                    </div>
+                <div class="d-flex justify-content-center mt-3">
+                    <button type="submit" name="search_trajet" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
                 </div>
-                <div class="search-field col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar text-primary"></i></span>
-                        <input type="date" name="date" class="form-control border-start-0 text-center" required>
-                    </div>
-                </div>
-            </div>
-            <div class="d-flex justify-content-center mt-3">
-                <button type="submit" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
-            </div>
+            </form>
         </div>
     </div>
 </section>

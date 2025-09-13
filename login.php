@@ -15,7 +15,17 @@ if (isset($_POST['loginUser'])) {
     if ($user) {
         // on va le connecter => session
         $_SESSION['user'] = $user;
-        header('location: index.php');
+
+        // Gérer la redirection après connexion
+        $redirect = $_GET['redirect'] ?? 'index.php';
+        $redirect_path = '/pages/' . $redirect;
+
+        // Ajouter le paramètre from_covoiturage si présent
+        if (isset($_GET['from_covoiturage']) && $_GET['from_covoiturage'] == '1') {
+            $redirect_path .= '?from_covoiturage=1';
+        }
+
+        header("location: $redirect_path");
         exit();
     } else {
         // afficher une erreur
@@ -77,7 +87,12 @@ if (isset($_POST['registerUser'])) {
 
         if ($registerQuery->execute()) {
             $_SESSION['success'] = "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.";
-            header('location: index.php');
+
+            // Gérer la redirection après inscription
+            $redirect = $_GET['redirect'] ?? 'index.php';
+            $redirect_path = '/pages/' . $redirect;
+
+            header("location: $redirect_path");
             exit();
         } else {
             $errors[] = "Une erreur est survenue lors de l'enregistrement.";

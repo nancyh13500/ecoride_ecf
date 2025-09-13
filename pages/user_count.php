@@ -31,7 +31,7 @@ require_once __DIR__ . "/../templates/header.php";
                     <div class="list-group list-group-flush">
                         <a href="/pages/user_count.php" class="list-group-item list-group-item-action active">Mes informations</a>
                         <a href="/pages/mes_trajets.php" class="list-group-item list-group-item-action">Mes trajets</a>
-                        <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">Mes réservations</a>
+                        <!-- <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">Mes réservations</a> -->
                         <a href="/pages/mes_voitures.php" class="list-group-item list-group-item-action">Mes voitures</a>
                     </div>
                 </div>

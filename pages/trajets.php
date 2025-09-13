@@ -1,6 +1,50 @@
 <?php
 require_once __DIR__ . "/../templates/header.php";
-require_once __DIR__ . "/../lib/pdo.php"
+require_once __DIR__ . "/../lib/pdo.php";
+require_once __DIR__ . "/../lib/session.php";
+
+// Gérer le démarrage du trajet depuis cette page
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_from_hero'])) {
+    if (isUserConnected()) {
+        $user = $_SESSION['user'];
+        $trajet_id = intval($_POST['start_trajet_from_hero']);
+
+        try {
+            $query = $pdo->prepare("UPDATE covoiturage SET statut = 2 WHERE covoiturage_id = :id AND user_id = :user_id");
+            $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
+            header("Location: mes_trajets.php?started=1");
+            exit();
+        } catch (PDOException $e) {
+            $error_message = "Erreur lors du démarrage du trajet : " . $e->getMessage();
+        }
+    }
+}
+
+// Récupérer les paramètres de recherche depuis l'URL
+$search_depart = $_GET['depart'] ?? '';
+$search_arrivee = $_GET['arrivee'] ?? '';
+$search_date = $_GET['date'] ?? '';
+
+// Récupérer un covoiturage disponible pour l'affichage dans la hero (pour tous les utilisateurs)
+$covoiturage_hero = null;
+try {
+    $query_hero = $pdo->prepare("
+        SELECT c.*, u.nom, u.prenom, v.modele, m.libelle AS marque_libelle
+        FROM covoiturage c
+        LEFT JOIN user u ON c.user_id = u.user_id
+        LEFT JOIN voiture v ON c.voiture_id = v.voiture_id
+        LEFT JOIN marque m ON v.marque_id = m.marque_id
+        WHERE c.statut = 1 AND c.nb_place > 0 AND c.date_depart >= CURDATE()
+        ORDER BY c.date_depart ASC, c.heure_depart ASC
+        LIMIT 1
+    ");
+    $query_hero->execute();
+    $covoiturage_hero = $query_hero->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // En cas d'erreur, on continue sans afficher de covoiturage
+    $covoiturage_hero = null;
+}
+
 ?>
 
 <!-- Hero Section -->
@@ -38,53 +82,106 @@ require_once __DIR__ . "/../lib/pdo.php"
 </section>
 
 <!-- Results Section -->
-<section class="results bg-light py-5">
-    <div class="container">
-        <div class="result-header text-center mb-5">
-            <div class="bg-dark text-white p-4 rounded">
-                <h2>Résultats pour : Martigues → Marseille</h2>
+
+<div class="result-header text-center mb-5">
+    <div class="bg-dark text-white p-4">
+        <?php if (!empty($search_depart) && !empty($search_arrivee)): ?>
+            <h2>Résultats pour : <?= htmlspecialchars($search_depart) ?> → <?= htmlspecialchars($search_arrivee) ?></h2>
+            <?php if (!empty($search_date)): ?>
+                <p class="mb-0">Date : <?= date('d/m/Y', strtotime($search_date)) ?></p>
+            <?php endif; ?>
+        <?php else: ?>
+            <h2>Découvrez les trajets disponibles</h2>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters mb-4">
+    <div class="row">
+        <div class="col-md-2 text-center">
+            <div class="form-check d-flex flex-column justify-content-center align-items-center">
+                <label class="form-check-label-eco mb-2" for="ecoTrip">
+                    Voyage écologique
+                </label>
+                <input class="form-check-input mt-3 border-dark align-items-end" type="checkbox" id="ecoTrip">
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="filters mb-4">
-            <div class="row">
-                <div class="col-md-2 text-center">
-                    <div class="form-check d-flex flex-column justify-content-center align-items-center">
-                        <label class="form-check-label-eco mb-2" for="ecoTrip">
-                            Voyage écologique
-                        </label>
-                        <input class="form-check-input mt-3 border-dark align-items-end" type="checkbox" id="ecoTrip">
+        <div class="col-md-2 text-center">
+            <label class="form-label credit-min">Crédit minimum (C)</label>
+            <input type="number" class="form-control filter-price" placeholder="Crédit min">
+        </div>
+        <div class="col-md-2 text-center">
+            <label class="form-label price-max">Durée maximum</label>
+            <input type="number" class="form-control filter-duration" placeholder="Durée max">
+        </div>
+        <div class="col-md-3 text-center">
+            <label class="form-label note">Note minimale</label>
+            <select class="form-select">
+                <option selected>Toutes les notes</option>
+                <option value="5">5 étoiles</option>
+                <option value="4">4 étoiles et plus</option>
+                <option value="3">3 étoiles et plus</option>
+            </select>
+        </div>
+        <div class="col-md-3 d-flex justify-content-center align-items-end">
+            <button class="btn btn-filtre text-dark btn-secondary w-50">Filtrer</button>
+        </div>
+    </div>
+</div>
+
+<section id="results" class="results bg-light py-5">
+    <h5 class="mb-4 ms-4">Résultat(s) trouvé(s) :</h5>
+    <div class="container">
+        <?php if ($covoiturage_hero): ?>
+            <!-- Affichage d'un covoiturage disponible -->
+            <div class="covoiturage-hero-card mb-5">
+                <div class="card col-md-3 mx-auto covoiturage-results-card">
+                    <div class="card-header bg-dark text-white text-center">
+                        <h5 class="mb-0"><i class="bi bi-car-front me-2"></i>Covoiturage disponible</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary text-center mb-2"><i class="bi bi-geo-alt-fill me-1"></i>Trajet</h6>
+                                <p class="mb-2"><strong><?= htmlspecialchars($covoiturage_hero['lieu_depart']) ?></strong> → <strong><?= htmlspecialchars($covoiturage_hero['lieu_arrivee']) ?></strong></p>
+
+                                <h6 class="text-primary text-center mb-2"><i class="bi bi-calendar-event me-1"></i>Départ</h6>
+                                <p class="mb-2"><?= date('d/m/Y', strtotime($covoiturage_hero['date_depart'])) ?> à <?= date('H:i', strtotime($covoiturage_hero['heure_depart'])) ?></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-primary text-center mb-2"><i class="bi bi-person-circle me-1"></i>Conducteur</h6>
+                                <p class="mb-2"><?= htmlspecialchars($covoiturage_hero['prenom'] . ' ' . $covoiturage_hero['nom']) ?></p>
+
+                                <h6 class="text-primary text-center mb-2"><i class="bi bi-car-front me-1"></i>Véhicule</h6>
+                                <p class="mb-2"><?= htmlspecialchars($covoiturage_hero['marque_libelle'] . ' ' . $covoiturage_hero['modele']) ?></p>
+                            </div>
+                        </div>
+                        <div class="col mt-3 mb-3 text-center">
+                            <div class="row-md-6 mt-2 mb-2 pt-2 pb-2">
+                                <span class="badge bg-success fs-6"><i class="bi bi-people me-1"></i><?= $covoiturage_hero['nb_place'] ?> place<?= $covoiturage_hero['nb_place'] > 1 ? 's' : '' ?> disponible<?= $covoiturage_hero['nb_place'] > 1 ? 's' : '' ?></span>
+                            </div>
+                            <div class="row-md-6 mt-2 mb-2 pt-2 pb-2">
+                                <span class="badge bg-warning text-dark fs-6"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage_hero['prix_personne'], 2) ?>€ par personne</span>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-4 mb-2 text-center">
+                            <?php if (isUserConnected()): ?>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="start_trajet_from_hero" value="<?= $covoiturage_hero['covoiturage_id'] ?>">
+                                    <button type="submit" class="btn btn-primary"><i class="bi bi-play-circle me-1"></i>Démarrer le trajet</button>
+                                </form>
+                            <?php else: ?>
+                                <a href="/login.php?redirect=mes_trajets.php&from_covoiturage=1" class="btn btn-secondary justify-content-center"><i class="bi bi-person-circle me-1"></i>Se connecter pour démarrer</a>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
-
-                <div class="col-md-2 text-center">
-                    <label class="form-label credit-min">Crédit minimum (C)</label>
-                    <input type="number" class="form-control filter-price" placeholder="Crédit min">
-                </div>
-                <div class="col-md-2 text-center">
-                    <label class="form-label price-max">Durée maximum</label>
-                    <input type="number" class="form-control filter-duration" placeholder="Durée max">
-                </div>
-                <div class="col-md-3 text-center">
-                    <label class="form-label note">Note minimale</label>
-                    <select class="form-select">
-                        <option selected>Toutes les notes</option>
-                        <option value="5">5 étoiles</option>
-                        <option value="4">4 étoiles et plus</option>
-                        <option value="3">3 étoiles et plus</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex justify-content-center align-items-end">
-                    <button class="btn btn-filtre text-dark btn-secondary w-50">Filtrer</button>
-                </div>
             </div>
-        </div>
+        <?php endif; ?>
 
-        <h5 class="mb-4">Résultat(s) trouvé(s) :</h5>
-        <p class="text-center">Aucun résultats trouvés pour ce trajet</p>
-
-        <h5 class="mt-4 mb-4">Suggestions du moment :</h5>
+        <!-- <h5 id="suggestions" class="mt-4 mb-4">Suggestions du moment :</h5>
         <div class="row d-flex justify-content-center">
             <div class="col-md-3">
                 <div class="card-trajet">
@@ -102,7 +199,7 @@ require_once __DIR__ . "/../lib/pdo.php"
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
     </div>
 </section>
