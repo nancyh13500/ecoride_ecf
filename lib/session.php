@@ -17,7 +17,7 @@ function requireLogin(): void
 {
     if (!isUserConnected()) {
         $_SESSION['error'] = "Vous devez être connecté pour accéder à cette page.";
-        header('Location: /login.php');
+        header('Location: ../login.php');
         exit();
     }
 }

@@ -20,10 +20,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_from_her
     }
 }
 
+// Récupérer les villes disponibles depuis la base de données
+$villes_depart = [];
+$villes_arrivee = [];
+
+try {
+    // Récupérer les villes de départ
+    $query_depart = $pdo->prepare("SELECT DISTINCT lieu_depart FROM covoiturage WHERE statut = 1 ORDER BY lieu_depart ASC");
+    $query_depart->execute();
+    $villes_depart = $query_depart->fetchAll(PDO::FETCH_COLUMN);
+
+    // Récupérer les villes d'arrivée
+    $query_arrivee = $pdo->prepare("SELECT DISTINCT lieu_arrivee FROM covoiturage WHERE statut = 1 ORDER BY lieu_arrivee ASC");
+    $query_arrivee->execute();
+    $villes_arrivee = $query_arrivee->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $e) {
+    // En cas d'erreur, on continue avec des listes vides
+    $villes_depart = [];
+    $villes_arrivee = [];
+}
+
+// Traitement de la recherche depuis le formulaire
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
+    $depart = $_POST['depart'] ?? '';
+    $arrivee = $_POST['arrivee'] ?? '';
+    $date = $_POST['date'] ?? '';
+
+    // Redirection vers la même page avec les paramètres de recherche
+    $params = http_build_query([
+        'depart' => $depart,
+        'arrivee' => $arrivee,
+        'date' => $date
+    ]);
+
+    header("Location: trajets.php?$params");
+    exit();
+}
+
 // Récupérer les paramètres de recherche depuis l'URL
 $search_depart = $_GET['depart'] ?? '';
 $search_arrivee = $_GET['arrivee'] ?? '';
 $search_date = $_GET['date'] ?? '';
+
+// Rechercher les covoiturages selon les critères de recherche
+$covoiturages_recherche = [];
+$has_search_criteria = !empty($search_depart) && !empty($search_arrivee);
+
+if ($has_search_criteria) {
+    try {
+        $query_search = $pdo->prepare("
+            SELECT c.*, u.nom, u.prenom, v.modele, m.libelle AS marque_libelle
+            FROM covoiturage c
+            LEFT JOIN user u ON c.user_id = u.user_id
+            LEFT JOIN voiture v ON c.voiture_id = v.voiture_id
+            LEFT JOIN marque m ON v.marque_id = m.marque_id
+            WHERE c.statut = 1 AND c.nb_place > 0 
+            AND c.lieu_depart LIKE :depart 
+            AND c.lieu_arrivee LIKE :arrivee
+            AND c.date_depart >= CURDATE()
+        ");
+
+        // Ajouter la condition de date si spécifiée
+        if (!empty($search_date)) {
+            $query_search = $pdo->prepare("
+                SELECT c.*, u.nom, u.prenom, v.modele, m.libelle AS marque_libelle
+                FROM covoiturage c
+                LEFT JOIN user u ON c.user_id = u.user_id
+                LEFT JOIN voiture v ON c.voiture_id = v.voiture_id
+                LEFT JOIN marque m ON v.marque_id = m.marque_id
+                WHERE c.statut = 1 AND c.nb_place > 0 
+                AND c.lieu_depart LIKE :depart 
+                AND c.lieu_arrivee LIKE :arrivee
+                AND c.date_depart = :date_search
+            ");
+            $query_search->execute([
+                'depart' => '%' . $search_depart . '%',
+                'arrivee' => '%' . $search_arrivee . '%',
+                'date_search' => $search_date
+            ]);
+        } else {
+            $query_search->execute([
+                'depart' => '%' . $search_depart . '%',
+                'arrivee' => '%' . $search_arrivee . '%'
+            ]);
+        }
+
+        $covoiturages_recherche = $query_search->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        $covoiturages_recherche = [];
+    }
+}
 
 // Récupérer un covoiturage disponible pour l'affichage dans la hero (pour tous les utilisateurs)
 $covoiturage_hero = null;
@@ -52,31 +138,43 @@ try {
     <div class="background-img"></div>
     <div class="content px-4 py-5 my-5 text-center">
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
+        <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
-            <p class="lead mb-4 ">La solution accessible et durable pour tous.</p>
-            <div class="search-bar row">
-                <div class="search-field col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-primary"></i></span>
-                        <input type="text" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" required>
+            <form method="POST" action="">
+                <div class="search-bar row">
+                    <div class="search-field col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-primary"></i></span>
+                            <input type="text" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" list="villes-depart" value="<?= htmlspecialchars($search_depart) ?>" required>
+                            <datalist id="villes-depart">
+                                <?php foreach ($villes_depart as $ville): ?>
+                                    <option value="<?= htmlspecialchars($ville) ?>">
+                                    <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                    </div>
+                    <div class="search-field col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
+                            <input type="text" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" list="villes-arrivee" value="<?= htmlspecialchars($search_arrivee) ?>" required>
+                            <datalist id="villes-arrivee">
+                                <?php foreach ($villes_arrivee as $ville): ?>
+                                    <option value="<?= htmlspecialchars($ville) ?>">
+                                    <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                    </div>
+                    <div class="search-field col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar text-primary"></i></span>
+                            <input type="date" name="date" class="form-control border-start-0 text-center" value="<?= htmlspecialchars($search_date) ?>" required>
+                        </div>
                     </div>
                 </div>
-                <div class="search-field col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
-                        <input type="text" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" required>
-                    </div>
+                <div class="d-flex justify-content-center mt-3">
+                    <button type="submit" name="search_trajet" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
                 </div>
-                <div class="search-field col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar text-primary"></i></span>
-                        <input type="date" name="date" class="form-control border-start-0 text-center" required>
-                    </div>
-                </div>
-            </div>
-            <div class="d-flex justify-content-center mt-3">
-                <button type="button" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
-            </div>
+            </form>
         </div>
     </div>
 </section>
@@ -173,11 +271,66 @@ try {
                                     <button type="submit" class="btn btn-primary"><i class="bi bi-play-circle me-1"></i>Démarrer le trajet</button>
                                 </form>
                             <?php else: ?>
-                                <a href="/login.php?redirect=mes_trajets.php&from_covoiturage=1" class="btn btn-secondary justify-content-center"><i class="bi bi-person-circle me-1"></i>Se connecter pour démarrer</a>
+                                <a href="../login.php?redirect=mes_trajets.php&from_covoiturage=1" class="btn btn-secondary justify-content-center"><i class="bi bi-person-circle me-1"></i>Se connecter pour démarrer</a>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Section des résultats de recherche -->
+        <?php if ($has_search_criteria): ?>
+            <div class="search-results-section mb-5">
+                <h5 class="mb-4">Résultat(s) trouvé(s) :</h5>
+                <?php if (!empty($covoiturages_recherche)): ?>
+                    <div class="row">
+                        <?php foreach ($covoiturages_recherche as $covoiturage): ?>
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-header bg-primary text-white text-center">
+                                        <h6 class="mb-0"><i class="bi bi-car-front me-2"></i>Trajet disponible</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6 class="text-primary mb-2"><i class="bi bi-geo-alt-fill me-1"></i>Trajet</h6>
+                                        <p class="mb-2"><strong><?= htmlspecialchars($covoiturage['lieu_depart']) ?></strong> → <strong><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></strong></p>
+
+                                        <h6 class="text-primary mb-2"><i class="bi bi-calendar-event me-1"></i>Départ</h6>
+                                        <p class="mb-2"><?= date('d/m/Y', strtotime($covoiturage['date_depart'])) ?> à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?></p>
+
+                                        <h6 class="text-primary mb-2"><i class="bi bi-person-circle me-1"></i>Conducteur</h6>
+                                        <p class="mb-2"><?= htmlspecialchars($covoiturage['prenom'] . ' ' . $covoiturage['nom']) ?></p>
+
+                                        <div class="row mt-3">
+                                            <div class="col-6">
+                                                <span class="badge bg-success"><i class="bi bi-people me-1"></i><?= $covoiturage['nb_place'] ?> place<?= $covoiturage['nb_place'] > 1 ? 's' : '' ?></span>
+                                            </div>
+                                            <div class="col-6">
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 2) ?>€</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer text-center">
+                                        <?php if (isUserConnected()): ?>
+                                            <button class="btn btn-primary btn-sm">Réserver</button>
+                                        <?php else: ?>
+                                            <a href="../login.php" class="btn btn-secondary btn-sm">Se connecter</a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-info text-center" role="alert">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Aucun trajet trouvé</strong><br>
+                        Aucun covoiturage ne correspond à votre recherche pour le trajet <strong><?= htmlspecialchars($search_depart) ?> → <?= htmlspecialchars($search_arrivee) ?></strong>
+                        <?php if (!empty($search_date)): ?>
+                            le <?= date('d/m/Y', strtotime($search_date)) ?>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
 

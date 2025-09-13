@@ -4,7 +4,7 @@ require_once __DIR__ . "/../lib/pdo.php";
 
 // Vérifier si l'utilisateur est connecté
 if (!isUserConnected()) {
-    header("Location: /login.php");
+    header("Location: ../login.php");
     exit();
 }
 

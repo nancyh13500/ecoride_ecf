@@ -54,23 +54,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
                     <div class="search-field col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-primary"></i></span>
-                            <select name="depart" class="form-select border-start-0 text-center" required>
-                                <option value="">Ville de départ</option>
+                            <input type="text" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" list="villes-depart" required>
+                            <datalist id="villes-depart">
                                 <?php foreach ($villes_depart as $ville): ?>
-                                    <option value="<?= htmlspecialchars($ville) ?>"><?= htmlspecialchars($ville) ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                                    <option value="<?= htmlspecialchars($ville) ?>">
+                                    <?php endforeach; ?>
+                            </datalist>
                         </div>
                     </div>
                     <div class="search-field col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
-                            <select name="arrivee" class="form-select border-start-0 text-center" required>
-                                <option value="">Ville d'arrivée</option>
+                            <input type="text" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" list="villes-arrivee" required>
+                            <datalist id="villes-arrivee">
                                 <?php foreach ($villes_arrivee as $ville): ?>
-                                    <option value="<?= htmlspecialchars($ville) ?>"><?= htmlspecialchars($ville) ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                                    <option value="<?= htmlspecialchars($ville) ?>">
+                                    <?php endforeach; ?>
+                            </datalist>
                         </div>
                     </div>
                     <div class="search-field col-md-4">

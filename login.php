@@ -1,11 +1,10 @@
 <?php
-require_once __DIR__ . "/templates/header.php";
+require_once __DIR__ . "/lib/session.php";
 require_once __DIR__ . "/lib/pdo.php";
 require_once __DIR__ . "/lib/user.php";
 
 // $hash = password_hash('test', PASSWORD_DEFAULT);
 // var_dump($hash);
-
 
 $errors = [];
 
@@ -18,14 +17,25 @@ if (isset($_POST['loginUser'])) {
 
         // Gérer la redirection après connexion
         $redirect = $_GET['redirect'] ?? 'index.php';
-        $redirect_path = '/pages/' . $redirect;
+
+        // Construire le chemin de redirection correct pour le serveur de développement
+        if ($redirect === 'index.php') {
+            $redirect_path = 'index.php';
+        } else {
+            $redirect_path = 'pages/' . $redirect;
+        }
 
         // Ajouter le paramètre from_covoiturage si présent
         if (isset($_GET['from_covoiturage']) && $_GET['from_covoiturage'] == '1') {
             $redirect_path .= '?from_covoiturage=1';
         }
 
-        header("location: $redirect_path");
+        // Nettoyer le buffer de sortie avant la redirection
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        header("Location: $redirect_path");
         exit();
     } else {
         // afficher une erreur
@@ -90,9 +100,20 @@ if (isset($_POST['registerUser'])) {
 
             // Gérer la redirection après inscription
             $redirect = $_GET['redirect'] ?? 'index.php';
-            $redirect_path = '/pages/' . $redirect;
 
-            header("location: $redirect_path");
+            // Construire le chemin de redirection correct pour le serveur de développement
+            if ($redirect === 'index.php') {
+                $redirect_path = 'index.php';
+            } else {
+                $redirect_path = 'pages/' . $redirect;
+            }
+
+            // Nettoyer le buffer de sortie avant la redirection
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            header("Location: $redirect_path");
             exit();
         } else {
             $errors[] = "Une erreur est survenue lors de l'enregistrement.";
@@ -100,6 +121,7 @@ if (isset($_POST['registerUser'])) {
     }
 }
 
+require_once __DIR__ . "/templates/header.php";
 ?>
 <section class="hero px-4 py-5">
     <div class="background-login"></div>
