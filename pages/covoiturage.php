@@ -123,8 +123,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
             <div class="card rounded-3">
                 <img src="/assets/img/city.jpg" class="img_city w-100 rounded-top" alt="city">
                 <div class="card-body p-4 p-md-5">
-                    <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 px-md-2">Informations</h3>
 
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h3 class="mb-4 ms-2">Ajouter ma voiture</h3>
+                        </div>
+                        <div class="col-md-6 w-50 text-end">
+                            <a href="mes_voitures.php" class="btn btn-primary">Ajouter une voiture</a>
+                        </div>
+                    </div>
+
+
+                    <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 ms-2">Informations</h3>
                     <?php if ($success_message): ?>
                         <div class="alert alert-success"><?= htmlspecialchars($success_message) ?></div>
                     <?php endif; ?>
@@ -132,66 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                         <div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
                     <?php endif; ?>
 
-                    <!-- Formulaire d'ajout de voiture -->
-                    <?php if (empty($voitures)): ?>
-                        <div class="alert alert-info mb-4">
-                            <h5>Vous n'avez pas encore de voiture enregistrée</h5>
-                            <p>Ajoutez d'abord une voiture pour pouvoir proposer un covoiturage.</p>
-                        </div>
 
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h4 class="mb-0">Ajouter ma voiture</h4>
-                            </div>
-                            <div class="card-body">
-                                <form method="POST" action="">
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="marque_id" class="form-label">Marque</label>
-                                            <select class="form-select" id="marque_id" name="marque_id" required>
-                                                <option value="">Sélectionnez une marque</option>
-                                                <?php foreach ($marques as $marque): ?>
-                                                    <option value="<?= $marque['marque_id'] ?>"><?= htmlspecialchars($marque['libelle']) ?></option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="modele" class="form-label">Modèle</label>
-                                            <input type="text" class="form-control" id="modele" name="modele" required>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="immatriculation" class="form-label">Immatriculation</label>
-                                            <input type="text" class="form-control" id="immatriculation" name="immatriculation" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="couleur" class="form-label">Couleur</label>
-                                            <input type="text" class="form-control" id="couleur" name="couleur" required>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="energie_id" class="form-label">Énergie</label>
-                                            <select class="form-select" id="energie_id" name="energie_id" required>
-                                                <option value="">Sélectionnez une énergie</option>
-                                                <?php foreach ($energies as $energie): ?>
-                                                    <option value="<?= $energie['energie_id'] ?>"><?= htmlspecialchars($energie['libelle']) ?></option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="date_premire_immatriculation" class="form-label">Date de 1ère immatriculation</label>
-                                            <input type="date" class="form-control" id="date_premire_immatriculation" name="date_premire_immatriculation" required>
-                                        </div>
-                                    </div>
-                                    <div class="text-end">
-                                        <button type="submit" name="add_voiture" class="btn btn-primary">Ajouter ma voiture</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    <?php endif; ?>
 
                     <!-- Formulaire de covoiturage -->
                     <?php if (!empty($voitures)): ?>
