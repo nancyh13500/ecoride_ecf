@@ -9,12 +9,12 @@
             <p class="col-md-12 text-center text-white align-items-center text-body-dark mt-3">
                 Ecoride votre partenaire de covoiturage régulier domicile travail à Marseille, ses alentours et dans toute la France. Un site dédié au covoiturage en semaine et le week-end.
             </p>
-            <p class="mentions_legales col-md-4 text-center justify-content-center align-items-center mt-3">
+            <p class="mentions_legales col-md-4 text-center justify-content-center align-items-center mt-3 px-3 px-md-0">
                 <a href="/pages/mentions_legales.php" class="text-white text-decoration-none">Mentions légales</a>
 
             </p>
 
-            <p class="copyright col-md-4 text-center text-white align-items-center text-body-dark mt-3">@ Nancy WebAgency 2025</p>
+            <p class="copyright col-md-4 text-center text-white align-items-center text-body-dark mt-3 px-3 px-md-0">@ Nancy WebAgency 2025</p>
 
             <ul class="nav social_network col-md-4 justify-content-center align-items-center">
                 <li class="ms-3 me-3"><a class="text-white" href="#"><i class="bi bi-facebook"></i></a></li>

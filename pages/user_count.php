@@ -158,7 +158,7 @@ require_once __DIR__ . "/../templates/header.php";
                                 </div>
                             </div>
 
-                            <div class="text-end">
+                            <div class="text-center text-md-end">
                                 <button type="submit" class="btn btn-primary">Mettre à jour mes informations</button>
                             </div>
                         </form>

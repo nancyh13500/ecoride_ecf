@@ -124,11 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                 <img src="/assets/img/city.jpg" class="img_city w-100 rounded-top" alt="city">
                 <div class="card-body p-4 p-md-5">
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h3 class="mb-4 ms-2">Ajouter ma voiture</h3>
+                    <div class="row mb-2">
+                        <div class="col-md-6 text-center">
+                            <h4 class="mb-4 ms-2">Ajouter une voiture</h4>
                         </div>
-                        <div class="col-md-6 w-50 text-end">
+                        <div class="col-md-6 text-center text-md-end">
                             <a href="mes_voitures.php" class="btn btn-primary">Ajouter une voiture</a>
                         </div>
                     </div>

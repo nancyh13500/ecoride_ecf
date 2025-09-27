@@ -512,6 +512,7 @@ nav {
         opacity: 0;
         transform: translateY(-30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -523,15 +524,15 @@ nav {
     .covoiturage-hero-card .card {
         margin: 0 1rem;
     }
-    
+
     .covoiturage-hero-card .card-body {
         padding: 1rem;
     }
-    
+
     .covoiturage-hero-card .row {
         margin: 0;
     }
-    
+
     .covoiturage-hero-card .col-md-6 {
         margin-bottom: 1rem;
     }
@@ -621,23 +622,23 @@ nav {
     .filters .row {
         margin: 0;
     }
-    
+
     .filters .col-md-2,
     .filters .col-md-3 {
         margin-bottom: 1rem;
     }
-    
+
     .filters .form-check {
         flex-direction: row;
         justify-content: center;
         align-items: center;
     }
-    
+
     .filters .form-check-label-eco {
         margin-bottom: 0;
         margin-right: 0.5rem;
     }
-    
+
     .filters .btn-filtre {
         width: 100% !important;
     }

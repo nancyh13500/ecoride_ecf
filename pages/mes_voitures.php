@@ -159,7 +159,7 @@ require_once __DIR__ . "/../templates/header.php";
 
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-3 p-md-4">
                         <?php if (empty($voitures)): ?>
                             <p>Vous n'avez pas encore de voiture enregistrée.</p>
                         <?php else: ?>
@@ -194,7 +194,7 @@ require_once __DIR__ . "/../templates/header.php";
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="text-end mt-3">
+                                <div class="text-center text-md-end mt-3">
                                     <button type="submit" name="delete_selection" class="btn btn-danger">Supprimer la sélection</button>
                                 </div>
                             </form>
@@ -209,7 +209,7 @@ require_once __DIR__ . "/../templates/header.php";
                             <div class="card-header bg-light">
                                 <h4 class="mb-0">Ajouter une nouvelle voiture</h4>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body p-3 p-md-4">
                                 <form method="POST" action="mes_voitures.php">
                                     <div class="row mb-3">
                                         <div class="col-md-6">
@@ -251,7 +251,7 @@ require_once __DIR__ . "/../templates/header.php";
                                             <input type="date" class="form-control" id="date_premire_immatriculation" name="date_premire_immatriculation" required>
                                         </div>
                                     </div>
-                                    <div class="text-end">
+                                    <div class="text-center text-md-end">
                                         <button type="submit" name="add_voiture" class="btn btn-primary">Ajouter ma voiture</button>
                                     </div>
                                 </form>

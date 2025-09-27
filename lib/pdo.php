@@ -1,11 +1,8 @@
 <?php
+require_once __DIR__ . '/config.php';
+
 try {
-    $pdo = new PDO(
-        "mysql:host=db;dbname=ecoride;charset=utf8mb4",
-        "ecoride_user",
-        "ecoride_pass"
-    );
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO(DB_DSN, DB_USER, DB_PASS, DB_OPTIONS);
 } catch (PDOException $e) {
     die("❌ Erreur de connexion : " . $e->getMessage());
 }
