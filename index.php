@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
                     <div class="search-field col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar text-primary"></i></span>
-                            <input type="date" name="date" class="form-control border-start-0 text-center" required>
+                            <input type="date" name="date" class="form-control border-start-0 text-center">
                         </div>
                     </div>
                 </div>
