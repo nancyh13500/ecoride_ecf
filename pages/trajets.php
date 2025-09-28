@@ -131,6 +131,51 @@ try {
     $covoiturage_hero = null;
 }
 
+// Récupérer les trajets en attente pour la section suggestion
+$covoiturages_suggestion = [];
+$debug_suggestion = [];
+
+try {
+    // Debug: Vérifier tous les statuts disponibles
+    $debug_query = $pdo->prepare("SELECT statut, COUNT(*) as count FROM covoiturage GROUP BY statut");
+    $debug_query->execute();
+    $debug_suggestion = $debug_query->fetchAll(PDO::FETCH_ASSOC);
+
+    // Requête principale pour les suggestions
+    $query_suggestion = $pdo->prepare("
+        SELECT c.*, u.nom, u.prenom, v.modele, m.libelle AS marque_libelle
+        FROM covoiturage c
+        LEFT JOIN user u ON c.user_id = u.user_id
+        LEFT JOIN voiture v ON c.voiture_id = v.voiture_id
+        LEFT JOIN marque m ON v.marque_id = m.marque_id
+        WHERE c.statut = 2 AND c.date_depart >= CURDATE()
+        ORDER BY c.date_depart ASC, c.heure_depart ASC
+        LIMIT 6
+    ");
+    $query_suggestion->execute();
+    $covoiturages_suggestion = $query_suggestion->fetchAll(PDO::FETCH_ASSOC);
+
+    // Si pas de trajets en attente, récupérer des trajets disponibles pour test
+    if (empty($covoiturages_suggestion)) {
+        $query_test = $pdo->prepare("
+            SELECT c.*, u.nom, u.prenom, v.modele, m.libelle AS marque_libelle
+            FROM covoiturage c
+            LEFT JOIN user u ON c.user_id = u.user_id
+            LEFT JOIN voiture v ON c.voiture_id = v.voiture_id
+            LEFT JOIN marque m ON v.marque_id = m.marque_id
+            WHERE c.statut = 1 AND c.date_depart >= CURDATE()
+            ORDER BY c.date_depart ASC, c.heure_depart ASC
+            LIMIT 3
+        ");
+        $query_test->execute();
+        $covoiturages_suggestion = $query_test->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (PDOException $e) {
+    // En cas d'erreur, on continue avec une liste vide
+    $covoiturages_suggestion = [];
+    $debug_suggestion = [];
+}
+
 ?>
 
 <!-- Hero Section -->
@@ -230,18 +275,20 @@ try {
 </div>
 
 <section id="results" class="results bg-light py-5">
-    <!-- <h5 class="mb-4 ms-4">Résultat(s) trouvé(s) :</h5> -->
     <div class="container">
         <!-- Section des résultats de recherche -->
         <?php if ($has_search_criteria): ?>
             <div class="search-results-section mb-5">
-                <h5 class="mb-4">Résultat(s) trouvé(s) :</h5>
+                <h3 class="text-center mb-4">
+                    <i class="bi bi-check2-square text-success me-2"></i></i>
+                    Résultat(s) trouvé(s) :
+                </h3>
                 <?php if (!empty($covoiturages_recherche)): ?>
                     <div class="row">
                         <?php foreach ($covoiturages_recherche as $covoiturage): ?>
                             <div class="col-md-4 mb-4">
                                 <div class="card h-100">
-                                    <div class="card-header bg-primary text-white text-center">
+                                    <div class="card-header bg-dark text-white text-center border-light">
                                         <h6 class="mb-0"><i class="bi bi-car-front me-2"></i>Trajet disponible</h6>
                                     </div>
                                     <div class="card-body">
@@ -254,9 +301,27 @@ try {
                                         <h6 class="text-primary mb-2"><i class="bi bi-person-circle me-1"></i>Conducteur</h6>
                                         <p class="mb-2"><?= htmlspecialchars($covoiturage['prenom'] . ' ' . $covoiturage['nom']) ?></p>
 
-                                        <div class="row mt-3">
+                                        <div class="row mt-3 text-center">
                                             <div class="col-6">
-                                                <span class="badge bg-success"><i class="bi bi-people me-1"></i><?= $covoiturage['nb_place'] ?> place<?= $covoiturage['nb_place'] > 1 ? 's' : '' ?></span>
+                                                <?php
+                                                $nb_places = $covoiturage['nb_place'];
+                                                $badge_class = '';
+                                                if ($nb_places >= 3) {
+                                                    $badge_class = 'bg-success';
+                                                } elseif ($nb_places == 2) {
+                                                    $badge_class = 'bg-warning text-dark';
+                                                } else {
+                                                    $badge_class = 'bg-danger';
+                                                }
+                                                ?>
+                                                <span class="badge <?= $badge_class ?>"><i class="bi bi-people me-1"></i><?= $nb_places ?> place<?= $nb_places > 1 ? 's' : '' ?></span>
+                                                <?php if ($nb_places == 1): ?>
+                                                    <div class="text-center mb-1">
+                                                        <small class="text-danger fw-bold">
+                                                            <i class="bi bi-exclamation-triangle me-1"></i>Dernière place !!!
+                                                        </small>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="col-6">
                                                 <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 2) ?>€</span>
@@ -265,7 +330,7 @@ try {
                                     </div>
                                     <div class="card-footer text-center">
                                         <?php if (isUserConnected()): ?>
-                                            <button class="btn btn-primary btn-sm">Réserver</button>
+                                            <button class="btn btn-secondary btn-sm me-2"><i class="bi bi-eye me-1"></i>Voir détails</button>
                                         <?php else: ?>
                                             <a href="../login.php" class="btn btn-secondary btn-sm">Se connecter</a>
                                         <?php endif; ?>
@@ -275,7 +340,7 @@ try {
                         <?php endforeach; ?>
                     </div>
                 <?php else: ?>
-                    <div class="alert alert-info text-center" role="alert">
+                    <div class="alert bg-dark text-white text-center" role="alert">
                         <i class="bi bi-info-circle me-2"></i>
                         <strong>Aucun trajet trouvé</strong><br>
                         Aucun covoiturage ne correspond à votre recherche pour le trajet <strong><?= htmlspecialchars($search_depart) ?> → <?= htmlspecialchars($search_arrivee) ?></strong>
@@ -287,26 +352,149 @@ try {
             </div>
         <?php endif; ?>
 
-        <!-- <h5 id="suggestions" class="mt-4 mb-4">Suggestions du moment :</h5>
-        <div class="row d-flex justify-content-center">
-            <div class="col-md-3">
-                <div class="card-trajet">
-                    <div class="card-header bg-dark text-white text-center rounded-top py-3">
-                        <h4 class="mb-0">Trajet</h4>
-                    </div>
-                    <div class="card-body bg-white text-center rounded-bottom">
-                        <img src="/assets/img/profil.jpg" alt="Profil" class="rounded-circle mb-3" style="width: 90px">
-                        <h5 class="card-title mb-3">Martigues → Marseille</h5>
-                        <p class="card-text">Le 25 avril 2025</p>
-                        <p class="card-text">Chauffeur : David</p>
-                        <p class="card-text">Places restantes : 1</p>
-                        <p class="card-text">Crédit : 20 C</p>
-                        <button class="btn btn-primary mb-4">Voir le trajet</button>
+        <!-- Section Suggestions - Trajets en attente -->
+        <?php if (!empty($covoiturages_suggestion)): ?>
+            <div class="suggestions-section mt-5">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3 class="text-center mb-4">
+                            <i class="bi bi-lightbulb text-warning me-2"></i>
+                            Suggestions de trajets
+                        </h3>
+                        <p class="text-center text-muted mb-4">
+                            <?php
+                            // Vérifier si on a des vrais trajets en attente ou des trajets de test
+                            $has_real_pending = false;
+                            foreach ($covoiturages_suggestion as $covoiturage) {
+                                if ($covoiturage['statut'] == 2) {
+                                    $has_real_pending = true;
+                                    break;
+                                }
+                            }
+                            if ($has_real_pending) {
+                                echo "Découvrez ces trajets en attente qui pourraient vous intéresser";
+                            } else {
+                                echo "Découvrez ces trajets disponibles qui pourraient vous intéresser";
+                            }
+                            ?>
+                        </p>
                     </div>
                 </div>
-            </div>
-        </div> -->
 
+                <div class="row">
+                    <?php foreach ($covoiturages_suggestion as $covoiturage): ?>
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100 suggestion-card border-light">
+                                <div class="card-header bg-dark text-white text-center">
+                                    <h6 class="mb-0">
+                                        <?php if ($covoiturage['statut'] == 2): ?>
+                                            <i class="bi bi-clock-history me-2"></i>Trajet en attente
+                                        <?php else: ?>
+                                            <i class="bi bi-car-front me-2"></i>Trajet disponible
+                                        <?php endif; ?>
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="text-primary mb-2">
+                                        <i class="bi bi-geo-alt-fill me-1"></i>Trajet
+                                    </h6>
+                                    <p class="mb-2">
+                                        <strong><?= htmlspecialchars($covoiturage['lieu_depart']) ?></strong>
+                                        → <strong><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></strong>
+                                    </p>
+
+                                    <h6 class="text-primary mb-2">
+                                        <i class="bi bi-calendar-event me-1"></i>Départ
+                                    </h6>
+                                    <p class="mb-2">
+                                        <?= date('d/m/Y', strtotime($covoiturage['date_depart'])) ?>
+                                        à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?>
+                                    </p>
+
+                                    <h6 class="text-primary mb-2">
+                                        <i class="bi bi-person-circle me-1"></i>Conducteur
+                                    </h6>
+                                    <p class="mb-2">
+                                        <?= htmlspecialchars($covoiturage['prenom'] . ' ' . $covoiturage['nom']) ?>
+                                    </p>
+
+                                    <?php if (!empty($covoiturage['modele']) && !empty($covoiturage['marque_libelle'])): ?>
+                                        <h6 class="text-primary mb-2">
+                                            <i class="bi bi-car-front me-1"></i>Véhicule
+                                        </h6>
+                                        <p class="mb-2">
+                                            <?= htmlspecialchars($covoiturage['marque_libelle'] . ' ' . $covoiturage['modele']) ?>
+                                        </p>
+                                    <?php endif; ?>
+
+                                    <div class="row mt-3 text-center">
+                                        <div class="col-6">
+                                            <?php
+                                            $nb_places = $covoiturage['nb_place'];
+                                            $badge_class = '';
+                                            if ($nb_places >= 3) {
+                                                $badge_class = 'bg-success';
+                                            } elseif ($nb_places == 2) {
+                                                $badge_class = 'bg-warning text-dark';
+                                            } else {
+                                                $badge_class = 'bg-danger';
+                                            }
+                                            ?>
+                                            <?php if ($nb_places == 1): ?>
+                                                <div class="text-center mb-1">
+                                                    <small class="text-danger fw-bold">
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>Dernière place !!!
+                                                    </small>
+                                                </div>
+                                            <?php endif; ?>
+                                            <span class="badge <?= $badge_class ?>">
+                                                <i class="bi bi-people me-1"></i>
+                                                <?= $nb_places ?> place<?= $nb_places > 1 ? 's' : '' ?>
+                                            </span>
+                                        </div>
+                                        <div class="col-6">
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-coin me-1"></i>
+                                                <?= number_format($covoiturage['prix_personne'], 2) ?>€
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <?php if (!empty($covoiturage['duree'])): ?>
+                                        <div class="text-center mt-2">
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-stopwatch me-1"></i>
+                                                <?= $covoiturage['duree'] ?> min
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="card-footer text-center">
+                                    <?php if (isUserConnected()): ?>
+                                        <button class="btn btn-secondary btn-sm me-2">
+                                            <i class="bi bi-eye me-1"></i>Voir détails
+                                        </button>
+                                        <button class="btn btn-primary btn-sm">
+                                            <i class="bi bi-heart me-1"></i>Intéressé
+                                        </button>
+                                    <?php else: ?>
+                                        <a href="../login.php" class="btn btn-secondary btn-sm">
+                                            <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="#" class="btn btn-secondary">
+                        <i class="bi bi-arrow-right me-2"></i>Voir toutes les suggestions
+                    </a>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
 

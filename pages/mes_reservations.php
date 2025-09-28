@@ -23,8 +23,7 @@ try {
 }
 
 // 2) Trajets réservés par l'utilisateur (en tant que passager)
-// Le dump SQL fourni ne contient pas de table de réservation. On vérifie dynamiquement
-// l'existence d'une table potentielle 'reservation' ou 'reservations' avant de requêter.
+
 $trajetsReserves = [];
 $reservationSupport = null; // 'reservation' | 'reservations' | null
 try {
@@ -76,7 +75,7 @@ require_once __DIR__ . "/../templates/header.php";
                     <div class="list-group list-group-flush">
                         <a href="/pages/user_count.php" class="list-group-item list-group-item-action">Mes informations</a>
                         <a href="/pages/mes_trajets.php" class="list-group-item list-group-item-action">Mes trajets</a>
-                        <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action active">Mes réservations</a>
+                        <!-- <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action active">Mes réservations</a> -->
                         <a href="/pages/mes_voitures.php" class="list-group-item list-group-item-action">Mes voitures</a>
                     </div>
                 </div>
