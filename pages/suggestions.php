@@ -37,14 +37,50 @@ try {
 <section class="hero">
     <div class="background-img"></div>
     <div class="content px-4 py-5 my-5 text-center">
-        <h1 class="fw-bold">Suggestions de trajets</h1>
-        <p class="lead mb-4">Découvrez tous les trajets disponibles.</p>
+        <h1 class="fw-bold">Trouvez un covoiturage</h1>
+        <p class="lead mb-4">La solution accessible et durable pour tous.</p>
+        <div class="col-lg-6 mx-auto">
+            <form method="POST" action="">
+                <div class="search-bar row">
+                    <div class="search-field col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-primary"></i></span>
+                            <input type="text" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" list="villes-depart" value="<?= htmlspecialchars($search_depart) ?>" required>
+                            <datalist id="villes-depart">
+                                <?php foreach ($villes_depart as $ville): ?>
+                                    <option value="<?= htmlspecialchars($ville) ?>">
+                                    <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                    </div>
+                    <div class="search-field col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
+                            <input type="text" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" list="villes-arrivee" value="<?= htmlspecialchars($search_arrivee) ?>" required>
+                            <datalist id="villes-arrivee">
+                                <?php foreach ($villes_arrivee as $ville): ?>
+                                    <option value="<?= htmlspecialchars($ville) ?>">
+                                    <?php endforeach; ?>
+                            </datalist>
+                        </div>
+                    </div>
+                    <div class="search-field col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar text-primary"></i></span>
+                            <input type="date" name="date" class="form-control border-start-0 text-center" value="<?= htmlspecialchars($search_date) ?>">
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                    <button type="submit" name="search_trajet" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
+                </div>
+            </form>
+        </div>
     </div>
 </section>
-
 <!-- Results Section -->
-<div class="result-header text-center mb-5">
-    <div class="bg-dark text-white p-4">
+<div class="result-header text-center">
+    <div class="bg-dark text-white p-5">
         <h2>Trajets disponibles</h2>
         <p class="mb-0"><?= $total_suggestions ?> trajet<?= $total_suggestions > 1 ? 's' : '' ?> trouvé<?= $total_suggestions > 1 ? 's' : '' ?></p>
     </div>

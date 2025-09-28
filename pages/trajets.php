@@ -489,7 +489,7 @@ try {
                 </div>
 
                 <div class="text-center mt-4">
-                    <a href="suggestions.php" class="btn btn-secondary">
+                    <a href="suggestions.php" class="btn btn-primary">
                         <i class="bi bi-arrow-right me-2"></i>Voir toutes les suggestions
                     </a>
                 </div>
