@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                         <div class="col-md-6 text-center">
                             <h4 class="mb-4 ms-2">Ajouter une voiture</h4>
                         </div>
-                        <div class="col-md-6 text-center text-md-end">
+                        <div class="col-md-6 text-center">
                             <a href="mes_voitures.php" class="btn btn-primary">Ajouter une voiture</a>
                         </div>
                     </div>
