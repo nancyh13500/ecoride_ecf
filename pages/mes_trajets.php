@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . "/../lib/session.php";
 require_once __DIR__ . "/../lib/pdo.php";
-// MongoDB désactivé
+
 
 // Vérifier si l'utilisateur est connecté
 if (!isUserConnected()) {
@@ -157,10 +157,18 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                         <h5 class="mb-0">Mon compte</h5>
                     </div>
                     <div class="list-group list-group-flush">
-                        <a href="/pages/user_count.php" class="list-group-item list-group-item-action">Mes informations</a>
-                        <a href="/pages/mes_trajets.php" class="list-group-item list-group-item-action active">Mes trajets</a>
-                        <!-- <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">Mes réservations</a> -->
-                        <a href="/pages/mes_voitures.php" class="list-group-item list-group-item-action">Mes voitures</a>
+                        <a href="/pages/user_count.php" class="list-group-item list-group-item-action">
+                            <i class="bi bi-person-circle me-2"></i>Mes informations
+                        </a>
+                        <a href="/pages/mes_trajets.php" class="list-group-item list-group-item-action active">
+                            <i class="bi bi-signpost-2 me-2"></i>Mes trajets
+                        </a>
+                        <!-- <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">
+                            <i class="bi bi-calendar-check me-2"></i>Mes réservations
+                        </a> -->
+                        <a href="/pages/mes_voitures.php" class="list-group-item list-group-item-action">
+                            <i class="bi bi-car-front me-2"></i>Mes voitures
+                        </a>
                     </div>
                 </div>
             </div>

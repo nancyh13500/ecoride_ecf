@@ -27,6 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $date_naissance = $_POST['date_naissance'];
         $pseudo = $_POST['pseudo'];
         $role_covoiturage = $_POST['role_covoiturage'];
+        $role_id = intval($_POST['role_id']);
         $user_id = $_SESSION['user']['user_id'];
 
         // Préparer la requête de base
@@ -38,7 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 adresse = :adresse,
                 date_naissance = :date_naissance,
                 pseudo = :pseudo,
-                role_covoiturage = :role_covoiturage";
+                role_covoiturage = :role_covoiturage,
+                role_id = :role_id";
 
         // Gérer le mot de passe si fourni
         if (!empty($_POST['password'])) {
@@ -76,6 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':date_naissance' => $date_naissance,
             ':pseudo' => $pseudo,
             ':role_covoiturage' => $role_covoiturage,
+            ':role_id' => $role_id,
             ':user_id' => $user_id
         ];
 
@@ -100,7 +103,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'adresse' => $adresse,
             'date_naissance' => $date_naissance,
             'pseudo' => $pseudo,
-            'role_covoiturage' => $role_covoiturage
+            'role_covoiturage' => $role_covoiturage,
+            'role_id' => $role_id
         ];
 
         // Ajouter la photo à la session si fournie
