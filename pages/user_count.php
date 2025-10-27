@@ -230,7 +230,7 @@ require_once __DIR__ . "/../templates/header.php";
                                 </div>
 
                                 <div class="row mb-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-8">
                                         <label for="role_id" class="form-label">Rôle utilisateur</label>
                                         <select class="form-select" id="role_id" name="role_id" required>
                                             <?php foreach ($roles as $role): ?>
@@ -239,12 +239,12 @@ require_once __DIR__ . "/../templates/header.php";
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
-                                        <small class="text-muted">
-                                            <i class="bi bi-info-circle me-1"></i>
-                                            Administrateur : Accès complet | Employé : Gestion des avis et covoiturages | Utilisateur : Accès standard
+                                        <small class="text-muted text-center">
+                                            <i class="bi bi-info-circle"></i>
+                                            Administrateur : Accès complet | Employé : Avis et covoiturages | Utilisateur : Accès standard
                                         </small>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="card bg-light">
                                             <div class="card-body">
                                                 <h6 class="card-title">

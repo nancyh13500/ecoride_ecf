@@ -116,6 +116,10 @@ require_once __DIR__ . "/../templates/header.php";
                 <li class="breadcrumb-item"><a href="/index.php">Accueil</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Espace Employé</li>
             </ol>
+            <div class="col text-end me-3 pb-3">
+                <a href="user_count.php" class="btn btn-primary btn-sm d-md-inline-block">Retour Mon compte
+                </a>
+            </div>
         </nav>
 
         <div class="row mb-4">
