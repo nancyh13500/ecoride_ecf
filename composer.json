@@ -1,0 +1,14 @@
+{
+    "name": "ecoride/ecf",
+    "description": "Plateforme de covoiturage écologique",
+    "type": "project",
+    "require": {
+        "php": ">=8.2",
+        "mongodb/mongodb": "^1.19"
+    },
+    "autoload": {
+        "files": []
+    }
+}
+
+

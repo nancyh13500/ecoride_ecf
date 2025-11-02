@@ -20,10 +20,8 @@ services:
   # Serveur Apache + PHP
   app:
     build:
-      context: .
-      dockerfile_inline: |
-        FROM php:8.2-apache
-        RUN docker-php-ext-install pdo_mysql mysqli
+      context: ./docker/php
+      dockerfile: Dockerfile
 
     container_name: ecoride_app
     ports:
@@ -34,6 +32,25 @@ services:
       - DOCKER_ENV=1
     depends_on:
       - db
+      - mongodb
+    command: >
+      sh -c "
+      if [ ! -f /var/www/html/vendor/autoload.php ]; then
+        composer install --no-interaction --prefer-dist --optimize-autoloader;
+      fi &&
+      apache2-foreground
+      "
+
+  # MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: ecoride_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: ecoride
 
   # phpMyAdmin (pour gérer MySQL depuis le navigateur)
   phpmyadmin:
@@ -50,3 +67,4 @@ services:
 
 volumes:
   mysql_data:
+  mongodb_data:

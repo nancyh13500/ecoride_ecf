@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     unzip \
     git \
+    pkg-config \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation des extensions PHP
@@ -19,6 +21,13 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         gd \
         mbstring \
         zip
+
+# Installation de l'extension MongoDB via PECL
+RUN pecl install mongodb \
+    && docker-php-ext-enable mongodb
+
+# Installation de Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Activation du module rewrite Apache
 RUN a2enmod rewrite headers

@@ -287,6 +287,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     `pseudo` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
     `role_id` int NOT NULL,
     `role_covoiturage` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `credits` int NOT NULL DEFAULT 20,
     PRIMARY KEY (`user_id`),
     KEY `user_ibfk_1` (`role_id`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 8 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
