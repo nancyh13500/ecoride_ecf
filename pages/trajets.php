@@ -12,6 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_from_her
         try {
             $query = $pdo->prepare("UPDATE covoiturage SET statut = 2 WHERE covoiturage_id = :id AND user_id = :user_id");
             $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
+
+            // Enregistrer le démarrage dans MongoDB (sans bloquer si erreur)
+            require_once __DIR__ . '/../lib/duree_trajet.php';
+            demarrerTrajetMongo($user['user_id'], $trajet_id);
+
             header("Location: mes_trajets.php?started=1");
             exit();
         } catch (PDOException $e) {
@@ -330,7 +335,9 @@ try {
                                     </div>
                                     <div class="card-footer text-center">
                                         <?php if (isUserConnected()): ?>
-                                            <button class="btn btn-secondary btn-sm me-2"><i class="bi bi-eye me-1"></i>Voir détails</button>
+                                            <a href="/pages/detail_covoiturage.php?covoiturage_id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2">
+                                                <i class="bi bi-eye me-1"></i>Voir détails
+                                            </a>
                                         <?php else: ?>
                                             <a href="../login.php" class="btn btn-secondary btn-sm">Se connecter</a>
                                         <?php endif; ?>
@@ -354,7 +361,7 @@ try {
 
         <!-- Section Suggestions - Trajets en attente -->
         <?php if (!empty($covoiturages_suggestion)): ?>
-            <div class="suggestions-section mt-5">
+            <div id="suggestions" class="suggestions-section mt-5">
                 <div class="row mb-4">
                     <div class="col-12">
                         <h3 class="text-center mb-4">
@@ -471,9 +478,9 @@ try {
                                 </div>
                                 <div class="card-footer text-center">
                                     <?php if (isUserConnected()): ?>
-                                        <button class="btn btn-secondary btn-sm me-2">
+                                        <a href="/pages/detail_covoiturage.php?covoiturage_id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2">
                                             <i class="bi bi-eye me-1"></i>Voir détails
-                                        </button>
+                                        </a>
                                         <button class="btn btn-primary btn-sm">
                                             <i class="bi bi-heart me-1"></i>Intéressé
                                         </button>

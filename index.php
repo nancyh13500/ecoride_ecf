@@ -40,6 +40,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
     exit();
 }
 
+// Récupérer les avis validés depuis la base de données pour le carrousel
+$avis_list = [];
+try {
+    $query_avis = $pdo->prepare("
+        SELECT a.*, u.nom, u.prenom, u.pseudo
+        FROM avis a
+        LEFT JOIN user u ON a.user_id = u.user_id
+        WHERE a.statut = 'valide'
+        ORDER BY a.avis_id DESC
+        LIMIT 3
+    ");
+    $query_avis->execute();
+    $avis_list = $query_avis->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // En cas d'erreur, on continue avec une liste vide
+    $avis_list = [];
+}
+
+// Récupérer les suggestions de trajets disponibles depuis la base de données
+$trajets_suggestion = [];
+try {
+    $query_trajets = $pdo->prepare("
+        SELECT c.*, u.nom, u.prenom, u.pseudo
+        FROM covoiturage c
+        LEFT JOIN user u ON c.user_id = u.user_id
+        WHERE c.statut = 1 AND c.nb_place > 0 AND c.date_depart >= CURDATE()
+        ORDER BY c.date_depart ASC, c.heure_depart ASC
+        LIMIT 3
+    ");
+    $query_trajets->execute();
+    $trajets_suggestion = $query_trajets->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // En cas d'erreur, on continue avec une liste vide
+    $trajets_suggestion = [];
+}
+
 ?>
 
 <!--section search -->
@@ -120,54 +156,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
     <div class="container col-xxl-8 px-4 py-5">
         <div class="row text-center">
             <h2>Découvrez les trajets du moment</h2>
-            <div class="col-md-4 my-2">
-                <div class="card">
-                    <div class="card-header bg-secondary">
-                        <p class="text-trajet mt-3 text-white">Trajet</p>
+            <?php if (!empty($trajets_suggestion)): ?>
+                <?php foreach ($trajets_suggestion as $trajet): ?>
+                    <div class="col-md-4 my-2">
+                        <div class="card">
+                            <div class="card-header bg-secondary">
+                                <p class="text-trajet mt-3 text-white">Trajet</p>
+                            </div>
+                            <div class="card-body">
+                                <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
+                                <p class="card-text">
+                                    <strong><?= htmlspecialchars(ucfirst($trajet['lieu_depart'])) ?></strong>
+                                    → <strong><?= htmlspecialchars(ucfirst($trajet['lieu_arrivee'])) ?></strong>
+                                </p>
+                                <p>Date départ : <?= date('d/m/Y', strtotime($trajet['date_depart'])) ?></p>
+                                <?php if (!empty($trajet['heure_depart']) && $trajet['heure_depart'] != '0000-00-00'): ?>
+                                    <p>Heure départ : <?= date('H:i', strtotime($trajet['heure_depart'])) ?></p>
+                                <?php endif; ?>
+                                <p>Nom chauffeur : <?= htmlspecialchars($trajet['prenom'] . ' ' . $trajet['nom']) ?></p>
+                                <p>Places restantes : <?= htmlspecialchars($trajet['nb_place']) ?></p>
+                                <p>Crédit : <?= number_format($trajet['prix_personne'], 0) ?> C</p>
+                                <a href="/pages/detail_covoiturage.php?covoiturage_id=<?= $trajet['covoiturage_id'] ?>" class="btn btn_card btn-primary">Voir le trajet</a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
-                        <p class="card-text">Ville départ -> Ville arrivée</p>
-                        <p>Date départ : </p>
-                        <p>Nom chauffeur : David</p>
-                        <p>Places restantes : 3</p>
-                        <p>Crédit : 5 C</p>
-                        <a href="#" class="btn btn_card btn-primary">Voir le trajet</a>
-                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <p class="text-muted">Aucun trajet disponible pour le moment.</p>
                 </div>
-            </div>
-            <div class="col-md-4 my-2">
-                <div class="card">
-                    <div class="card-header bg-secondary">
-                        <p class="text-trajet mt-3 text-white">Trajet</p>
-                    </div>
-                    <div class="card-body">
-                        <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
-                        <p class="card-text">Ville départ -> Ville arrivée</p>
-                        <p>Date départ : </p>
-                        <p>Nom chauffeur : Nancy</p>
-                        <p>Places restantes : 2</p>
-                        <p>Crédit : 5 C</p>
-                        <a href="#" class="btn btn_card btn-primary">Voir le trajet</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 my-2">
-                <div class="card">
-                    <div class="card-header bg-secondary">
-                        <p class="text-trajet mt-3 text-white">Trajet</p>
-                    </div>
-                    <div class="card-body">
-                        <img src="/assets/img/profil.jpg" class="user_profile" alt="user_profile">
-                        <p class="card-text">Ville départ -> Ville arrivée</p>
-                        <p>Date départ : </p>
-                        <p>Nom chauffeur : Baptiste</p>
-                        <p>Places restantes : 1</p>
-                        <p>Crédit : 5 C</p>
-                        <a href="#" class="btn btn_card btn-primary">Voir le trajet</a>
-                    </div>
-                </div>
-            </div>
+            <?php endif; ?>
         </div>
     </div>
 </section>
@@ -207,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
                                     <i class="bi bi-star-fill"></i>
                                     <i class="bi bi-star-fill"></i>
                                 </div>
-                                <h5 class="text-center fw-bold mb-2">Laura, Septembre 2025</h5>
+                                <h5 class="text-center fw-bold mb-2">Laura</h5>
                                 <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
                             </div>
                         </div>
@@ -222,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
                                     <i class="bi bi-star-fill"></i>
                                     <i class="bi bi-star-fill"></i>
                                 </div>
-                                <h5 class="text-center fw-bold mb-2">Nancy, mars 2024</h5>
+                                <h5 class="text-center fw-bold mb-2">Nancy</h5>
                                 <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
                             </div>
                         </div>
@@ -238,7 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
                                     <i class="bi bi-star-fill"></i>
                                     <i class="bi bi-star-fill"></i>
                                 </div>
-                                <h5 class="text-center fw-bold mb-2">Baptiste, Octobre 2025</h5>
+                                <h5 class="text-center fw-bold mb-2">Baptiste</h5>
                                 <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
                             </div>
                         </div>
@@ -255,7 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
                                     <i class="bi bi-star-fill"></i>
                                     <i class="bi bi-star-fill"></i>
                                 </div>
-                                <h5 class="text-center fw-bold mb-2">David, novembre 2023</h5>
+                                <h5 class="text-center fw-bold mb-2">David</h5>
                                 <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
                             </div>
                         </div>

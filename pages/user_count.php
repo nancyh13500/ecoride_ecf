@@ -27,6 +27,16 @@ try {
 $success_message = $_SESSION['success'] ?? '';
 $error_message = $_SESSION['error'] ?? '';
 
+// Récupérer les crédits à jour depuis la base (la session peut ne pas être synchronisée)
+$credits = 0;
+try {
+    $stmtCredits = $pdo->prepare("SELECT credits FROM user WHERE user_id = :id");
+    $stmtCredits->execute(['id' => $_SESSION['user']['user_id']]);
+    $credits = (int) ($stmtCredits->fetchColumn() ?? 0);
+} catch (PDOException $e) {
+    $credits = (int) ($_SESSION['user']['credits'] ?? 0);
+}
+
 // Nettoyer les messages de session
 unset($_SESSION['success'], $_SESSION['error']);
 
@@ -79,7 +89,7 @@ require_once __DIR__ . "/../templates/header.php";
                         <a href="/pages/mes_voitures.php" class="list-group-item list-group-item-action">
                             <i class="bi bi-car-front me-2"></i>Mes voitures
                         </a>
-                        <?php if (($_SESSION['user']['role_id'] ?? 3) <= 2): ?>
+                        <?php if (($_SESSION['user']['role_id'] ?? 3) == 2): ?>
                             <a href="/pages/employe.php" class="list-group-item list-group-item-action">
                                 <i class="bi bi-person-badge me-2"></i>Espace Employé
                             </a>
@@ -98,6 +108,13 @@ require_once __DIR__ . "/../templates/header.php";
 
             <!-- Contenu principal -->
             <div class="col-md-9">
+                <!-- Mes crédits -->
+                <div class="card mb-4">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-coin me-2"></i>Mes crédits</h5>
+                        <span class="badge credits-badge bg-success me-3"><?= htmlspecialchars((string)$credits) ?></span>
+                    </div>
+                </div>
                 <!-- Section création d'employé (visible seulement pour les administrateurs) -->
                 <?php if (($_SESSION['user']['role_id'] ?? 3) == 1): ?>
                     <div class="<?= isset($_GET['create_employee']) ? '' : 'collapse' ?>" id="creer-employe-section" <?= isset($_GET['create_employee']) ? 'style="display: block !important;"' : '' ?>>
@@ -230,20 +247,36 @@ require_once __DIR__ . "/../templates/header.php";
                                 </div>
 
                                 <div class="row mb-3">
-                                    <div class="col-md-8">
-                                        <label for="role_id" class="form-label">Rôle utilisateur</label>
-                                        <select class="form-select" id="role_id" name="role_id" required>
-                                            <?php foreach ($roles as $role): ?>
-                                                <option value="<?= $role['role_id'] ?>" <?= (($_SESSION['user']['role_id'] ?? 3) == $role['role_id']) ? 'selected' : '' ?>>
-                                                    <?= htmlspecialchars($role['libelle']) ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                        <small class="text-muted text-center">
-                                            <i class="bi bi-info-circle"></i>
-                                            Administrateur : Accès complet | Employé : Avis et covoiturages | Utilisateur : Accès standard
-                                        </small>
-                                    </div>
+                                    <?php if (($_SESSION['user']['role_id'] ?? 3) == 1): ?>
+                                        <div class="col-md-8">
+                                            <label for="role_id" class="form-label">Rôle utilisateur</label>
+                                            <select class="form-select" id="role_id" name="role_id" required>
+                                                <?php foreach ($roles as $role): ?>
+                                                    <option value="<?= $role['role_id'] ?>" <?= (($_SESSION['user']['role_id'] ?? 3) == $role['role_id']) ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($role['libelle']) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <small class="text-muted text-center">
+                                                <i class="bi bi-info-circle"></i>
+                                                Administrateur : Accès complet | Employé : Avis et covoiturages | Utilisateur : Accès standard
+                                            </small>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="col-md-8">
+                                            <label class="form-label">Rôle utilisateur</label>
+                                            <div class="form-control bg-light">
+                                                <?php
+                                                $current_role_id = $_SESSION['user']['role_id'] ?? 3;
+                                                $current_role = array_filter($roles, function ($role) use ($current_role_id) {
+                                                    return $role['role_id'] == $current_role_id;
+                                                });
+                                                $current_role = reset($current_role);
+                                                echo htmlspecialchars($current_role['libelle'] ?? 'Utilisateur');
+                                                ?>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
                                     <div class="col-md-4">
                                         <div class="card bg-light">
                                             <div class="card-body">

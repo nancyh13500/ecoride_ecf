@@ -2,14 +2,14 @@
 require_once __DIR__ . "/../templates/header.php";
 require_once __DIR__ . "/../lib/pdo.php";
 
-// Récupérer les avis depuis la base de données avec gestion d'erreur
+// Récupérer les avis validés depuis la base de données avec gestion d'erreur
 try {
     $query = $pdo->prepare("
         SELECT a.*, u.nom, u.prenom, u.photo, u.pseudo
         FROM avis a
         LEFT JOIN user u ON a.user_id = u.user_id
-        ORDER BY a.date_avis DESC
-        LIMIT 6
+        WHERE a.statut = 'valide'
+        ORDER BY a.avis_id DESC
     ");
     $query->execute();
     $avis_list = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -33,6 +33,15 @@ try {
     </div>
 
     <div class="overflow-hidden">
+        <?php if (isset($_SESSION['success_message'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>
+                <?= htmlspecialchars($_SESSION['success_message']) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['success_message']); ?>
+        <?php endif; ?>
+
         <?php if (empty($avis_list)): ?>
             <div class="row justify-content-center">
                 <div class="col-12 text-center">
@@ -40,44 +49,24 @@ try {
                 </div>
             </div>
         <?php else: ?>
-            <div class="row gy-4 gy-md-0 gx-xxl-5">
+            <div class="row justify-content-center g-4">
                 <?php foreach ($avis_list as $avis): ?>
-                    <div class="col-12 col-md-4">
-                        <div class="card border-0 border-bottom border-primary shadow-sm">
-                            <div class="card-body p-4 p-xxl-5">
-                                <figure>
-                                    <?php if (!empty($avis['photo'])): ?>
-                                        <img class="img-fluid rounded rounded-circle mb-4 border border-5"
-                                            loading="lazy"
-                                            src="data:image/jpeg;base64,<?= base64_encode($avis['photo']) ?>"
-                                            alt="<?= htmlspecialchars(($avis['prenom'] ?? '') . ' ' . ($avis['nom'] ?? '')) ?>"
-                                            style="width: 100px; height: 100px; object-fit: cover;">
+                    <div class="col-12 col-md-3 d-flex justify-content-center">
+                        <div class="card p-3 shadow-sm avis-card">
+                            <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                                <?php
+                                $note = $avis['note'] ?? 5;
+                                for ($i = 1; $i <= 5; $i++):
+                                ?>
+                                    <?php if ($i <= $note): ?>
+                                        <i class="bi bi-star-fill"></i>
                                     <?php else: ?>
-                                        <div class="d-flex justify-content-center align-items-center mb-4 border border-5 rounded rounded-circle bg-light"
-                                            style="width: 100px; height: 100px;">
-                                            <i class="bi bi-person-fill fs-1 text-muted"></i>
-                                        </div>
+                                        <i class="bi bi-star"></i>
                                     <?php endif; ?>
-                                    <figcaption>
-                                        <div class="bsb-ratings text-warning mb-3">
-                                            <?php
-                                            $note = $avis['note'] ?? 5;
-                                            for ($i = 1; $i <= 5; $i++):
-                                            ?>
-                                                <?php if ($i <= $note): ?>
-                                                    <i class="bi bi-star-fill"></i>
-                                                <?php else: ?>
-                                                    <i class="bi bi-star"></i>
-                                                <?php endif; ?>
-                                            <?php endfor; ?>
-                                        </div>
-                                        <blockquote class="bsb-blockquote-icon mb-4"><?= htmlspecialchars($avis['commentaire'] ?? 'Excellent service, je recommande !') ?></blockquote>
-                                        <h4 class="mb-2"><?= htmlspecialchars(($avis['prenom'] ?? 'Utilisateur') . ' ' . ($avis['nom'] ?? 'EcoRide')) ?></h4>
-                                        <h5 class="fs-6 text-secondary mb-0"><?= htmlspecialchars($avis['pseudo'] ?? 'Utilisateur EcoRide') ?></h5>
-                                        <small class="text-muted"><?= date("d/m/Y", strtotime($avis['date_avis'] ?? 'now')) ?></small>
-                                    </figcaption>
-                                </figure>
+                                <?php endfor; ?>
                             </div>
+                            <h5 class="text-center fw-bold mb-2"><?= htmlspecialchars(($avis['prenom'] ?? 'Utilisateur') . ' ' . ($avis['nom'] ?? 'EcoRide')) ?></h5>
+                            <p class="text-center"><?= htmlspecialchars($avis['commentaire'] ?? 'Excellent service, je recommande !') ?></p>
                         </div>
                     </div>
                 <?php endforeach; ?>

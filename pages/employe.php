@@ -24,33 +24,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             if ($action === 'valider') {
                 $stmt = $pdo->prepare("UPDATE avis SET statut = 'valide' WHERE avis_id = :avis_id");
-                $success_message = "Avis validé avec succès !";
+                $stmt->execute(['avis_id' => $avis_id]);
+                $_SESSION['success_message'] = "Avis validé avec succès ! L'avis est maintenant visible sur la page avis.";
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit();
             } elseif ($action === 'refuser') {
                 $stmt = $pdo->prepare("UPDATE avis SET statut = 'refuse' WHERE avis_id = :avis_id");
-                $success_message = "Avis refusé avec succès !";
+                $stmt->execute(['avis_id' => $avis_id]);
+                $_SESSION['success_message'] = "Avis refusé avec succès !";
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit();
             } elseif ($action === 'supprimer') {
                 $stmt = $pdo->prepare("DELETE FROM avis WHERE avis_id = :avis_id");
-                $success_message = "Avis supprimé avec succès !";
-            }
-
-            if (isset($stmt)) {
                 $stmt->execute(['avis_id' => $avis_id]);
+                $_SESSION['success_message'] = "Avis supprimé avec succès !";
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit();
             }
         } catch (PDOException $e) {
-            $error_message = "Erreur lors de l'opération : " . $e->getMessage();
+            $_SESSION['error_message'] = "Erreur lors de l'opération : " . $e->getMessage();
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
         }
     }
+}
+
+// Récupérer les messages de session
+if (isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
+if (isset($_SESSION['error_message'])) {
+    $error_message = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
 }
 
 // Récupérer tous les avis en attente de validation
 $avis_en_attente = [];
 try {
     $stmt = $pdo->prepare("
-        SELECT a.*, u.nom, u.prenom, u.pseudo, u.email, u.telephone
+        SELECT a.*, u.nom, u.prenom, u.pseudo, u.email, u.telephone, u.photo
         FROM avis a
         LEFT JOIN user u ON a.user_id = u.user_id
-        WHERE a.statut = 'en_attente' OR a.statut IS NULL
-        ORDER BY a.date_avis DESC
+        WHERE a.statut = 'en attente' OR a.statut IS NULL
+        ORDER BY a.avis_id DESC
     ");
     $stmt->execute();
     $avis_en_attente = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -184,7 +201,7 @@ require_once __DIR__ . "/../templates/header.php";
                     <div class="card-body">
                         <?php if (empty($avis_en_attente)): ?>
                             <div class="text-center py-4">
-                                <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                                <i class="bi bi-check-circle text-success icon-large-avis"></i>
                                 <h5 class="mt-3 text-muted">Aucun avis en attente</h5>
                                 <p class="text-muted">Tous les avis ont été traités !</p>
                             </div>
@@ -195,16 +212,15 @@ require_once __DIR__ . "/../templates/header.php";
                                         <div class="card h-100">
                                             <div class="card-header d-flex justify-content-between align-items-center">
                                                 <span class="badge bg-warning">En attente</span>
-                                                <small class="text-muted"><?= date("d/m/Y H:i", strtotime($avis['date_avis'] ?? 'now')) ?></small>
+                                                <small class="text-muted">ID: <?= $avis['avis_id'] ?></small>
                                             </div>
                                             <div class="card-body">
                                                 <div class="d-flex align-items-center mb-3">
                                                     <?php if (!empty($avis['photo'])): ?>
                                                         <img src="data:image/jpeg;base64,<?= base64_encode($avis['photo']) ?>"
-                                                            alt="Photo" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                                            alt="Photo" class="rounded-circle me-3 avatar-photo-employe">
                                                     <?php else: ?>
-                                                        <div class="d-flex justify-content-center align-items-center rounded-circle bg-light me-3"
-                                                            style="width: 50px; height: 50px;">
+                                                        <div class="d-flex justify-content-center align-items-center rounded-circle bg-light me-3 avatar-placeholder-employe">
                                                             <i class="bi bi-person-fill text-muted"></i>
                                                         </div>
                                                     <?php endif; ?>
@@ -435,4 +451,5 @@ require_once __DIR__ . "/../templates/header.php";
     </div>
 </section>
 
+<?php require_once __DIR__ . "/../templates/footer.php"; ?>
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>

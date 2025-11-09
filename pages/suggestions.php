@@ -136,7 +136,9 @@ try {
                                 </div>
                                 <div class="card-footer text-center">
                                     <?php if (isUserConnected()): ?>
-                                        <button class="btn btn-secondary btn-sm me-2"><i class="bi bi-eye me-1"></i>Voir détails</button>
+                                        <a href="/pages/detail_covoiturage.php?covoiturage_id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2">
+                                            <i class="bi bi-eye me-1"></i>Voir détails
+                                        </a>
                                     <?php else: ?>
                                         <a href="../login.php" class="btn btn-secondary btn-sm">Se connecter</a>
                                     <?php endif; ?>

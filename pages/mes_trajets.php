@@ -54,6 +54,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_trajet'])) {
             'user_id' => $user['user_id'],
             'voiture_id' => $voiture_id,
         ]);
+        // Créditer +2 crédits au créateur du trajet
+        $creditStmt = $pdo->prepare("UPDATE user SET credits = credits + 2 WHERE user_id = :user_id");
+        $creditStmt->execute(['user_id' => $user['user_id']]);
         header("Location: mes_trajets.php?success=1");
         exit();
     } catch (PDOException $e) {
@@ -88,6 +91,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_id'])) {
     $trajet_id = intval($_POST['start_trajet_id']);
     $query = $pdo->prepare("UPDATE covoiturage SET statut = 2 WHERE covoiturage_id = :id AND user_id = :user_id");
     $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
+
+    // Enregistrer le démarrage dans MongoDB (sans bloquer si erreur)
+    require_once __DIR__ . '/../lib/duree_trajet.php';
+    demarrerTrajetMongo($user['user_id'], $trajet_id);
+
     header("Location: mes_trajets.php");
     exit();
 }
@@ -96,6 +104,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stop_trajet_id'])) {
     $trajet_id = intval($_POST['stop_trajet_id']);
     $query = $pdo->prepare("UPDATE covoiturage SET statut = 3 WHERE covoiturage_id = :id AND user_id = :user_id");
     $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
+
+    // Calculer et enregistrer la durée dans MongoDB, puis mettre à jour MySQL
+    require_once __DIR__ . '/../lib/duree_trajet.php';
+    $dureeResult = arreterTrajetMongo($user['user_id'], $trajet_id);
+    if ($dureeResult && isset($dureeResult['duration_minutes'])) {
+        // Mettre à jour la durée dans MySQL si disponible
+        $updateDuree = $pdo->prepare("UPDATE covoiturage SET duree = :duree WHERE covoiturage_id = :id AND user_id = :user_id");
+        $updateDuree->execute([
+            'duree' => $dureeResult['duration_minutes'],
+            'id' => $trajet_id,
+            'user_id' => $user['user_id']
+        ]);
+    }
+
     header("Location: mes_trajets.php");
     exit();
 }

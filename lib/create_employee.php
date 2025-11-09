@@ -18,9 +18,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email = trim($_POST['email']);
         $telephone = trim($_POST['telephone'] ?? '');
         $adresse = trim($_POST['adresse'] ?? '');
-        $date_naissance = $_POST['date_naissance'] ?? '0000-00-00';
+        $date_naissance = $_POST['date_naissance'] ?? '';
+        // Normaliser la date: si vide ou invalide => date sûre par défaut pour éviter SQLSTATE[22007]
+        if (empty($date_naissance) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_naissance)) {
+            $date_naissance = '1970-01-01';
+        }
         $pseudo = trim($_POST['pseudo']);
-        $role_covoiturage = $_POST['role_covoiturage'];
+        // Par défaut, un employé est au minimum "Passager" si le champ n'est pas fourni par le formulaire admin
+        $role_covoiturage = $_POST['role_covoiturage'] ?? 'Passager';
         $password = $_POST['password'];
 
         // Validation des données
@@ -63,32 +68,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Hasher le mot de passe
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-        // Préparer la requête d'insertion
-        $sql = "INSERT INTO user (nom, prenom, email, password, telephone, adresse, date_naissance, pseudo, role_id, role_covoiturage";
+        // Préparer la requête d'insertion (photo toujours incluse car NOT NULL dans le schéma)
+        $sql = "INSERT INTO user (nom, prenom, email, password, telephone, adresse, date_naissance, pseudo, role_id, role_covoiturage, photo) VALUES (:nom, :prenom, :email, :password, :telephone, :adresse, :date_naissance, :pseudo, :role_id, :role_covoiturage, :photo)";
 
-        // Gérer la photo si fournie
-        $photo = null;
+        // Préparer et exécuter la requête
+        $query = $pdo->prepare($sql);
+
+        // Gérer la photo si fournie, sinon blob vide
+        $photoData = '';
         if (isset($_FILES['photo']) && $_FILES['photo']['error'] == 0) {
             $allowed = ['jpg', 'jpeg', 'png', 'gif'];
             $filename = $_FILES['photo']['name'];
             $filetype = pathinfo($filename, PATHINFO_EXTENSION);
-
             if (in_array(strtolower($filetype), $allowed)) {
-                $photo = file_get_contents($_FILES['photo']['tmp_name']);
-                $sql .= ", photo";
+                $photoData = file_get_contents($_FILES['photo']['tmp_name']);
             }
         }
 
-        $sql .= ") VALUES (:nom, :prenom, :email, :password, :telephone, :adresse, :date_naissance, :pseudo, :role_id, :role_covoiturage";
-
-        if ($photo !== null) {
-            $sql .= ", :photo";
-        }
-
-        $sql .= ")";
-
-        // Préparer et exécuter la requête
-        $query = $pdo->prepare($sql);
         $params = [
             ':nom' => $nom,
             ':prenom' => $prenom,
@@ -99,12 +95,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':date_naissance' => $date_naissance,
             ':pseudo' => $pseudo,
             ':role_id' => 2, // Rôle employé
-            ':role_covoiturage' => $role_covoiturage
+            ':role_covoiturage' => $role_covoiturage,
+            ':photo' => $photoData
         ];
-
-        if ($photo !== null) {
-            $params[':photo'] = $photo;
-        }
 
         $query->execute($params);
 

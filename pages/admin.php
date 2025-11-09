@@ -19,84 +19,139 @@ $error_message = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
 // Récupérer les statistiques générales
-$stats = [];
+$stats = [
+    'total_users' => 0,
+    'users_by_role' => [],
+    'total_covoiturages' => 0,
+    'covoiturages_by_status' => [],
+    'total_voitures' => 0,
+    'voitures_by_energy' => [],
+    'total_avis' => 0,
+    'moyenne_notes' => 0,
+    'total_reservations' => 0,
+    'covoiturages_par_jour' => []
+];
 
+// Liste des employés (role_id = 2)
+$employees = [];
 try {
+    $stmt = $pdo->prepare("SELECT user_id, nom, prenom, email, telephone, pseudo, role_covoiturage, credits, suspended FROM user WHERE role_id = 2 ORDER BY prenom, nom");
+    $stmt->execute();
+    $employees = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+} catch (PDOException $e) {
+    // Si la colonne suspended n'existe pas, retenter sans
+    try {
+        $stmt = $pdo->prepare("SELECT user_id, nom, prenom, email, telephone, pseudo, role_covoiturage, credits FROM user WHERE role_id = 2 ORDER BY prenom, nom");
+        $stmt->execute();
+        $employees = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        // Marquer suspendu à 0 par défaut
+        foreach ($employees as &$emp) {
+            $emp['suspended'] = 0;
+        }
+        unset($emp);
+    } catch (PDOException $e2) {
+    }
+}
+
+// Liste des utilisateurs (role_id = 3)
+$users = [];
+try {
+    $stmt = $pdo->prepare("SELECT user_id, nom, prenom, email, telephone, pseudo, role_covoiturage, credits, suspended FROM user WHERE role_id = 3 ORDER BY prenom, nom");
+    $stmt->execute();
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+} catch (PDOException $e) {
+    // Si la colonne suspended n'existe pas, retenter sans
+    try {
+        $stmt = $pdo->prepare("SELECT user_id, nom, prenom, email, telephone, pseudo, role_covoiturage, credits FROM user WHERE role_id = 3 ORDER BY prenom, nom");
+        $stmt->execute();
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        foreach ($users as &$u) {
+            $u['suspended'] = 0;
+        }
+        unset($u);
+    } catch (PDOException $e2) {
+    }
+}
+
     // Nombre total d'utilisateurs
-    $stmt = $pdo->query("SELECT COUNT(*) as total_users FROM user");
-    $stats['total_users'] = $stmt->fetchColumn();
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM user");
+    $stats['total_users'] = (int) $stmt->fetchColumn();
+} catch (PDOException $e) {
+}
 
     // Nombre d'utilisateurs par rôle
-    $stmt = $pdo->query("
-        SELECT r.libelle, COUNT(u.user_id) as count 
-        FROM role r 
-        LEFT JOIN user u ON r.role_id = u.role_id 
-        GROUP BY r.role_id, r.libelle
-    ");
-    $stats['users_by_role'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->query("SELECT r.libelle, COUNT(u.user_id) as count FROM role r LEFT JOIN user u ON r.role_id = u.role_id GROUP BY r.role_id, r.libelle");
+    $stats['users_by_role'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+} catch (PDOException $e) {
+}
 
     // Nombre total de covoiturages
-    $stmt = $pdo->query("SELECT COUNT(*) as total_covoiturages FROM covoiturage");
-    $stats['total_covoiturages'] = $stmt->fetchColumn();
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM covoiturage");
+    $stats['total_covoiturages'] = (int) $stmt->fetchColumn();
+} catch (PDOException $e) {
+}
 
     // Covoiturages par statut
-    $stmt = $pdo->query("
-        SELECT 
-            CASE 
-                WHEN statut = 1 THEN 'En cours'
-                WHEN statut = 2 THEN 'En attente'
-                WHEN statut = 3 THEN 'Terminé'
-                ELSE 'Non défini'
-            END as statut_name,
-            COUNT(*) as count
-        FROM covoiturage 
-        GROUP BY statut
-    ");
-    $stats['covoiturages_by_status'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->query("SELECT statut, COUNT(*) as count FROM covoiturage GROUP BY statut");
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $map = [
+        1 => 'En attente',
+        2 => 'En cours',
+        3 => 'Terminé'
+    ];
+    $stats['covoiturages_by_status'] = array_map(function ($row) use ($map) {
+        $code = (int)($row['statut'] ?? 0);
+        return [
+            'statut_name' => $map[$code] ?? 'Non défini',
+            'count' => (int)$row['count']
+        ];
+    }, $rows);
+} catch (PDOException $e) {
+}
 
     // Nombre total de voitures
-    $stmt = $pdo->query("SELECT COUNT(*) as total_voitures FROM voiture");
-    $stats['total_voitures'] = $stmt->fetchColumn();
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM voiture");
+    $stats['total_voitures'] = (int) $stmt->fetchColumn();
+} catch (PDOException $e) {
+}
 
     // Voitures par type d'énergie
-    $stmt = $pdo->query("
-        SELECT e.libelle, COUNT(v.voiture_id) as count 
-        FROM energie e 
-        LEFT JOIN voiture v ON e.energie_id = v.energie_id 
-        GROUP BY e.energie_id, e.libelle
-    ");
-    $stats['voitures_by_energy'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->query("SELECT e.libelle, COUNT(v.voiture_id) as count FROM energie e LEFT JOIN voiture v ON e.energie_id = v.energie_id GROUP BY e.energie_id, e.libelle");
+    $stats['voitures_by_energy'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+} catch (PDOException $e) {
+}
 
-    // Nombre d'avis
-    $stmt = $pdo->query("SELECT COUNT(*) as total_avis FROM avis");
-    $stats['total_avis'] = $stmt->fetchColumn();
-
-    // Moyenne des notes
-    $stmt = $pdo->query("SELECT AVG(note) as moyenne_notes FROM avis WHERE note IS NOT NULL");
-    $stats['moyenne_notes'] = round($stmt->fetchColumn(), 2);
+// Nombre d'avis et moyenne
+try {
+    $stmt = $pdo->query("SELECT COUNT(*) FROM avis");
+    $stats['total_avis'] = (int) $stmt->fetchColumn();
+} catch (PDOException $e) {
+}
+try {
+    $stmt = $pdo->query("SELECT AVG(CAST(note AS DECIMAL(10,2))) FROM avis WHERE note IS NOT NULL");
+    $avg = $stmt->fetchColumn();
+    $stats['moyenne_notes'] = $avg !== null ? round((float)$avg, 2) : 0;
+} catch (PDOException $e) {
+}
 
     // Réservations (si la table existe)
     try {
-        $stmt = $pdo->query("SELECT COUNT(*) as total_reservations FROM reservations");
-        $stats['total_reservations'] = $stmt->fetchColumn();
+    $stmt = $pdo->query("SELECT COUNT(*) FROM reservations");
+    $stats['total_reservations'] = (int) $stmt->fetchColumn();
     } catch (PDOException $e) {
-        $stats['total_reservations'] = 0;
     }
 
     // Covoiturages par jour (30 derniers jours)
-    $stmt = $pdo->query("
-        SELECT 
-            DATE(date_depart) as jour,
-            COUNT(*) as nombre_covoiturages
-        FROM covoiturage 
-        WHERE date_depart >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-        GROUP BY DATE(date_depart)
-        ORDER BY jour ASC
-    ");
-    $stats['covoiturages_par_jour'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+    $stmt = $pdo->query("SELECT DATE(date_depart) as jour, COUNT(*) as nombre_covoiturages FROM covoiturage WHERE date_depart >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) GROUP BY DATE(date_depart) ORDER BY jour ASC");
+    $stats['covoiturages_par_jour'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 } catch (PDOException $e) {
-    $stats = [];
-    $error_message = "Erreur lors du chargement des statistiques : " . $e->getMessage();
 }
 
 require_once __DIR__ . '/../templates/header.php';
@@ -388,43 +443,144 @@ require_once __DIR__ . '/../templates/header.php';
             </div>
         </div>
 
-        <!-- Actions rapides -->
-        <div class="row">
+        <!-- Liste des employés -->
+        <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-lightning me-2"></i>
-                            Actions rapides
+                            <i class="bi bi-people-fill me-2"></i>
+                            Liste des employés
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3 mb-2">
-                                <a href="/pages/employe.php" class="btn btn-outline-primary w-100">
-                                    <i class="bi bi-person-badge me-2"></i>Espace Employé
-                                </a>
+                        <?php if (empty($employees)): ?>
+                            <p class="text-muted mb-0">Aucun employé trouvé.</p>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nom</th>
+                                            <th>Email</th>
+                                            <th>Téléphone</th>
+                                            <th>Pseudo</th>
+                                            <th>Rôle covoiturage</th>
+                                            <th>Statut</th>
+                                            <th>Crédits</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($employees as $emp): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($emp['prenom'] . ' ' . $emp['nom']) ?></td>
+                                                <td><?= htmlspecialchars($emp['email']) ?></td>
+                                                <td><?= htmlspecialchars($emp['telephone'] ?: '—') ?></td>
+                                                <td><?= htmlspecialchars($emp['pseudo']) ?></td>
+                                                <td><?= htmlspecialchars($emp['role_covoiturage'] ?: '—') ?></td>
+                                                <td>
+                                                    <?php if ((int)($emp['suspended'] ?? 0) === 1): ?>
+                                                        <span class="badge bg-warning">Suspendu</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-success">Actif</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td><span class="badge bg-success"><?= (int)($emp['credits'] ?? 0) ?></span></td>
+                                                <td>
+                                                    <form method="POST" action="/lib/admin_user_actions.php" class="d-inline">
+                                                        <input type="hidden" name="user_id" value="<?= (int)$emp['user_id'] ?>">
+                                                        <?php if ((int)($emp['suspended'] ?? 0) === 1): ?>
+                                                            <button type="submit" name="action" value="activate" class="btn btn-sm btn-success">Activer</button>
+                                                        <?php else: ?>
+                                                            <button type="submit" name="action" value="suspend" class="btn btn-sm btn-warning">Suspendre</button>
+                                                        <?php endif; ?>
+                                                    </form>
+                                                    <form method="POST" action="/lib/admin_user_actions.php" class="d-inline" onsubmit="return confirm('Supprimer définitivement cet utilisateur ? Cette action est irréversible.');">
+                                                        <input type="hidden" name="user_id" value="<?= (int)$emp['user_id'] ?>">
+                                                        <button type="submit" name="action" value="delete" class="btn btn-sm btn-danger">Supprimer</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <a href="/pages/user_count.php" class="btn btn-outline-success w-100">
-                                    <i class="bi bi-person-plus me-2"></i>Créer un employé
-                                </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <a href="/pages/avis.php" class="btn btn-outline-warning w-100">
-                                    <i class="bi bi-star me-2"></i>Gérer les avis
-                                </a>
+
+        <!-- Liste des utilisateurs -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-people me-2"></i>
+                            Liste des utilisateurs
+                        </h5>
                             </div>
-                            <div class="col-md-3 mb-2">
-                                <a href="/pages/covoiturage.php" class="btn btn-outline-info w-100">
-                                    <i class="bi bi-car-front me-2"></i>Voir les trajets
-                                </a>
+                    <div class="card-body">
+                        <?php if (empty($users)): ?>
+                            <p class="text-muted mb-0">Aucun utilisateur trouvé.</p>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nom</th>
+                                            <th>Email</th>
+                                            <th>Téléphone</th>
+                                            <th>Pseudo</th>
+                                            <th>Rôle covoiturage</th>
+                                            <th>Statut</th>
+                                            <th>Crédits</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($users as $u): ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($u['prenom'] . ' ' . $u['nom']) ?></td>
+                                                <td><?= htmlspecialchars($u['email']) ?></td>
+                                                <td><?= htmlspecialchars($u['telephone'] ?: '—') ?></td>
+                                                <td><?= htmlspecialchars($u['pseudo']) ?></td>
+                                                <td><?= htmlspecialchars($u['role_covoiturage'] ?: '—') ?></td>
+                                                <td>
+                                                    <?php if ((int)($u['suspended'] ?? 0) === 1): ?>
+                                                        <span class="badge bg-warning">Suspendu</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-success">Actif</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td><span class="badge bg-success"><?= (int)($u['credits'] ?? 0) ?></span></td>
+                                                <td>
+                                                    <form method="POST" action="/lib/admin_user_actions.php" class="d-inline">
+                                                        <input type="hidden" name="user_id" value="<?= (int)$u['user_id'] ?>">
+                                                        <?php if ((int)($u['suspended'] ?? 0) === 1): ?>
+                                                            <button type="submit" name="action" value="activate" class="btn btn-sm btn-success">Activer</button>
+                                                        <?php else: ?>
+                                                            <button type="submit" name="action" value="suspend" class="btn btn-sm btn-warning">Suspendre</button>
+                                                        <?php endif; ?>
+                                                    </form>
+                                                    <form method="POST" action="/lib/admin_user_actions.php" class="d-inline" onsubmit="return confirm('Supprimer définitivement cet utilisateur ? Cette action est irréversible.');">
+                                                        <input type="hidden" name="user_id" value="<?= (int)$u['user_id'] ?>">
+                                                        <button type="submit" name="action" value="delete" class="btn btn-sm btn-danger">Supprimer</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 </section>
 

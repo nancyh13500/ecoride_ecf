@@ -460,10 +460,6 @@ VALUES (
     );
 
 --
--- Contraintes pour les tables déchargées
---
-
---
 -- Contraintes pour la table `avis`
 --
 ALTER TABLE `avis`
