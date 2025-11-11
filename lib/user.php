@@ -9,6 +9,10 @@ function verifyUserLoginPassword(PDO $pdo, string $email, string $password): boo
     $user = $userQuery->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password'])) {
+        // Refuser l'accès si le compte est suspendu (si la colonne existe)
+        if (isset($user['suspended']) && (int)$user['suspended'] === 1) {
+            return false;
+        }
         // verif ok
         return $user;
     } else {

@@ -1,4 +1,6 @@
+// CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ
 // Gestion du temps de trajet
+/*
 class TempsTrajet {
     constructor() {
         this.trajetsEnCours = new Map(); // Stocke les trajets en cours avec leur heure de début
@@ -139,13 +141,17 @@ class TempsTrajet {
         updateTime(); // Première mise à jour immédiate
     }
 }
+*/
 
 // Initialiser quand le DOM est chargé
+/*
 document.addEventListener('DOMContentLoaded', () => {
     window.tempsTrajet = new TempsTrajet();
 });
+*/
 
 // Fonction utilitaire pour formater la durée
+/*
 function formaterDuree(minutes) {
     if (minutes < 60) {
         return `${minutes}min`;
@@ -155,3 +161,4 @@ function formaterDuree(minutes) {
         return mins > 0 ? `${heures}h ${mins}min` : `${heures}h`;
     }
 }
+*/

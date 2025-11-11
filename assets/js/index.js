@@ -66,7 +66,7 @@ window.addEventListener("scroll", () => {
     lastscroll = window.scrollY;
 });
 
-/**image slide */
+/**carousel */
 
 let playOnce = true;
 

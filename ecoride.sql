@@ -36,7 +36,7 @@ DROP TABLE IF EXISTS `avis`;
 
 CREATE TABLE IF NOT EXISTS `avis` (
     `avis_id` int NOT NULL AUTO_INCREMENT,
-    `commentaire` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+    `commentaire` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
     `note` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
     `statut` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
     `user_id` int NOT NULL,
@@ -55,10 +55,10 @@ DROP TABLE IF EXISTS `covoiturage`;
 CREATE TABLE IF NOT EXISTS `covoiturage` (
     `covoiturage_id` int NOT NULL AUTO_INCREMENT,
     `date_depart` date NOT NULL,
-    `heure_depart` date NOT NULL,
+    `heure_depart` time NOT NULL,
     `lieu_depart` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
     `date_arrivee` date NOT NULL,
-    `heure_arrivee` date NOT NULL,
+    `heure_arrivee` time NOT NULL,
     `lieu_arrivee` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
     `statut` tinyint(1) DEFAULT NULL,
     `nb_place` int NOT NULL,
@@ -94,10 +94,10 @@ INSERT INTO
 VALUES (
         8,
         '2025-06-28',
-        '0000-00-00',
+        '00:00:00',
         'martigues',
-        '0000-00-00',
-        '0000-00-00',
+        '2025-06-28',
+        '00:00:00',
         'marseille',
         3,
         1,
@@ -109,10 +109,10 @@ VALUES (
     (
         9,
         '2025-07-08',
-        '0000-00-00',
+        '00:00:00',
         'martigues',
-        '0000-00-00',
-        '0000-00-00',
+        '2025-07-08',
+        '00:00:00',
         'marseille',
         3,
         1,
@@ -124,10 +124,10 @@ VALUES (
     (
         10,
         '2025-07-07',
-        '0000-00-00',
+        '00:00:00',
         'lyon',
-        '0000-00-00',
-        '0000-00-00',
+        '2025-07-07',
+        '00:00:00',
         'paris',
         3,
         1,
@@ -287,6 +287,7 @@ CREATE TABLE IF NOT EXISTS `user` (
     `pseudo` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
     `role_id` int NOT NULL,
     `role_covoiturage` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `credits` int NOT NULL DEFAULT 20,
     PRIMARY KEY (`user_id`),
     KEY `user_ibfk_1` (`role_id`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 8 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
@@ -459,10 +460,6 @@ VALUES (
     );
 
 --
--- Contraintes pour les tables déchargées
---
-
---
 -- Contraintes pour la table `avis`
 --
 ALTER TABLE `avis`
@@ -488,6 +485,28 @@ ALTER TABLE `voiture`
 ADD CONSTRAINT `voiture_ibfk_1` FOREIGN KEY (`marque_id`) REFERENCES `marque` (`marque_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
 ADD CONSTRAINT `voiture_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
 ADD CONSTRAINT `voiture_ibfk_3` FOREIGN KEY (`energie_id`) REFERENCES `energie` (`energie_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `site_credits`
+--
+
+DROP TABLE IF EXISTS `site_credits`;
+
+CREATE TABLE IF NOT EXISTS `site_credits` (
+    `site_credits_id` int NOT NULL AUTO_INCREMENT,
+    `total_credits` int NOT NULL DEFAULT 0,
+    `date_creation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `date_modification` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`site_credits_id`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `site_credits`
+--
+
+INSERT INTO `site_credits` (`total_credits`) VALUES (0);
 
 COMMIT;
 

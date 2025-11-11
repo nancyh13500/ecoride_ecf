@@ -255,10 +255,13 @@ try {
             <label class="form-label credit-min">Crédit minimum (C)</label>
             <input type="number" class="form-control filter-price" placeholder="Crédit min">
         </div>
+        <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
+        <!--
         <div class="col-md-2 text-center">
             <label class="form-label price-max">Durée maximum</label>
             <input type="number" class="form-control filter-duration" placeholder="Durée max">
         </div>
+        -->
         <div class="col-md-3 text-center">
             <label class="form-label note">Note minimale</label>
             <select class="form-select">
@@ -305,13 +308,11 @@ try {
                                             <div class="col-6">
                                                 <?php
                                                 $nb_places = $covoiturage['nb_place'];
-                                                $badge_class = '';
+                                                $badge_class = 'badge-places badge-places--red';
                                                 if ($nb_places >= 3) {
-                                                    $badge_class = 'bg-success';
+                                                    $badge_class = 'badge-places badge-places--green';
                                                 } elseif ($nb_places == 2) {
-                                                    $badge_class = 'bg-warning text-dark';
-                                                } else {
-                                                    $badge_class = 'bg-danger';
+                                                    $badge_class = 'badge-places badge-places--orange';
                                                 }
                                                 ?>
                                                 <span class="badge <?= $badge_class ?>"><i class="bi bi-people me-1"></i><?= $nb_places ?> place<?= $nb_places > 1 ? 's' : '' ?></span>
@@ -324,13 +325,13 @@ try {
                                                 <?php endif; ?>
                                             </div>
                                             <div class="col-6">
-                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 2) ?>€</span>
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="card-footer text-center">
                                         <?php if (isUserConnected()): ?>
-                                            <button class="btn btn-secondary btn-sm me-2"><i class="bi bi-eye me-1"></i>Voir détails</button>
+                                            <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2"><i class="bi bi-eye me-1"></i>Voir détails</a>
                                         <?php else: ?>
                                             <a href="../login.php" class="btn btn-secondary btn-sm">Se connecter</a>
                                         <?php endif; ?>
@@ -431,13 +432,11 @@ try {
                                         <div class="col-6">
                                             <?php
                                             $nb_places = $covoiturage['nb_place'];
-                                            $badge_class = '';
+                                            $badge_class = 'badge-places badge-places--red';
                                             if ($nb_places >= 3) {
-                                                $badge_class = 'bg-success';
+                                                $badge_class = 'badge-places badge-places--green';
                                             } elseif ($nb_places == 2) {
-                                                $badge_class = 'bg-warning text-dark';
-                                            } else {
-                                                $badge_class = 'bg-danger';
+                                                $badge_class = 'badge-places badge-places--orange';
                                             }
                                             ?>
                                             <?php if ($nb_places == 1): ?>
@@ -455,11 +454,13 @@ try {
                                         <div class="col-6">
                                             <span class="badge bg-warning text-dark">
                                                 <i class="bi bi-coin me-1"></i>
-                                                <?= number_format($covoiturage['prix_personne'], 2) ?>€
+                                                <?= number_format($covoiturage['prix_personne'], 0) ?> crédits
                                             </span>
                                         </div>
                                     </div>
 
+                                    <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
+                                    <!--
                                     <?php if (!empty($covoiturage['duree'])): ?>
                                         <div class="text-center mt-2">
                                             <span class="badge bg-secondary">
@@ -468,12 +469,13 @@ try {
                                             </span>
                                         </div>
                                     <?php endif; ?>
+                                    -->
                                 </div>
                                 <div class="card-footer text-center">
                                     <?php if (isUserConnected()): ?>
-                                        <button class="btn btn-secondary btn-sm me-2">
+                                        <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2">
                                             <i class="bi bi-eye me-1"></i>Voir détails
-                                        </button>
+                                        </a>
                                         <button class="btn btn-primary btn-sm">
                                             <i class="bi bi-heart me-1"></i>Intéressé
                                         </button>

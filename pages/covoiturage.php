@@ -71,38 +71,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_voiture'])) {
 
 // Traitement du formulaire de covoiturage
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
-    $date_depart = $_POST['date_depart'];
-    $heure_depart = $_POST['heure_depart'];
-    $lieu_depart = $_POST['lieu_depart'];
-    $lieu_arrivee = $_POST['lieu_arrivee'];
-    $nb_place = $_POST['nb_place'];
-    $prix_personne = $_POST['prix_personne'];
-    $voiture_id = $_POST['voiture_id'];
+    $date_depart = $_POST['date_depart'] ?? '';
+    $heure_depart_input = $_POST['heure_depart'] ?? '';
+    $lieu_depart = $_POST['lieu_depart'] ?? '';
+    $lieu_arrivee = $_POST['lieu_arrivee'] ?? '';
+    $nb_place = $_POST['nb_place'] ?? '';
+    $prix_personne = $_POST['prix_personne'] ?? '';
+    $voiture_id = $_POST['voiture_id'] ?? '';
 
-    // Normaliser l'heure au format HH:MM:SS
+    $date_depart_obj = DateTime::createFromFormat('Y-m-d', $date_depart);
+    $date_depart_valide = $date_depart_obj && $date_depart_obj->format('Y-m-d') === $date_depart;
+    $heure_depart = $heure_depart_input;
     if (preg_match('/^\d{2}:\d{2}$/', $heure_depart)) {
         $heure_depart .= ':00';
+    } elseif (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $heure_depart)) {
+        $heure_depart = '';
     }
 
-    try {
-        $query = $pdo->prepare("
-            INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id, statut)
-            VALUES (:date_depart, :heure_depart, :lieu_depart, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id, 1)
-        ");
-        $query->execute([
-            'date_depart' => $date_depart,
-            'heure_depart' => $heure_depart,
-            'lieu_depart' => $lieu_depart,
-            'lieu_arrivee' => $lieu_arrivee,
-            'nb_place' => $nb_place,
-            'prix_personne' => $prix_personne,
-            'user_id' => $user['user_id'],
-            'voiture_id' => $voiture_id,
-        ]);
-        header("Location: mes_trajets.php?success=1");
-        exit();
-    } catch (PDOException $e) {
-        $error_message = "Erreur lors de la création du covoiturage : " . $e->getMessage();
+    if ($date_depart_valide && $heure_depart !== '') {
+        // Colonnes obligatoires : même date/heure pour l'arrivée par défaut
+        $date_arrivee = $date_depart;
+        $heure_arrivee = $heure_depart;
+
+        try {
+            $query = $pdo->prepare("
+                INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, date_arrivee, heure_arrivee, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id, statut)
+                VALUES (:date_depart, :heure_depart, :lieu_depart, :date_arrivee, :heure_arrivee, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id, 1)
+            ");
+            $query->execute([
+                'date_depart' => $date_depart,
+                'heure_depart' => $heure_depart,
+                'lieu_depart' => $lieu_depart,
+                'date_arrivee' => $date_arrivee,
+                'heure_arrivee' => $heure_arrivee,
+                'lieu_arrivee' => $lieu_arrivee,
+                'nb_place' => $nb_place,
+                'prix_personne' => $prix_personne,
+                'user_id' => $user['user_id'],
+                'voiture_id' => $voiture_id,
+            ]);
+            // Les crédits seront versés au chauffeur et au site uniquement à la fin du trajet
+            header("Location: mes_trajets.php?success=1");
+            exit();
+        } catch (PDOException $e) {
+            $error_message = "Erreur lors de la création du covoiturage : " . $e->getMessage();
+        }
+    } else {
+        $error_message = "Veuillez entrer une date (format AAAA-MM-JJ) et une heure valides.";
     }
 }
 ?>
@@ -123,16 +138,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
             <div class="card rounded-3">
                 <img src="/assets/img/city.jpg" class="img_city w-100 rounded-top" alt="city">
                 <div class="card-body p-4 p-md-5">
-
-                    <div class="row mb-2">
-                        <div class="col-md-6 text-center">
-                            <h4 class="mb-4 ms-2">Ajouter une voiture</h4>
-                        </div>
-                        <div class="col-md-6 text-center text-md-end">
-                            <a href="mes_voitures.php" class="btn btn-primary">Ajouter une voiture</a>
-                        </div>
-                    </div>
-
 
                     <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 ms-2">Informations</h3>
                     <?php if ($success_message): ?>
@@ -186,8 +191,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                                     <input type="number" id="nb_place" name="nb_place" min="1" class="form-control bg-light" required>
                                 </div>
                                 <div class="col-md-4 form-outline form-name mb-4" data-mdb-input-initialized="true">
-                                    <label class="form-label" for="prix_personne">Prix / personne (€)</label>
-                                    <input type="number" step="0.01" id="prix_personne" name="prix_personne" class="form-control bg-light" required>
+                                    <label class="form-label" for="prix_personne">Crédit / personne</label>
+                                    <input type="number" step="1" id="prix_personne" name="prix_personne" class="form-control bg-light" required>
                                 </div>
                             </div>
 

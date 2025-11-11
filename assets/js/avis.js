@@ -1,17 +1,14 @@
-// Multi-item carousel for Bootstrap 5: 1 card sur mobile, 3 sur desktop
-// Ce script doit être inclus après le HTML du carousel
-
-document.addEventListener('DOMContentLoaded', function() {
+ document.addEventListener('DOMContentLoaded', function () {
     var carousel = document.querySelector('#avisCarousel .carousel-inner');
     if (!carousel) return;
     var items = carousel.querySelectorAll('.carousel-item');
     // Nettoyage si reload
-    items.forEach(function(item) {
+    items.forEach(function (item) {
         var clones = item.querySelectorAll('.cloned-card');
-        clones.forEach(function(clone) { clone.remove(); });
+        clones.forEach(function (clone) { clone.remove(); });
     });
     if (window.innerWidth >= 768) {
-        items.forEach(function(el, idx) {
+        items.forEach(function (el, idx) {
             let next = el.nextElementSibling;
             for (let i = 1; i < 3; i++) {
                 if (!next) next = items[0];

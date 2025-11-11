@@ -27,6 +27,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $date_naissance = $_POST['date_naissance'];
         $pseudo = $_POST['pseudo'];
         $role_covoiturage = $_POST['role_covoiturage'];
+        // Le rôle ne peut être modifié que par un administrateur
+        $isAdmin = (($_SESSION['user']['role_id'] ?? 3) == 1);
+        $requested_role_id = isset($_POST['role_id']) ? intval($_POST['role_id']) : ($_SESSION['user']['role_id'] ?? 3);
+        $role_id = $isAdmin ? $requested_role_id : ($_SESSION['user']['role_id'] ?? 3);
         $user_id = $_SESSION['user']['user_id'];
 
         // Préparer la requête de base
@@ -39,6 +43,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 date_naissance = :date_naissance,
                 pseudo = :pseudo,
                 role_covoiturage = :role_covoiturage";
+
+        // Inclure role_id uniquement si admin
+        if ($isAdmin) {
+            $sql .= ", role_id = :role_id";
+        }
 
         // Gérer le mot de passe si fourni
         if (!empty($_POST['password'])) {
@@ -79,6 +88,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ':user_id' => $user_id
         ];
 
+        if ($isAdmin) {
+            $params[':role_id'] = $role_id;
+        }
+
         // Ajouter le mot de passe aux paramètres si fourni
         if (!empty($_POST['password'])) {
             $params[':password'] = $password;
@@ -102,6 +115,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             'pseudo' => $pseudo,
             'role_covoiturage' => $role_covoiturage
         ];
+
+        if ($isAdmin) {
+            $sessionUpdate['role_id'] = $role_id;
+        }
 
         // Ajouter la photo à la session si fournie
         if (isset($photo)) {

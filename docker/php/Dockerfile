@@ -6,8 +6,11 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libzip-dev \
+    libonig-dev \
     unzip \
     git \
+    pkg-config \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation des extensions PHP
@@ -19,6 +22,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         gd \
         mbstring \
         zip
+
+# Installation de Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Activation du module rewrite Apache
 RUN a2enmod rewrite headers
@@ -32,3 +38,4 @@ EXPOSE 80
 
 # Démarrage d'Apache
 CMD ["apache2-foreground"]
+
