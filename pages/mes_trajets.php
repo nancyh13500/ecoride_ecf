@@ -31,36 +31,54 @@ $voitures = $query_voitures->fetchAll(PDO::FETCH_ASSOC);
 
 // Gérer la soumission du formulaire d'ajout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_trajet'])) {
-    $date_depart = $_POST['date_depart'];
-    $heure_depart = $_POST['heure_depart'];
-    $lieu_depart = $_POST['lieu_depart'];
-    $lieu_arrivee = $_POST['lieu_arrivee'];
-    $nb_place = $_POST['nb_place'];
-    $prix_personne = $_POST['prix_personne'];
-    $voiture_id = $_POST['voiture_id'];
+    $date_depart = $_POST['date_depart'] ?? '';
+    $heure_depart_input = $_POST['heure_depart'] ?? '';
+    $lieu_depart = $_POST['lieu_depart'] ?? '';
+    $lieu_arrivee = $_POST['lieu_arrivee'] ?? '';
+    $nb_place = $_POST['nb_place'] ?? '';
+    $prix_personne = $_POST['prix_personne'] ?? '';
+    $voiture_id = $_POST['voiture_id'] ?? '';
 
-    try {
-        $query = $pdo->prepare("
-            INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id, statut)
-            VALUES (:date_depart, :heure_depart, :lieu_depart, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id, 1)
-        ");
-        $query->execute([
-            'date_depart' => $date_depart,
-            'heure_depart' => $heure_depart,
-            'lieu_depart' => $lieu_depart,
-            'lieu_arrivee' => $lieu_arrivee,
-            'nb_place' => $nb_place,
-            'prix_personne' => $prix_personne,
-            'user_id' => $user['user_id'],
-            'voiture_id' => $voiture_id,
-        ]);
-        // Créditer +2 crédits au créateur du trajet
-        $creditStmt = $pdo->prepare("UPDATE user SET credits = credits + 2 WHERE user_id = :user_id");
-        $creditStmt->execute(['user_id' => $user['user_id']]);
-        header("Location: mes_trajets.php?success=1");
-        exit();
-    } catch (PDOException $e) {
-        $error_message = "Erreur lors de l'ajout du trajet : " . $e->getMessage();
+    $date_depart_obj = DateTime::createFromFormat('Y-m-d', $date_depart);
+    $date_depart_valide = $date_depart_obj && $date_depart_obj->format('Y-m-d') === $date_depart;
+    $heure_depart = $heure_depart_input;
+    if (preg_match('/^\d{2}:\d{2}$/', $heure_depart)) {
+        $heure_depart .= ':00';
+    } elseif (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $heure_depart)) {
+        $heure_depart = '';
+    }
+
+    if ($date_depart_valide && $heure_depart !== '') {
+        $date_arrivee = $date_depart;
+        $heure_arrivee = $heure_depart;
+
+        try {
+            $query = $pdo->prepare("
+                INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, date_arrivee, heure_arrivee, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id, statut)
+                VALUES (:date_depart, :heure_depart, :lieu_depart, :date_arrivee, :heure_arrivee, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id, 1)
+            ");
+            $query->execute([
+                'date_depart' => $date_depart,
+                'heure_depart' => $heure_depart,
+                'lieu_depart' => $lieu_depart,
+                'date_arrivee' => $date_arrivee,
+                'heure_arrivee' => $heure_arrivee,
+                'lieu_arrivee' => $lieu_arrivee,
+                'nb_place' => $nb_place,
+                'prix_personne' => $prix_personne,
+                'user_id' => $user['user_id'],
+                'voiture_id' => $voiture_id,
+            ]);
+            // Créditer +2 crédits au créateur du trajet
+            $creditStmt = $pdo->prepare("UPDATE user SET credits = credits + 2 WHERE user_id = :user_id");
+            $creditStmt->execute(['user_id' => $user['user_id']]);
+            header("Location: mes_trajets.php?success=1");
+            exit();
+        } catch (PDOException $e) {
+            $error_message = "Erreur lors de l'ajout du trajet : " . $e->getMessage();
+        }
+    } else {
+        $error_message = "Veuillez entrer une date (format AAAA-MM-JJ) et une heure valides.";
     }
 }
 
@@ -300,8 +318,8 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                                         <input type="number" class="form-control" id="nb_place" name="nb_place" min="1" required>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="prix_personne" class="form-label">Prix par personne (€)</label>
-                                        <input type="number" step="0.01" class="form-control" id="prix_personne" name="prix_personne" required>
+                                        <label for="prix_personne" class="form-label">Crédit par personne</label>
+                                        <input type="number" step="1" class="form-control" id="prix_personne" name="prix_personne" required>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="voiture_id" class="form-label">Voiture</label>

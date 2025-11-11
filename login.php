@@ -78,8 +78,10 @@ if (isset($_POST['registerUser'])) {
     if (empty($errors)) {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-        $registerQuery = $pdo->prepare("INSERT INTO user (nom, prenom, email, password, telephone, adresse, date_naissance, photo, pseudo, role_id) 
-                               VALUES (:nom, :prenom, :email, :password, :telephone, :adresse, :date_naissance, :photo, :pseudo, :role_id)");
+        $roleCovoiturage = 'Passager';
+
+        $registerQuery = $pdo->prepare("INSERT INTO user (nom, prenom, email, password, telephone, adresse, date_naissance, photo, pseudo, role_id, role_covoiturage) 
+                               VALUES (:nom, :prenom, :email, :password, :telephone, :adresse, :date_naissance, :photo, :pseudo, :role_id, :role_covoiturage)");
 
         $registerQuery->bindValue(':nom', $nom, PDO::PARAM_STR);
         $registerQuery->bindValue(':prenom', $prenom, PDO::PARAM_STR);
@@ -91,6 +93,7 @@ if (isset($_POST['registerUser'])) {
         $registerQuery->bindValue(':photo', '', PDO::PARAM_STR);
         $registerQuery->bindValue(':pseudo', $prenom . ' ' . $nom, PDO::PARAM_STR);
         $registerQuery->bindValue(':role_id', 3, PDO::PARAM_INT); // 3 = Utilisateur par défaut
+        $registerQuery->bindValue(':role_covoiturage', $roleCovoiturage, PDO::PARAM_STR);
 
         if ($registerQuery->execute()) {
             $_SESSION['success'] = "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.";

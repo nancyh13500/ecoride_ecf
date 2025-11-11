@@ -12,7 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_from_her
         try {
             $query = $pdo->prepare("UPDATE covoiturage SET statut = 2 WHERE covoiturage_id = :id AND user_id = :user_id");
             $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
-
             header("Location: mes_trajets.php?started=1");
             exit();
         } catch (PDOException $e) {
@@ -227,7 +226,7 @@ try {
 
 <!-- Results Section -->
 
-<div class="result-header text-center mb-5 mt-0">
+<div class="result-header text-center mb-5">
     <div class="bg-dark text-white p-4">
         <?php if (!empty($search_depart) && !empty($search_arrivee)): ?>
             <h2>Résultats pour : <?= htmlspecialchars($search_depart) ?> → <?= htmlspecialchars($search_arrivee) ?></h2>
@@ -306,13 +305,11 @@ try {
                                             <div class="col-6">
                                                 <?php
                                                 $nb_places = $covoiturage['nb_place'];
-                                                $badge_class = '';
+                                                $badge_class = 'badge-places badge-places--red';
                                                 if ($nb_places >= 3) {
-                                                    $badge_class = 'bg-success';
+                                                    $badge_class = 'badge-places badge-places--green';
                                                 } elseif ($nb_places == 2) {
-                                                    $badge_class = 'bg-warning text-dark';
-                                                } else {
-                                                    $badge_class = 'bg-danger';
+                                                    $badge_class = 'badge-places badge-places--orange';
                                                 }
                                                 ?>
                                                 <span class="badge <?= $badge_class ?>"><i class="bi bi-people me-1"></i><?= $nb_places ?> place<?= $nb_places > 1 ? 's' : '' ?></span>
@@ -325,15 +322,13 @@ try {
                                                 <?php endif; ?>
                                             </div>
                                             <div class="col-6">
-                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</span>
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 2) ?>€</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="card-footer text-center">
                                         <?php if (isUserConnected()): ?>
-                                            <a href="/pages/detail_covoiturage.php?covoiturage_id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2">
-                                                <i class="bi bi-eye me-1"></i>Voir détails
-                                            </a>
+                                            <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2"><i class="bi bi-eye me-1"></i>Voir détails</a>
                                         <?php else: ?>
                                             <a href="../login.php" class="btn btn-secondary btn-sm">Se connecter</a>
                                         <?php endif; ?>
@@ -357,7 +352,7 @@ try {
 
         <!-- Section Suggestions - Trajets en attente -->
         <?php if (!empty($covoiturages_suggestion)): ?>
-            <div id="suggestions" class="suggestions-section mt-5">
+            <div class="suggestions-section mt-5">
                 <div class="row mb-4">
                     <div class="col-12">
                         <h3 class="text-center mb-4">
@@ -434,13 +429,11 @@ try {
                                         <div class="col-6">
                                             <?php
                                             $nb_places = $covoiturage['nb_place'];
-                                            $badge_class = '';
+                                            $badge_class = 'badge-places badge-places--red';
                                             if ($nb_places >= 3) {
-                                                $badge_class = 'bg-success';
+                                                $badge_class = 'badge-places badge-places--green';
                                             } elseif ($nb_places == 2) {
-                                                $badge_class = 'bg-warning text-dark';
-                                            } else {
-                                                $badge_class = 'bg-danger';
+                                                $badge_class = 'badge-places badge-places--orange';
                                             }
                                             ?>
                                             <?php if ($nb_places == 1): ?>
@@ -474,7 +467,7 @@ try {
                                 </div>
                                 <div class="card-footer text-center">
                                     <?php if (isUserConnected()): ?>
-                                        <a href="/pages/detail_covoiturage.php?covoiturage_id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2">
+                                        <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2">
                                             <i class="bi bi-eye me-1"></i>Voir détails
                                         </a>
                                         <button class="btn btn-primary btn-sm">
