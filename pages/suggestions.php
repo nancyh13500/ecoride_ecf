@@ -3,6 +3,31 @@ require_once __DIR__ . "/../templates/header.php";
 require_once __DIR__ . "/../lib/pdo.php";
 require_once __DIR__ . "/../lib/session.php";
 
+// Récupérer les villes disponibles depuis la base de données
+$villes_depart = [];
+$villes_arrivee = [];
+
+try {
+    // Récupérer les villes de départ
+    $query_depart = $pdo->prepare("SELECT DISTINCT lieu_depart FROM covoiturage WHERE statut = 1 ORDER BY lieu_depart ASC");
+    $query_depart->execute();
+    $villes_depart = $query_depart->fetchAll(PDO::FETCH_COLUMN);
+
+    // Récupérer les villes d'arrivée
+    $query_arrivee = $pdo->prepare("SELECT DISTINCT lieu_arrivee FROM covoiturage WHERE statut = 1 ORDER BY lieu_arrivee ASC");
+    $query_arrivee->execute();
+    $villes_arrivee = $query_arrivee->fetchAll(PDO::FETCH_COLUMN);
+} catch (PDOException $e) {
+    // En cas d'erreur, on continue avec des listes vides
+    $villes_depart = [];
+    $villes_arrivee = [];
+}
+
+// Récupérer les paramètres de recherche depuis l'URL
+$search_depart = $_GET['depart'] ?? '';
+$search_arrivee = $_GET['arrivee'] ?? '';
+$search_date = $_GET['date'] ?? '';
+
 // Récupérer tous les trajets disponibles
 $covoiturages_suggestion = [];
 $total_suggestions = 0;
@@ -79,8 +104,8 @@ try {
     </div>
 </section>
 <!-- Results Section -->
-<div class="result-header text-center">
-    <div class="bg-dark text-white p-5">
+<div class="result-suggestions text-center">
+    <div class="bg-dark text-white p-5 mt-0">
         <h2>Trajets disponibles</h2>
         <p class="mb-0"><?= $total_suggestions ?> trajet<?= $total_suggestions > 1 ? 's' : '' ?> trouvé<?= $total_suggestions > 1 ? 's' : '' ?></p>
     </div>
@@ -130,7 +155,7 @@ try {
                                             <?php endif; ?>
                                         </div>
                                         <div class="col-6">
-                                            <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 2) ?>€</span>
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 0) ?> cédits</span>
                                         </div>
                                     </div>
                                 </div>

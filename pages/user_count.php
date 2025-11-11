@@ -230,7 +230,7 @@ require_once __DIR__ . "/../templates/header.php";
                                 <div class="row mb-3">
                                     <div class="col-md-4">
                                         <label for="date_naissance" class="form-label">Date de naissance</label>
-                                        <input type="date" class="form-control" id="date_naissance" name="date_naissance" value="<?= htmlspecialchars($_SESSION['user']['date_naissance']) ?>">
+                                        <input type="date" class="form-control" id="date_naissance" name="date_naissance" value="<?= htmlspecialchars($_SESSION['user']['date_naissance']) ?>" required>
                                     </div>
                                     <div class="col-md-4">
                                         <label for="pseudo" class="form-label">Pseudo</label>

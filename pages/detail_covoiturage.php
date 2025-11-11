@@ -236,15 +236,7 @@ if ($covoiturage) {
                         </div>
                     <?php endif; ?>
 
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <div class="d-flex justify-content-center mb-3">
-                                <a href="/pages/trajets.php#suggestions" class="btn btn-primary">
-                                    <i class="bi bi-lightbulb me-2"></i>Retour aux suggestions
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+
 
                     <!-- Carte Passagers -->
                     <?php if (!empty($passagers)): ?>
@@ -285,7 +277,7 @@ if ($covoiturage) {
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <h6 class="text-dark">Prix par personne</h6>
+                                <h6 class="text-dark">Tarif / personne</h6>
                                 <p class="fs-3 fw-bold text-success">
                                     <?= number_format($covoiturage['prix_personne'], 0) ?> crédits
                                 </p>
@@ -358,6 +350,15 @@ if ($covoiturage) {
                                 </a>
                             <?php endif; ?>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-center mt-3 mb-3">
+                        <a href="/pages/trajets.php" class="btn btn-primary">
+                            <i class="bi bi-arrow-left me-2"></i>Retour aux trajets
+                        </a>
                     </div>
                 </div>
             </div>

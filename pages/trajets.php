@@ -13,10 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_from_her
             $query = $pdo->prepare("UPDATE covoiturage SET statut = 2 WHERE covoiturage_id = :id AND user_id = :user_id");
             $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
 
-            // Enregistrer le démarrage dans MongoDB (sans bloquer si erreur)
-            require_once __DIR__ . '/../lib/duree_trajet.php';
-            demarrerTrajetMongo($user['user_id'], $trajet_id);
-
             header("Location: mes_trajets.php?started=1");
             exit();
         } catch (PDOException $e) {
@@ -231,7 +227,7 @@ try {
 
 <!-- Results Section -->
 
-<div class="result-header text-center mb-5">
+<div class="result-header text-center mb-5 mt-0">
     <div class="bg-dark text-white p-4">
         <?php if (!empty($search_depart) && !empty($search_arrivee)): ?>
             <h2>Résultats pour : <?= htmlspecialchars($search_depart) ?> → <?= htmlspecialchars($search_arrivee) ?></h2>
@@ -329,7 +325,7 @@ try {
                                                 <?php endif; ?>
                                             </div>
                                             <div class="col-6">
-                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 2) ?>€</span>
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</span>
                                             </div>
                                         </div>
                                     </div>
@@ -462,7 +458,7 @@ try {
                                         <div class="col-6">
                                             <span class="badge bg-warning text-dark">
                                                 <i class="bi bi-coin me-1"></i>
-                                                <?= number_format($covoiturage['prix_personne'], 2) ?>€
+                                                <?= number_format($covoiturage['prix_personne'], 0) ?> crédits
                                             </span>
                                         </div>
                                     </div>

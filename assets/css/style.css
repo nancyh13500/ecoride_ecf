@@ -547,10 +547,18 @@ nav {
     }
 }
 
-/* Styles pour la page trajets.php */
+/* Styles pour les pages trajets.php et suggestions.php */
 .result-header {
-    margin-bottom: 2rem;
-    margin-top: 100px;
+    margin-bottom: 2rem !important;
+}
+
+.result-suggestions {
+    margin-bottom: 2rem !important;
+}
+
+.result-header .bg-dark {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Badge crédits dans Mon compte */

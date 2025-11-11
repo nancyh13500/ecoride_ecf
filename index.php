@@ -175,7 +175,7 @@ try {
                                 <?php endif; ?>
                                 <p>Nom chauffeur : <?= htmlspecialchars($trajet['prenom'] . ' ' . $trajet['nom']) ?></p>
                                 <p>Places restantes : <?= htmlspecialchars($trajet['nb_place']) ?></p>
-                                <p>Crédit : <?= number_format($trajet['prix_personne'], 0) ?> C</p>
+                                <p>Crédits : <?= number_format($trajet['prix_personne'], 0) ?></p>
                                 <a href="/pages/detail_covoiturage.php?covoiturage_id=<?= $trajet['covoiturage_id'] ?>" class="btn btn_card btn-primary">Voir le trajet</a>
                             </div>
                         </div>

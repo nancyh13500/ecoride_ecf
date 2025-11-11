@@ -73,28 +73,28 @@ try {
     }
 }
 
-    // Nombre total d'utilisateurs
+// Nombre total d'utilisateurs
 try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM user");
     $stats['total_users'] = (int) $stmt->fetchColumn();
 } catch (PDOException $e) {
 }
 
-    // Nombre d'utilisateurs par rôle
+// Nombre d'utilisateurs par rôle
 try {
     $stmt = $pdo->query("SELECT r.libelle, COUNT(u.user_id) as count FROM role r LEFT JOIN user u ON r.role_id = u.role_id GROUP BY r.role_id, r.libelle");
     $stats['users_by_role'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 } catch (PDOException $e) {
 }
 
-    // Nombre total de covoiturages
+// Nombre total de covoiturages
 try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM covoiturage");
     $stats['total_covoiturages'] = (int) $stmt->fetchColumn();
 } catch (PDOException $e) {
 }
 
-    // Covoiturages par statut
+// Covoiturages par statut
 try {
     $stmt = $pdo->query("SELECT statut, COUNT(*) as count FROM covoiturage GROUP BY statut");
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -113,14 +113,14 @@ try {
 } catch (PDOException $e) {
 }
 
-    // Nombre total de voitures
+// Nombre total de voitures
 try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM voiture");
     $stats['total_voitures'] = (int) $stmt->fetchColumn();
 } catch (PDOException $e) {
 }
 
-    // Voitures par type d'énergie
+// Voitures par type d'énergie
 try {
     $stmt = $pdo->query("SELECT e.libelle, COUNT(v.voiture_id) as count FROM energie e LEFT JOIN voiture v ON e.energie_id = v.energie_id GROUP BY e.energie_id, e.libelle");
     $stats['voitures_by_energy'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -140,14 +140,14 @@ try {
 } catch (PDOException $e) {
 }
 
-    // Réservations (si la table existe)
-    try {
+// Réservations (si la table existe)
+try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM reservations");
     $stats['total_reservations'] = (int) $stmt->fetchColumn();
-    } catch (PDOException $e) {
-    }
+} catch (PDOException $e) {
+}
 
-    // Covoiturages par jour (30 derniers jours)
+// Covoiturages par jour (30 derniers jours)
 try {
     $stmt = $pdo->query("SELECT DATE(date_depart) as jour, COUNT(*) as nombre_covoiturages FROM covoiturage WHERE date_depart >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) GROUP BY DATE(date_depart) ORDER BY jour ASC");
     $stats['covoiturages_par_jour'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -510,7 +510,7 @@ require_once __DIR__ . '/../templates/header.php';
                     </div>
                 </div>
             </div>
-                            </div>
+        </div>
 
         <!-- Liste des utilisateurs -->
         <div class="row mb-4">
@@ -521,7 +521,7 @@ require_once __DIR__ . '/../templates/header.php';
                             <i class="bi bi-people me-2"></i>
                             Liste des utilisateurs
                         </h5>
-                            </div>
+                    </div>
                     <div class="card-body">
                         <?php if (empty($users)): ?>
                             <p class="text-muted mb-0">Aucun utilisateur trouvé.</p>

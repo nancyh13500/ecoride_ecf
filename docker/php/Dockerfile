@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libzip-dev \
+    libonig-dev \
     unzip \
     git \
     pkg-config \
@@ -22,10 +23,6 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         mbstring \
         zip
 
-# Installation de l'extension MongoDB via PECL
-RUN pecl install mongodb \
-    && docker-php-ext-enable mongodb
-
 # Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -41,3 +38,4 @@ EXPOSE 80
 
 # Démarrage d'Apache
 CMD ["apache2-foreground"]
+

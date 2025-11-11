@@ -308,7 +308,7 @@ require_once __DIR__ . "/../templates/header.php";
                                             <th>Trajet</th>
                                             <th>Date</th>
                                             <th>Voiture</th>
-                                            <th>Prix</th>
+                                            <th>Crédits</th>
                                             <th>Places</th>
                                             <th>Statut</th>
                                         </tr>
@@ -334,7 +334,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                     <?= htmlspecialchars($covoiturage['marque_libelle'] . ' ' . $covoiturage['voiture_modele']) ?><br>
                                                     <small class="text-muted"><?= htmlspecialchars($covoiturage['energie_libelle']) ?></small>
                                                 </td>
-                                                <td><?= $covoiturage['prix_personne'] ?> €</td>
+                                                <td><?= $covoiturage['prix_personne'] ?> crédits</td>
                                                 <td><?= $covoiturage['nb_place'] ?></td>
                                                 <td>
                                                     <?php
