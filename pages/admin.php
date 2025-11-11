@@ -18,6 +18,24 @@ $error_message = $_SESSION['error'] ?? '';
 // Nettoyer les messages de session
 unset($_SESSION['success'], $_SESSION['error']);
 
+// Gérer la requête AJAX pour récupérer les crédits du site
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'get_site_credits') {
+    header('Content-Type: application/json');
+    $site_credits_ajax = 0;
+    try {
+        $checkTable = $pdo->query("SHOW TABLES LIKE 'site_credits'");
+        if ($checkTable->rowCount() > 0) {
+            $stmt = $pdo->query("SELECT total_credits FROM site_credits WHERE site_credits_id = 1");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $site_credits_ajax = $result ? (int)$result['total_credits'] : 0;
+        }
+        echo json_encode(['success' => true, 'credits' => $site_credits_ajax]);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit();
+}
+
 // Récupérer les statistiques générales
 $stats = [
     'total_users' => 0,
@@ -154,6 +172,21 @@ try {
 } catch (PDOException $e) {
 }
 
+// Récupérer les crédits du site
+$site_credits = 0;
+try {
+    // Vérifier si la table existe
+    $checkTable = $pdo->query("SHOW TABLES LIKE 'site_credits'");
+    if ($checkTable->rowCount() > 0) {
+        $stmt = $pdo->query("SELECT total_credits FROM site_credits WHERE site_credits_id = 1");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $site_credits = $result ? (int)$result['total_credits'] : 0;
+    }
+} catch (PDOException $e) {
+    // Si la table n'existe pas ou erreur, laisser à 0
+    $site_credits = 0;
+}
+
 require_once __DIR__ . '/../templates/header.php';
 ?>
 
@@ -202,7 +235,7 @@ require_once __DIR__ . '/../templates/header.php';
 
         <!-- Statistiques générales -->
         <div class="row mb-4">
-            <div class="col-md-3 mb-3">
+            <div class="col-md-2 mb-3">
                 <div class="card bg-primary text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -217,7 +250,7 @@ require_once __DIR__ . '/../templates/header.php';
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-md-2 mb-3">
                 <div class="card bg-success text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -232,7 +265,7 @@ require_once __DIR__ . '/../templates/header.php';
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-md-2 mb-3">
                 <div class="card bg-info text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -247,7 +280,7 @@ require_once __DIR__ . '/../templates/header.php';
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-md-2 mb-3">
                 <div class="card bg-warning text-white">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -259,6 +292,30 @@ require_once __DIR__ . '/../templates/header.php';
                                 <i class="bi bi-star fs-1"></i>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 mb-3">
+                <div class="card bg-danger text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0" id="site-credits-display"><?= $site_credits ?></h4>
+                                <p class="mb-0">Crédits du site</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-coin fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 mb-3">
+                <div class="card bg-secondary text-white">
+                    <div class="card-body text-center">
+                        <button type="button" class="btn btn-light btn-sm" onclick="refreshSiteCredits()" title="Actualiser les crédits du site">
+                            <i class="bi bi-arrow-clockwise"></i> Actualiser
+                        </button>
                     </div>
                 </div>
             </div>
@@ -587,6 +644,32 @@ require_once __DIR__ . '/../templates/header.php';
 <!-- Passage des données PHP vers JavaScript -->
 <script>
     window.covoituragesData = <?= json_encode($stats['covoiturages_par_jour'] ?? []) ?>;
+
+    // Fonction pour actualiser les crédits du site
+    function refreshSiteCredits() {
+        fetch('/pages/admin.php?ajax=get_site_credits')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const displayElement = document.getElementById('site-credits-display');
+                    if (displayElement) {
+                        // Animation de mise à jour
+                        displayElement.style.transition = 'all 0.3s ease';
+                        displayElement.style.transform = 'scale(1.2)';
+                        displayElement.textContent = data.credits;
+                        setTimeout(() => {
+                            displayElement.style.transform = 'scale(1)';
+                        }, 300);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la mise à jour des crédits:', error);
+            });
+    }
+
+    // Actualiser automatiquement toutes les 30 secondes
+    setInterval(refreshSiteCredits, 30000);
 </script>
 <!-- Script Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

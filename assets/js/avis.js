@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+ document.addEventListener('DOMContentLoaded', function () {
     var carousel = document.querySelector('#avisCarousel .carousel-inner');
     if (!carousel) return;
     var items = carousel.querySelectorAll('.carousel-item');

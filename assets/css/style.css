@@ -94,6 +94,22 @@
     color: white !important;
 }
 
+.badge-places {
+    color: #ffffff;
+}
+
+.badge-places--green {
+    background-color: #198754;
+}
+
+.badge-places--orange {
+    background-color: #fd7e14;
+}
+
+.badge-places--red {
+    background-color: #dc3545;
+}
+
 
 * {
     margin: 0;
@@ -444,34 +460,6 @@ nav {
     padding: 2rem;
 }
 
-/* Styles pour les images et avatars dans deposer_avis */
-.avatar-photo {
-    width: 20px;
-    height: 20px;
-    object-fit: cover;
-}
-
-.avatar-placeholder {
-    width: 20px;
-    height: 20px;
-}
-
-/* Styles pour la section avis validé - page employe */
-.avatar-photo-employe {
-    width: 50px;
-    height: 50px;
-    object-fit: cover;
-}
-
-.avatar-placeholder-employe {
-    width: 50px;
-    height: 50px;
-}
-
-.icon-large-avis {
-    font-size: 3rem;
-}
-
 /* Styles pour la carte de covoiturage dans la hero */
 .covoiturage-hero-card {
     animation: slideInDown 0.6s ease-out;
@@ -547,7 +535,26 @@ nav {
     }
 }
 
-/* Styles pour les pages trajets.php et suggestions.php */
+/* Responsive pour la carte de covoiturage */
+@media (max-width: 768px) {
+    .covoiturage-hero-card .card {
+        margin: 0 1rem;
+    }
+
+    .covoiturage-hero-card .card-body {
+        padding: 1rem;
+    }
+
+    .covoiturage-hero-card .row {
+        margin: 0;
+    }
+
+    .covoiturage-hero-card .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Styles pour la page trajets.php */
 .result-header {
     margin-bottom: 2rem !important;
 }
@@ -557,13 +564,12 @@ nav {
 }
 
 .result-header .bg-dark {
-    border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Badge crédits dans Mon compte */
 .credits-badge {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
 }
 
 .result-header h2 {
@@ -612,7 +618,7 @@ nav {
 }
 
 .filters .btn-filtre {
-    border-radius: 25px;
+    border-radius: 10px;
     padding: 0.5rem 1.5rem;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -663,208 +669,3 @@ nav {
 }
 
 /*end media queries*/
-
-/* ============================================
-   Section: Détails du Covoiturage
-   ============================================ */
-
-/* Section principale */
-.detail-covoiturage-section {
-    padding: 2rem 0;
-    margin-top: 300px;
-}
-
-/* Titre de la page */
-.detail-covoiturage-section h3 {
-    color: var(--dark);
-    margin-bottom: 1.5rem;
-}
-
-/* Boutons de navigation */
-.detail-covoiturage-section .btn-outline-secondary {
-    border-color: var(--dark);
-    color: var(--dark);
-    transition: all 0.3s ease;
-}
-
-.detail-covoiturage-section .btn-outline-secondary:hover {
-    background-color: var(--dark);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.detail-covoiturage-section .btn-primary {
-    transition: all 0.3s ease;
-}
-
-.detail-covoiturage-section .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Cartes */
-.detail-covoiturage-section .card {
-    border: none;
-    border-radius: 10px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.detail-covoiturage-section .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
-}
-
-.detail-covoiturage-section .card-header {
-    border-radius: 10px 10px 0 0;
-    padding: 1rem 1.5rem;
-    font-weight: 600;
-}
-
-.detail-covoiturage-section .card-body {
-    padding: 1.5rem;
-}
-
-/* Carte Conducteur */
-.detail-covoiturage-section .card-header.bg-secondary {
-    background-color: var(--secondary) !important;
-}
-
-/* Carte Véhicule */
-.detail-covoiturage-section .card-header.bg-dark {
-    background-color: var(--dark) !important;
-}
-
-/* Carte Passagers */
-.detail-covoiturage-section .card-header.bg-info {
-    background-color: #17a2b8 !important;
-}
-
-/* Carte Résumé */
-.detail-covoiturage-section .card-header.bg-success {
-    background: linear-gradient(135deg, var(--primary), #20c997) !important;
-}
-
-.detail-covoiturage-section .card.shadow-sm.sticky-top {
-    position: sticky;
-    top: 100px;
-    z-index: 10;
-}
-
-/* Images de profil */
-.detail-covoiturage-section .rounded-circle {
-    object-fit: cover;
-    border: 3px solid var(--light);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Badges */
-.detail-covoiturage-section .badge {
-    padding: 0.5rem 0.75rem;
-    font-weight: 500;
-    border-radius: 5px;
-}
-
-.detail-covoiturage-section .badge.bg-info {
-    background-color: #17a2b8 !important;
-    color: white;
-}
-
-/* Section Résumé */
-.detail-covoiturage-section .card-body h6 {
-    color: var(--primary);
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.detail-covoiturage-section .card-body .fs-3 {
-    color: var(--primary);
-    margin-bottom: 0;
-}
-
-.detail-covoiturage-section .card-body hr {
-    margin: 1.5rem 0;
-    border-color: var(--light);
-}
-
-/* Boutons d'action */
-.detail-covoiturage-section .btn {
-    border-radius: 8px;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.detail-covoiturage-section .btn:not(:disabled):hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.detail-covoiturage-section .btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.detail-covoiturage-section .btn-outline-secondary {
-    border: 2px solid var(--dark);
-    color: var(--dark);
-}
-
-.detail-covoiturage-section .btn-outline-secondary:hover {
-    background-color: var(--dark);
-    color: white;
-}
-
-/* Passagers */
-.detail-covoiturage-section .passager-item {
-    padding: 0.75rem;
-    border-radius: 8px;
-    background-color: #f8f9fa;
-    transition: background-color 0.3s ease;
-}
-
-.detail-covoiturage-section .passager-item:hover {
-    background-color: #e9ecef;
-}
-
-/* Responsive pour la page détail covoiturage */
-@media (max-width: 992px) {
-    .detail-covoiturage-section .card.shadow-sm.sticky-top {
-        position: relative;
-        top: 0;
-        margin-top: 2rem;
-    }
-
-    .detail-covoiturage-section .d-flex.gap-2 {
-        flex-direction: column;
-        gap: 0.5rem !important;
-    }
-
-    .detail-covoiturage-section .d-flex.gap-2 .btn {
-        width: 100%;
-    }
-}
-
-@media (max-width: 768px) {
-    .detail-covoiturage-section .card-body {
-        padding: 1rem;
-    }
-
-    .detail-covoiturage-section .card-header {
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-    }
-
-    .detail-covoiturage-section .rounded-circle {
-        width: 60px !important;
-        height: 60px !important;
-    }
-
-    .detail-covoiturage-section .fs-5 {
-        font-size: 1.1rem !important;
-    }
-
-    .detail-covoiturage-section .fs-3 {
-        font-size: 1.5rem !important;
-    }
-}
