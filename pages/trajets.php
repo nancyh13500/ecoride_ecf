@@ -255,10 +255,13 @@ try {
             <label class="form-label credit-min">Crédit minimum (C)</label>
             <input type="number" class="form-control filter-price" placeholder="Crédit min">
         </div>
+        <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
+        <!--
         <div class="col-md-2 text-center">
             <label class="form-label price-max">Durée maximum</label>
             <input type="number" class="form-control filter-duration" placeholder="Durée max">
         </div>
+        -->
         <div class="col-md-3 text-center">
             <label class="form-label note">Note minimale</label>
             <select class="form-select">
@@ -456,6 +459,8 @@ try {
                                         </div>
                                     </div>
 
+                                    <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
+                                    <!--
                                     <?php if (!empty($covoiturage['duree'])): ?>
                                         <div class="text-center mt-2">
                                             <span class="badge bg-secondary">
@@ -464,6 +469,7 @@ try {
                                             </span>
                                         </div>
                                     <?php endif; ?>
+                                    -->
                                 </div>
                                 <div class="card-footer text-center">
                                     <?php if (isUserConnected()): ?>

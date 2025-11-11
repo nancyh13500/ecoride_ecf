@@ -112,6 +112,8 @@ if ($nb_places >= 3) {
                                     </p>
                                 </div>
                             </div>
+                            <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
+                            <!--
                             <?php if (!empty($covoiturage['duree'])): ?>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -120,6 +122,7 @@ if ($nb_places >= 3) {
                                     </div>
                                 </div>
                             <?php endif; ?>
+                            -->
                         </div>
 
                         <hr class="my-4">

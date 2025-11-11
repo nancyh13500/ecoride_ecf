@@ -110,9 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                 'user_id' => $user['user_id'],
                 'voiture_id' => $voiture_id,
             ]);
-            // Créditer +2 crédits au créateur du trajet
-            $creditStmt = $pdo->prepare("UPDATE user SET credits = credits + 2 WHERE user_id = :user_id");
-            $creditStmt->execute(['user_id' => $user['user_id']]);
+            // Les crédits seront versés au chauffeur et au site uniquement à la fin du trajet
             header("Location: mes_trajets.php?success=1");
             exit();
         } catch (PDOException $e) {

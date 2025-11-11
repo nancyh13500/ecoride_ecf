@@ -486,6 +486,28 @@ ADD CONSTRAINT `voiture_ibfk_1` FOREIGN KEY (`marque_id`) REFERENCES `marque` (`
 ADD CONSTRAINT `voiture_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
 ADD CONSTRAINT `voiture_ibfk_3` FOREIGN KEY (`energie_id`) REFERENCES `energie` (`energie_id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `site_credits`
+--
+
+DROP TABLE IF EXISTS `site_credits`;
+
+CREATE TABLE IF NOT EXISTS `site_credits` (
+    `site_credits_id` int NOT NULL AUTO_INCREMENT,
+    `total_credits` int NOT NULL DEFAULT 0,
+    `date_creation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `date_modification` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`site_credits_id`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `site_credits`
+--
+
+INSERT INTO `site_credits` (`total_credits`) VALUES (0);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */
