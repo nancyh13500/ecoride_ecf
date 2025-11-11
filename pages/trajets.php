@@ -322,7 +322,7 @@ try {
                                                 <?php endif; ?>
                                             </div>
                                             <div class="col-6">
-                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 2) ?>€</span>
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</span>
                                             </div>
                                         </div>
                                     </div>
