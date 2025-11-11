@@ -556,8 +556,20 @@ nav {
 
 /* Styles pour la page trajets.php */
 .result-header {
-    margin-bottom: 2rem;
-    margin-top: 100px;
+    margin-bottom: 2rem !important;
+}
+
+.result-suggestions {
+    margin-bottom: 2rem !important;
+}
+
+.result-header .bg-dark {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Badge crédits dans Mon compte */
+.credits-badge {
+    font-size: 1.25rem;
 }
 
 .result-header h2 {
@@ -606,7 +618,7 @@ nav {
 }
 
 .filters .btn-filtre {
-    border-radius: 25px;
+    border-radius: 10px;
     padding: 0.5rem 1.5rem;
     font-weight: 500;
     transition: all 0.3s ease;
