@@ -134,6 +134,19 @@ require_once __DIR__ . "/../templates/header.php";
                         <a href="/pages/mes_voitures.php" class="list-group-item list-group-item-action active">
                             <i class="bi bi-car-front me-2"></i>Mes voitures
                         </a>
+                        <?php if (($_SESSION['user']['role_id'] ?? 3) == 2): ?>
+                            <a href="/pages/employe.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-badge me-2"></i>Espace Employé
+                            </a>
+                        <?php endif; ?>
+                        <?php if (($_SESSION['user']['role_id'] ?? 3) == 1): ?>
+                            <a href="/pages/admin.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-gear me-2"></i>Administration
+                            </a>
+                            <a href="/pages/user_count.php?create_employee=1" class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-plus me-2"></i>Créer un employé
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
