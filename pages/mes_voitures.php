@@ -128,9 +128,9 @@ require_once __DIR__ . "/../templates/header.php";
                         <a href="/pages/mes_trajets.php" class="list-group-item list-group-item-action">
                             <i class="bi bi-signpost-2 me-2"></i>Mes trajets
                         </a>
-                        <!-- <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">
+                        <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">
                             <i class="bi bi-calendar-check me-2"></i>Mes réservations
-                        </a> -->
+                        </a>
                         <a href="/pages/mes_voitures.php" class="list-group-item list-group-item-action active">
                             <i class="bi bi-car-front me-2"></i>Mes voitures
                         </a>
