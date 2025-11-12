@@ -385,7 +385,7 @@ $peutReserver = !$estMonCovoiturage && !$dejaReserve && (int)$covoiturage['statu
                             <?php if ($peutReserver): ?>
                                 <form method="POST" action="" class="d-inline">
                                     <input type="hidden" name="covoiturage_id" value="<?= htmlspecialchars((string) $covoiturage_id) ?>">
-                                    <button type="submit" name="reserver" class="btn btn-primary btn-lg" onclick="return confirm('Êtes-vous sûr de vouloir réserver une place pour ce covoiturage ?');"></i>Réserver une place
+                                    <button type="submit" name="reserver" class="btn btn-reserver btn-primary btn-lg" onclick="return confirm('Êtes-vous sûr de vouloir réserver une place pour ce covoiturage ?');"></i>Réserver une place
                                     </button>
                                 </form>
                             <?php elseif ($dejaReserve): ?>
