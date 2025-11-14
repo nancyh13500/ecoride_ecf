@@ -14,3 +14,4 @@ CREATE TABLE IF NOT EXISTS `site_credits` (
 -- Insérer un enregistrement initial avec 0 crédit
 INSERT INTO `site_credits` (`total_credits`) VALUES (0);
 
+

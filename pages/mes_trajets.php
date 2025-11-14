@@ -29,6 +29,74 @@ $query_voitures = $pdo->prepare("SELECT voiture_id, modele, immatriculation FROM
 $query_voitures->execute(['user_id' => $user['user_id']]);
 $voitures = $query_voitures->fetchAll(PDO::FETCH_ASSOC);
 
+// Gérer la modification d'un trajet
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_trajet'])) {
+    $trajet_id = intval($_POST['trajet_id'] ?? 0);
+
+    if ($trajet_id <= 0) {
+        $error_message = "Trajet invalide.";
+    } else {
+        $date_depart = $_POST['date_depart'] ?? null;
+        $heure_depart = $_POST['heure_depart'] ?? null;
+        $lieu_depart = $_POST['lieu_depart'] ?? null;
+        $date_arrivee = $_POST['date_arrivee'] ?? null;
+        $heure_arrivee = $_POST['heure_arrivee'] ?? null;
+        $lieu_arrivee = $_POST['lieu_arrivee'] ?? null;
+        $nb_place = $_POST['nb_place'] ?? null;
+        $prix_personne = $_POST['prix_personne'] ?? null;
+        $voiture_id = $_POST['voiture_id'] ?? null;
+
+        try {
+            $checkStmt = $pdo->prepare("
+                SELECT covoiturage_id 
+                FROM covoiturage 
+                WHERE covoiturage_id = :id AND user_id = :user_id
+                LIMIT 1
+            ");
+            $checkStmt->execute([
+                'id' => $trajet_id,
+                'user_id' => $user['user_id'],
+            ]);
+
+            if (!$checkStmt->fetchColumn()) {
+                $error_message = "Trajet introuvable ou non autorisé.";
+            } else {
+                $updateStmt = $pdo->prepare("
+                    UPDATE covoiturage
+                    SET date_depart = :date_depart,
+                        heure_depart = :heure_depart,
+                        lieu_depart = :lieu_depart,
+                        date_arrivee = :date_arrivee,
+                        heure_arrivee = :heure_arrivee,
+                        lieu_arrivee = :lieu_arrivee,
+                        nb_place = :nb_place,
+                        prix_personne = :prix_personne,
+                        voiture_id = :voiture_id
+                    WHERE covoiturage_id = :id AND user_id = :user_id
+                ");
+                $updateStmt->execute([
+                    'date_depart' => $date_depart,
+                    'heure_depart' => $heure_depart,
+                    'lieu_depart' => $lieu_depart,
+                    'date_arrivee' => $date_arrivee,
+                    'heure_arrivee' => $heure_arrivee,
+                    'lieu_arrivee' => $lieu_arrivee,
+                    'nb_place' => $nb_place,
+                    'prix_personne' => $prix_personne,
+                    'voiture_id' => $voiture_id ?: null,
+                    'id' => $trajet_id,
+                    'user_id' => $user['user_id'],
+                ]);
+
+                header("Location: mes_trajets.php?edit_success=1");
+                exit();
+            }
+        } catch (PDOException $e) {
+            $error_message = "Erreur lors de la modification du trajet : " . $e->getMessage();
+        }
+    }
+}
+
 // Gérer la soumission du formulaire d'ajout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_trajet'])) {
     $date_depart = $_POST['date_depart'];
@@ -313,12 +381,25 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                         <a href="/pages/mes_trajets.php" class="list-group-item list-group-item-action active">
                             <i class="bi bi-signpost-2 me-2"></i>Mes trajets
                         </a>
-                        <!-- <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">
+                        <a href="/pages/mes_reservations.php" class="list-group-item list-group-item-action">
                             <i class="bi bi-calendar-check me-2"></i>Mes réservations
-                        </a> -->
+                        </a>
                         <a href="/pages/mes_voitures.php" class="list-group-item list-group-item-action">
                             <i class="bi bi-car-front me-2"></i>Mes voitures
                         </a>
+                        <?php if (($_SESSION['user']['role_id'] ?? 3) == 2): ?>
+                            <a href="/pages/employe.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-badge me-2"></i>Espace Employé
+                            </a>
+                        <?php endif; ?>
+                        <?php if (($_SESSION['user']['role_id'] ?? 3) == 1): ?>
+                            <a href="/pages/admin.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-gear me-2"></i>Administration
+                            </a>
+                            <a href="/pages/user_count.php?create_employee=1" class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-plus me-2"></i>Créer un employé
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -331,6 +412,9 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                 <?php endif; ?>
                 <?php if (isset($_GET['delete_success'])): ?>
                     <div class="alert alert-success">La sélection a été supprimée avec succès !</div>
+                <?php endif; ?>
+                <?php if (isset($_GET['edit_success'])): ?>
+                    <div class="alert alert-success">Votre trajet a été modifié avec succès !</div>
                 <?php endif; ?>
                 <?php if (isset($error_message)): ?>
                     <div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
@@ -364,10 +448,28 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                                             <?php foreach ($trajets as $trajet):
                                                 $statutLabels = [1 => 'En attente', 2 => 'En cours', 3 => 'Terminé'];
                                                 $statut = $trajet['statut'] ?? 1;
+                                                $dateDepartValue = !empty($trajet['date_depart']) ? date('Y-m-d', strtotime($trajet['date_depart'])) : '';
+                                                $heureDepartValue = !empty($trajet['heure_depart']) ? date('H:i', strtotime($trajet['heure_depart'])) : '';
+                                                $dateArriveeValue = !empty($trajet['date_arrivee']) ? date('Y-m-d', strtotime($trajet['date_arrivee'])) : '';
+                                                $heureArriveeValue = !empty($trajet['heure_arrivee']) ? date('H:i', strtotime($trajet['heure_arrivee'])) : '';
+                                                $canEdit = ($statut == 1);
                                             ?>
                                                 <tr>
                                                     <td>
-                                                        <input type="checkbox" name="delete_trajet_ids[]" value="<?= $trajet['covoiturage_id'] ?>" class="form-check-input ms-2 border-dark">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="delete_trajet_ids[]"
+                                                            value="<?= $trajet['covoiturage_id'] ?>"
+                                                            class="form-check-input ms-2 border-dark trajet-checkbox"
+                                                            data-date-depart="<?= htmlspecialchars($dateDepartValue, ENT_QUOTES) ?>"
+                                                            data-heure-depart="<?= htmlspecialchars($heureDepartValue, ENT_QUOTES) ?>"
+                                                            data-lieu-depart="<?= htmlspecialchars($trajet['lieu_depart'], ENT_QUOTES) ?>"
+                                                            data-date-arrivee="<?= htmlspecialchars($dateArriveeValue, ENT_QUOTES) ?>"
+                                                            data-heure-arrivee="<?= htmlspecialchars($heureArriveeValue, ENT_QUOTES) ?>"
+                                                            data-lieu-arrivee="<?= htmlspecialchars($trajet['lieu_arrivee'], ENT_QUOTES) ?>"
+                                                            data-nb-place="<?= htmlspecialchars($trajet['nb_place'], ENT_QUOTES) ?>"
+                                                            data-prix-personne="<?= htmlspecialchars($trajet['prix_personne'], ENT_QUOTES) ?>"
+                                                            data-voiture-id="<?= htmlspecialchars($trajet['voiture_id'], ENT_QUOTES) ?>">
                                                     </td>
                                                     <td><?= htmlspecialchars(date("d/m/Y", strtotime($trajet['date_depart']))) ?></td>
                                                     <td><?= htmlspecialchars($trajet['lieu_depart']) ?></td>
@@ -393,12 +495,13 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                                                     <td>
                                                         <?php
                                                         echo '<span class="badge bg-secondary me-2">' . (isset($statutLabels[$statut]) ? $statutLabels[$statut] : 'Inconnu') . '</span>';
-                                                        if ($statut == 1): // En attente
                                                         ?>
-                                                            <button type="submit" name="start_trajet_id" value="<?= $trajet['covoiturage_id'] ?>" class="btn btn-primary btn-sm">Démarrer le covoiturage</button>
+                                                        <?php if ($statut == 1): // En attente 
+                                                        ?>
+                                                            <button type="submit" name="start_trajet_id" value="<?= $trajet['covoiturage_id'] ?>" class="btn btn-primary btn-sm mt-2">Démarrer le covoiturage</button>
                                                         <?php elseif ($statut == 2): // En cours 
                                                         ?>
-                                                            <button type="submit" name="stop_trajet_id" value="<?= $trajet['covoiturage_id'] ?>" class="btn btn-warning btn-sm">Arrêter le covoiturage</button>
+                                                            <button type="submit" name="stop_trajet_id" value="<?= $trajet['covoiturage_id'] ?>" class="btn btn-warning btn-sm mt-2">Arrêter le covoiturage</button>
                                                         <?php endif; ?>
                                                     </td>
                                                 </tr>
@@ -406,7 +509,8 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="text-end mt-3">
+                                <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
+                                    <button type="button" id="openEditTrajet" class="btn btn-secondary">Modifier la sélection</button>
                                     <button type="submit" name="delete_selection" class="btn btn-danger">Supprimer la sélection</button>
                                 </div>
                             </form>
@@ -489,6 +593,130 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
     </div>
 </section>
 
+<!-- Modal de modification -->
+<div class="modal fade" id="editTrajetModal" tabindex="-1" aria-labelledby="editTrajetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTrajetModalLabel">Modifier mon trajet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <form method="POST" action="mes_trajets.php">
+                <div class="modal-body">
+                    <input type="hidden" name="trajet_id" id="edit_trajet_id">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="edit_date_depart" class="form-label">Date de départ</label>
+                            <input type="date" class="form-control" id="edit_date_depart" name="date_depart" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_heure_depart" class="form-label">Heure de départ</label>
+                            <input type="time" class="form-control" id="edit_heure_depart" name="heure_depart" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="edit_lieu_depart" class="form-label">Lieu de départ</label>
+                            <input type="text" class="form-control" id="edit_lieu_depart" name="lieu_depart" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_lieu_arrivee" class="form-label">Lieu d'arrivée</label>
+                            <input type="text" class="form-control" id="edit_lieu_arrivee" name="lieu_arrivee" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="edit_date_arrivee" class="form-label">Date d'arrivée</label>
+                            <input type="date" class="form-control" id="edit_date_arrivee" name="date_arrivee" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_heure_arrivee" class="form-label">Heure d'arrivée</label>
+                            <input type="time" class="form-control" id="edit_heure_arrivee" name="heure_arrivee" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="edit_nb_place" class="form-label">Nombre de places</label>
+                            <input type="number" class="form-control" id="edit_nb_place" name="nb_place" min="1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="edit_prix_personne" class="form-label">Crédit par personne</label>
+                            <input type="number" step="1" class="form-control" id="edit_prix_personne" name="prix_personne" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="edit_voiture_id" class="form-label">Voiture</label>
+                            <select class="form-select" id="edit_voiture_id" name="voiture_id" required>
+                                <option value="">Sélectionnez une voiture</option>
+                                <?php foreach ($voitures as $voiture): ?>
+                                    <option value="<?= $voiture['voiture_id'] ?>">
+                                        <?= htmlspecialchars($voiture['modele']) ?> (<?= htmlspecialchars($voiture['immatriculation']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" name="edit_trajet" class="btn btn-primary">Enregistrer les modifications</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
 <!-- <script src="/assets/js/temps_trajet.js"></script> -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var editModal = document.getElementById('editTrajetModal');
+        var editTrigger = document.getElementById('openEditTrajet');
+
+        if (!editModal || !editTrigger) {
+            return;
+        }
+
+        editTrigger.addEventListener('click', function() {
+            var checked = document.querySelectorAll('.trajet-checkbox:checked');
+
+            if (checked.length === 0) {
+                alert('Veuillez sélectionner un trajet à modifier.');
+                return;
+            }
+
+            if (checked.length > 1) {
+                alert('Veuillez ne sélectionner qu\'un seul trajet à modifier.');
+                return;
+            }
+
+            var checkbox = checked[0];
+            var form = editModal.querySelector('form');
+            var setValue = function(selector, value) {
+                var element = form.querySelector(selector);
+                if (element) {
+                    element.value = value || '';
+                }
+            };
+
+            setValue('#edit_trajet_id', checkbox.value);
+            setValue('#edit_date_depart', checkbox.getAttribute('data-date-depart'));
+            setValue('#edit_heure_depart', checkbox.getAttribute('data-heure-depart'));
+            setValue('#edit_lieu_depart', checkbox.getAttribute('data-lieu-depart'));
+            setValue('#edit_date_arrivee', checkbox.getAttribute('data-date-arrivee'));
+            setValue('#edit_heure_arrivee', checkbox.getAttribute('data-heure-arrivee'));
+            setValue('#edit_lieu_arrivee', checkbox.getAttribute('data-lieu-arrivee'));
+            setValue('#edit_nb_place', checkbox.getAttribute('data-nb-place'));
+            setValue('#edit_prix_personne', checkbox.getAttribute('data-prix-personne'));
+
+            var voitureId = checkbox.getAttribute('data-voiture-id') || '';
+            var voitureSelect = form.querySelector('#edit_voiture_id');
+            if (voitureSelect) {
+                voitureSelect.value = voitureId;
+            }
+
+            var modalInstance = bootstrap.Modal.getOrCreateInstance(editModal);
+            modalInstance.show();
+        });
+    });
+</script>
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>

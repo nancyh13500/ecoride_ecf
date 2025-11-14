@@ -71,6 +71,29 @@ CREATE TABLE IF NOT EXISTS `covoiturage` (
     KEY `covoiturage_ibfk_2` (`voiture_id`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 12 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `reservations`
+--
+
+DROP TABLE IF EXISTS `reservations`;
+
+CREATE TABLE IF NOT EXISTS `reservations` (
+    `reservation_id` int NOT NULL AUTO_INCREMENT,
+    `user_id` int NOT NULL,
+    `covoiturage_id` int NOT NULL,
+    `date_reservation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `nb_places_reservees` int NOT NULL DEFAULT 1,
+    `prix_total` float NOT NULL,
+    `statut` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'En attente',
+    PRIMARY KEY (`reservation_id`),
+    KEY `reservations_ibfk_1` (`user_id`),
+    KEY `reservations_ibfk_2` (`covoiturage_id`),
+    CONSTRAINT `reservations_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `reservations_ibfk_2` FOREIGN KEY (`covoiturage_id`) REFERENCES `covoiturage` (`covoiturage_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+
 --
 -- Déchargement des données de la table `covoiturage`
 --
