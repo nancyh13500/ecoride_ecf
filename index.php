@@ -276,7 +276,6 @@ try {
                                 <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
                                     <i class="bi bi-star-fill"></i>
                                     <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
                                 </div>
                                 <h5 class="text-center fw-bold mb-2">Nancy</h5>
                                 <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
