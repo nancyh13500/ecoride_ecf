@@ -402,7 +402,7 @@ require_once __DIR__ . "/../templates/header.php";
                                     ?>
                                     <div class="col-md-6">
                                         <div class="card h-100">
-                                            <div class="card-header bg-secondary text-white">
+                                            <div class="card-header bg-success-subtle text-dark">
                                                 Trajet publié
                                             </div>
                                             <div class="card-body">

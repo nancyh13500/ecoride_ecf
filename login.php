@@ -22,9 +22,16 @@ if (isset($_POST['loginUser'])) {
             $redirect_path = 'pages/' . $redirect;
         }
 
-        // Ajouter le paramètre from_covoiturage si présent
-        if (isset($_GET['from_covoiturage']) && $_GET['from_covoiturage'] == '1') {
-            $redirect_path .= '?from_covoiturage=1';
+        // Préserver les paramètres GET supplémentaires (comme id, from_covoiturage, etc.)
+        $query_params = [];
+        foreach ($_GET as $key => $value) {
+            if ($key !== 'redirect') {
+                $query_params[$key] = $value;
+            }
+        }
+        
+        if (!empty($query_params)) {
+            $redirect_path .= '?' . http_build_query($query_params);
         }
 
         // Nettoyer le buffer de sortie avant la redirection
@@ -106,6 +113,18 @@ if (isset($_POST['registerUser'])) {
                 $redirect_path = 'index.php';
             } else {
                 $redirect_path = 'pages/' . $redirect;
+            }
+
+            // Préserver les paramètres GET supplémentaires (comme id, etc.)
+            $query_params = [];
+            foreach ($_GET as $key => $value) {
+                if ($key !== 'redirect') {
+                    $query_params[$key] = $value;
+                }
+            }
+            
+            if (!empty($query_params)) {
+                $redirect_path .= '?' . http_build_query($query_params);
             }
 
             // Nettoyer le buffer de sortie avant la redirection

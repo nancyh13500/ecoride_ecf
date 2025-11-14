@@ -3,13 +3,13 @@ require_once __DIR__ . "/../templates/header.php";
 require_once __DIR__ . "/../lib/pdo.php";
 require_once __DIR__ . "/../lib/session.php";
 
-// Vérifier si l'utilisateur est connecté
-if (!isUserConnected()) {
-    header("Location: /login.php");
-    exit();
+// Vérifier si l'utilisateur est connecté (optionnel pour voir les détails)
+$user = null;
+$isConnected = isUserConnected();
+if ($isConnected) {
+    $user = $_SESSION['user'];
 }
 
-$user = $_SESSION['user'];
 $success_message = '';
 $error_message = '';
 
@@ -24,29 +24,36 @@ if ($covoiturage_id <= 0) {
     exit();
 }
 
-// Traitement de la réservation
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserver']) && empty($error_message)) {
-    try {
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
+// Traitement de la réservation (nécessite une connexion)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserver'])) {
+    // Vérifier que l'utilisateur est connecté pour réserver
+    if (!$isConnected || !$user) {
+        header("Location: /login.php?redirect=detail_covoiturage.php&id=" . $covoiturage_id);
+        exit();
+    }
 
-        $queryReservation = $pdo->prepare("
-            SELECT covoiturage_id, nb_place, prix_personne, user_id, statut
-            FROM covoiturage
-            WHERE covoiturage_id = :id
-            FOR UPDATE
-        ");
-        $queryReservation->execute(['id' => $covoiturage_id]);
-        $covoiturageRow = $queryReservation->fetch(PDO::FETCH_ASSOC);
+    if (empty($error_message)) {
+        try {
+            if (!$pdo->inTransaction()) {
+                $pdo->beginTransaction();
+            }
 
-        if (!$covoiturageRow) {
-            throw new Exception("Covoiturage introuvable.");
-        }
+            $queryReservation = $pdo->prepare("
+                SELECT covoiturage_id, nb_place, prix_personne, user_id, statut
+                FROM covoiturage
+                WHERE covoiturage_id = :id
+                FOR UPDATE
+            ");
+            $queryReservation->execute(['id' => $covoiturage_id]);
+            $covoiturageRow = $queryReservation->fetch(PDO::FETCH_ASSOC);
 
-        if ((int)$covoiturageRow['user_id'] === (int)$user['user_id']) {
-            throw new Exception("Vous ne pouvez pas réserver votre propre covoiturage.");
-        }
+            if (!$covoiturageRow) {
+                throw new Exception("Covoiturage introuvable.");
+            }
+
+            if ((int)$covoiturageRow['user_id'] === (int)$user['user_id']) {
+                throw new Exception("Vous ne pouvez pas réserver votre propre covoiturage.");
+            }
 
         if ((int)$covoiturageRow['statut'] !== 1) {
             throw new Exception("Ce covoiturage n'est plus disponible.");
@@ -100,15 +107,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserver']) && empty(
             throw new Exception("La réservation n'a pas pu être confirmée. Veuillez réessayer.");
         }
 
-        $pdo->commit();
+            $pdo->commit();
 
-        header("Location: mes_reservations.php?success=1");
-        exit();
-    } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
+            header("Location: mes_reservations.php?success=1");
+            exit();
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $error_message = $e->getMessage();
         }
-        $error_message = $e->getMessage();
     }
 }
 
@@ -154,25 +162,34 @@ if ($nb_places >= 3) {
     $badge_class = 'badge-places badge-places--orange';
 }
 
-$estMonCovoiturage = (int)$covoiturage['user_id'] === (int)$user['user_id'];
+// Variables pour l'affichage des boutons (seulement si connecté)
+$estMonCovoiturage = false;
 $dejaReserve = false;
-try {
-    $checkReservationDisplay = $pdo->prepare("
-        SELECT reservation_id
-        FROM reservations
-        WHERE user_id = :user_id AND covoiturage_id = :covoiturage_id
-        LIMIT 1
-    ");
-    $checkReservationDisplay->execute([
-        'user_id' => $user['user_id'],
-        'covoiturage_id' => $covoiturage_id,
-    ]);
-    $dejaReserve = (bool)$checkReservationDisplay->fetchColumn();
-} catch (PDOException $e) {
-    // Si la table n'existe pas encore, on ignore l'erreur pour l'affichage
-    $dejaReserve = false;
+$peutReserver = false;
+
+if ($isConnected && $user) {
+    $estMonCovoiturage = (int)$covoiturage['user_id'] === (int)$user['user_id'];
+    try {
+        $checkReservationDisplay = $pdo->prepare("
+            SELECT reservation_id
+            FROM reservations
+            WHERE user_id = :user_id AND covoiturage_id = :covoiturage_id
+            LIMIT 1
+        ");
+        $checkReservationDisplay->execute([
+            'user_id' => $user['user_id'],
+            'covoiturage_id' => $covoiturage_id,
+        ]);
+        $dejaReserve = (bool)$checkReservationDisplay->fetchColumn();
+    } catch (PDOException $e) {
+        // Si la table n'existe pas encore, on ignore l'erreur pour l'affichage
+        $dejaReserve = false;
+    }
+    $peutReserver = !$estMonCovoiturage && !$dejaReserve && (int)$covoiturage['statut'] === 1 && $nb_places > 0;
 }
-$peutReserver = !$estMonCovoiturage && !$dejaReserve && (int)$covoiturage['statut'] === 1 && $nb_places > 0;
+
+// Variable pour savoir si on peut afficher le bouton réserver (même sans être connecté)
+$peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 0;
 ?>
 
 <section class="hero w-100 px-4 py-5">
@@ -379,31 +396,50 @@ $peutReserver = !$estMonCovoiturage && !$dejaReserve && (int)$covoiturage['statu
 
                         <!-- Boutons d'action -->
                         <div class="text-center mt-5">
-                            <a href="trajets.php" class="btn btn-secondary btn-lg me-3">
+                            <a href="<?= $isConnected ? 'trajets.php' : '/index.php' ?>" class="btn btn-secondary btn-lg me-3">
                                 <i class="bi bi-arrow-left me-2"></i>Retour
                             </a>
-                            <?php if ($peutReserver): ?>
-                                <form method="POST" action="" class="d-inline">
-                                    <input type="hidden" name="covoiturage_id" value="<?= htmlspecialchars((string) $covoiturage_id) ?>">
-                                    <button type="submit" name="reserver" class="btn btn-reserver btn-primary btn-lg" onclick="return confirm('Êtes-vous sûr de vouloir réserver une place pour ce covoiturage ?');"></i>Réserver une place
+                            <?php if ($isConnected && $user): ?>
+                                <!-- Utilisateur connecté -->
+                                <?php if ($peutReserver): ?>
+                                    <form method="POST" action="" class="d-inline">
+                                        <input type="hidden" name="covoiturage_id" value="<?= htmlspecialchars((string) $covoiturage_id) ?>">
+                                        <button type="submit" name="reserver" class="btn btn-reserver btn-primary btn-lg" onclick="return confirm('Êtes-vous sûr de vouloir réserver une place pour ce covoiturage ?');">
+                                            <i class="bi bi-check-circle me-2"></i>Réserver une place
+                                        </button>
+                                    </form>
+                                <?php elseif ($dejaReserve): ?>
+                                    <button class="btn btn-success btn-lg" disabled>
+                                        <i class="bi bi-check-circle me-2"></i>Déjà réservé
                                     </button>
-                                </form>
-                            <?php elseif ($dejaReserve): ?>
-                                <button class="btn btn-success btn-lg" disabled>
-                                    <i class="bi bi-check-circle me-2"></i>Déjà réservé
-                                </button>
-                            <?php elseif ($estMonCovoiturage): ?>
-                                <button class="btn btn-outline-secondary btn-lg" disabled>
-                                    <i class="bi bi-info-circle me-2"></i>Votre covoiturage
-                                </button>
-                            <?php elseif ((int)$covoiturage['statut'] !== 1): ?>
-                                <button class="btn btn-outline-secondary btn-lg" disabled>
-                                    <i class="bi bi-slash-circle me-2"></i>Non disponible
-                                </button>
+                                <?php elseif ($estMonCovoiturage): ?>
+                                    <button class="btn btn-outline-secondary btn-lg" disabled>
+                                        <i class="bi bi-info-circle me-2"></i>Votre covoiturage
+                                    </button>
+                                <?php elseif ((int)$covoiturage['statut'] !== 1): ?>
+                                    <button class="btn btn-outline-secondary btn-lg" disabled>
+                                        <i class="bi bi-slash-circle me-2"></i>Non disponible
+                                    </button>
+                                <?php else: ?>
+                                    <button class="btn btn-outline-secondary btn-lg" disabled>
+                                        <i class="bi bi-dash-circle me-2"></i>Complet
+                                    </button>
+                                <?php endif; ?>
                             <?php else: ?>
-                                <button class="btn btn-outline-secondary btn-lg" disabled>
-                                    <i class="bi bi-dash-circle me-2"></i>Complet
-                                </button>
+                                <!-- Utilisateur non connecté -->
+                                <?php if ($peutAfficherBoutonReserver): ?>
+                                    <a href="/login.php?redirect=detail_covoiturage.php&id=<?= $covoiturage_id ?>" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-person-plus me-2"></i>Réserver une place
+                                    </a>
+                                <?php elseif ((int)$covoiturage['statut'] !== 1): ?>
+                                    <button class="btn btn-outline-secondary btn-lg" disabled>
+                                        <i class="bi bi-slash-circle me-2"></i>Non disponible
+                                    </button>
+                                <?php else: ?>
+                                    <button class="btn btn-outline-secondary btn-lg" disabled>
+                                        <i class="bi bi-dash-circle me-2"></i>Complet
+                                    </button>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
 
