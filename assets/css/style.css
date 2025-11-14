@@ -409,6 +409,10 @@ nav {
         padding: 1.5rem;
     }
 
+    .btn-reserver {
+        margin-top: 2rem !important;
+    }
+
 }
 
 @media (min-width: 1025px) {
@@ -667,5 +671,7 @@ nav {
         width: 100% !important;
     }
 }
+
+
 
 /*end media queries*/
