@@ -1,6 +1,8 @@
 <?php
+require_once __DIR__ . "/../vendor/autoload.php";
 require_once __DIR__ . "/../lib/session.php";
 require_once __DIR__ . "/../lib/pdo.php";
+require_once __DIR__ . "/../lib/mongodb.php";
 
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user'])) {
@@ -26,19 +28,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
         $error_message = "Le commentaire ne doit pas dépasser 250 caractères (actuellement " . strlen($commentaire) . " caractères).";
     } else {
         try {
-            // Créer toujours un nouvel avis (permet plusieurs avis par utilisateur)
-            $query = $pdo->prepare("INSERT INTO avis (user_id, note, commentaire, statut) VALUES (:user_id, :note, :commentaire, :statut)");
-            $query->execute([
-                'user_id' => $user['user_id'],
+            $avisCollection = getAvisCollection();
+            
+            if ($avisCollection === null) {
+                throw new Exception("MongoDB n'est pas disponible. Veuillez contacter l'administrateur.");
+            }
+
+            // Créer un nouvel avis dans MongoDB
+            $avisDocument = [
+                'user_id' => (int)$user['user_id'],
                 'note' => $note,
                 'commentaire' => $commentaire,
-                'statut' => 'en attente'
-            ]);
-            // Rediriger vers la page avis avec un message de succès
-            $_SESSION['success_message'] = "Votre avis a été publié avec succès ! Il sera visible après validation par un employé.";
-            header("Location: /pages/avis.php");
-            exit();
-        } catch (PDOException $e) {
+                'statut' => 'en attente',
+                'created_at' => new MongoDB\BSON\UTCDateTime(),
+                'updated_at' => new MongoDB\BSON\UTCDateTime()
+            ];
+
+            $result = $avisCollection->insertOne($avisDocument);
+            
+            if ($result->getInsertedCount() > 0) {
+                // Rediriger vers la page avis avec un message de succès
+                $_SESSION['success_message'] = "Votre avis a été publié avec succès ! Il sera visible après validation par un employé.";
+                header("Location: /pages/avis.php");
+                exit();
+            } else {
+                throw new Exception("Erreur lors de l'insertion de l'avis.");
+            }
+        } catch (Exception $e) {
             $error_message = "Erreur lors de la publication de votre avis : " . $e->getMessage();
         }
     }

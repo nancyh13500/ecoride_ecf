@@ -1,6 +1,8 @@
 <?php
+require_once __DIR__ . "/../vendor/autoload.php";
 require_once __DIR__ . "/../lib/session.php";
 require_once __DIR__ . "/../lib/pdo.php";
+require_once __DIR__ . "/../lib/mongodb.php";
 
 // Vérifier si l'utilisateur est connecté et a le rôle employé (role_id = 2)
 requireLogin();
@@ -18,30 +20,71 @@ $error_message = '';
 // Traitement des actions sur les avis
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && isset($_POST['avis_id'])) {
-        $avis_id = intval($_POST['avis_id']);
+        $avis_id = $_POST['avis_id'];
         $action = $_POST['action'];
 
         try {
+            $avisCollection = getAvisCollection();
+
+            if ($avisCollection === null) {
+                throw new Exception("MongoDB n'est pas disponible.");
+            }
+
+            // Convertir l'ID string en ObjectId MongoDB
+            $objectId = new MongoDB\BSON\ObjectId($avis_id);
+
             if ($action === 'valider') {
-                $stmt = $pdo->prepare("UPDATE avis SET statut = 'valide' WHERE avis_id = :avis_id");
-                $stmt->execute(['avis_id' => $avis_id]);
-                $_SESSION['success_message'] = "Avis validé avec succès ! L'avis est maintenant visible sur la page avis.";
+                $result = $avisCollection->updateOne(
+                    ['_id' => $objectId],
+                    [
+                        '$set' => [
+                            'statut' => 'valide',
+                            'updated_at' => new MongoDB\BSON\UTCDateTime(),
+                            'validated_by' => (int)$currentUser['user_id'],
+                            'validated_at' => new MongoDB\BSON\UTCDateTime()
+                        ]
+                    ]
+                );
+
+                if ($result->getModifiedCount() > 0) {
+                    $_SESSION['success_message'] = "Avis validé avec succès ! L'avis est maintenant visible sur la page avis.";
+                } else {
+                    throw new Exception("Aucun avis modifié. L'avis existe-t-il ?");
+                }
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             } elseif ($action === 'refuser') {
-                $stmt = $pdo->prepare("UPDATE avis SET statut = 'refuse' WHERE avis_id = :avis_id");
-                $stmt->execute(['avis_id' => $avis_id]);
-                $_SESSION['success_message'] = "Avis refusé avec succès !";
+                $result = $avisCollection->updateOne(
+                    ['_id' => $objectId],
+                    [
+                        '$set' => [
+                            'statut' => 'refuse',
+                            'updated_at' => new MongoDB\BSON\UTCDateTime(),
+                            'rejected_by' => (int)$currentUser['user_id'],
+                            'rejected_at' => new MongoDB\BSON\UTCDateTime()
+                        ]
+                    ]
+                );
+
+                if ($result->getModifiedCount() > 0) {
+                    $_SESSION['success_message'] = "Avis refusé avec succès !";
+                } else {
+                    throw new Exception("Aucun avis modifié. L'avis existe-t-il ?");
+                }
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             } elseif ($action === 'supprimer') {
-                $stmt = $pdo->prepare("DELETE FROM avis WHERE avis_id = :avis_id");
-                $stmt->execute(['avis_id' => $avis_id]);
-                $_SESSION['success_message'] = "Avis supprimé avec succès !";
+                $result = $avisCollection->deleteOne(['_id' => $objectId]);
+
+                if ($result->getDeletedCount() > 0) {
+                    $_SESSION['success_message'] = "Avis supprimé avec succès !";
+                } else {
+                    throw new Exception("Aucun avis supprimé. L'avis existe-t-il ?");
+                }
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit();
             }
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             $_SESSION['error_message'] = "Erreur lors de l'opération : " . $e->getMessage();
             header("Location: " . $_SERVER['PHP_SELF']);
             exit();
@@ -59,20 +102,130 @@ if (isset($_SESSION['error_message'])) {
     unset($_SESSION['error_message']);
 }
 
-// Récupérer tous les avis en attente de validation
+// Récupérer tous les avis en attente de validation depuis MongoDB
 $avis_en_attente = [];
 try {
-    $stmt = $pdo->prepare("
-        SELECT a.*, u.nom, u.prenom, u.pseudo, u.email, u.telephone, u.photo
-        FROM avis a
-        LEFT JOIN user u ON a.user_id = u.user_id
-        WHERE a.statut = 'en attente' OR a.statut IS NULL
-        ORDER BY a.avis_id DESC
-    ");
-    $stmt->execute();
-    $avis_en_attente = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
+    $avisCollection = getAvisCollection();
+
+    if ($avisCollection !== null) {
+        // Récupérer les avis en attente depuis MongoDB
+        $cursor = $avisCollection->find(
+            ['statut' => 'en attente'],
+            ['sort' => ['created_at' => -1]]
+        );
+
+        // Convertir les résultats en tableau et enrichir avec les données utilisateur depuis MySQL
+        foreach ($cursor as $avis) {
+            $avisArray = [
+                '_id' => (string)$avis['_id'],
+                'avis_id' => (string)$avis['_id'], // Pour compatibilité avec le template
+                'user_id' => $avis['user_id'],
+                'note' => $avis['note'],
+                'commentaire' => $avis['commentaire'],
+                'statut' => $avis['statut'],
+                'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
+            ];
+
+            // Récupérer les informations utilisateur depuis MySQL
+            try {
+                $userQuery = $pdo->prepare("SELECT nom, prenom, pseudo, email, telephone, photo FROM user WHERE user_id = :user_id LIMIT 1");
+                $userQuery->execute(['user_id' => $avis['user_id']]);
+                $userData = $userQuery->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    $avisArray['nom'] = $userData['nom'];
+                    $avisArray['prenom'] = $userData['prenom'];
+                    $avisArray['pseudo'] = $userData['pseudo'];
+                    $avisArray['email'] = $userData['email'];
+                    $avisArray['telephone'] = $userData['telephone'];
+                    $avisArray['photo'] = $userData['photo'];
+                } else {
+                    $avisArray['nom'] = 'Utilisateur';
+                    $avisArray['prenom'] = '';
+                    $avisArray['pseudo'] = 'Anonyme';
+                    $avisArray['email'] = '';
+                    $avisArray['telephone'] = '';
+                    $avisArray['photo'] = null;
+                }
+            } catch (PDOException $e) {
+                // Si erreur MySQL, utiliser des valeurs par défaut
+                $avisArray['nom'] = 'Utilisateur';
+                $avisArray['prenom'] = '';
+                $avisArray['pseudo'] = 'Anonyme';
+                $avisArray['email'] = '';
+                $avisArray['telephone'] = '';
+                $avisArray['photo'] = null;
+            }
+
+            $avis_en_attente[] = $avisArray;
+        }
+    }
+} catch (Exception $e) {
     $avis_en_attente = [];
+    error_log("Erreur lors de la récupération des avis en attente : " . $e->getMessage());
+}
+
+// Récupérer tous les avis depuis MongoDB
+$admin_avis_mongodb = [];
+try {
+    $avisCollection = getAvisCollection();
+
+    if ($avisCollection !== null) {
+        // Récupérer tous les avis depuis MongoDB
+        $cursor = $avisCollection->find(
+            [],
+            ['sort' => ['created_at' => -1]]
+        );
+
+        // Convertir les résultats en tableau et enrichir avec les données utilisateur depuis MySQL
+        foreach ($cursor as $avis) {
+            $avisArray = [
+                '_id' => (string)$avis['_id'],
+                'avis_id' => (string)$avis['_id'],
+                'user_id' => $avis['user_id'],
+                'note' => $avis['note'],
+                'commentaire' => $avis['commentaire'],
+                'statut' => $avis['statut'],
+                'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
+            ];
+
+            // Récupérer les informations utilisateur depuis MySQL
+            try {
+                $userQuery = $pdo->prepare("SELECT nom, prenom, pseudo, email, telephone, photo FROM user WHERE user_id = :user_id LIMIT 1");
+                $userQuery->execute(['user_id' => $avis['user_id']]);
+                $userData = $userQuery->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    $avisArray['nom'] = $userData['nom'];
+                    $avisArray['prenom'] = $userData['prenom'];
+                    $avisArray['pseudo'] = $userData['pseudo'];
+                    $avisArray['email'] = $userData['email'];
+                    $avisArray['telephone'] = $userData['telephone'];
+                    $avisArray['photo'] = $userData['photo'];
+                } else {
+                    $avisArray['nom'] = 'Utilisateur';
+                    $avisArray['prenom'] = '';
+                    $avisArray['pseudo'] = 'Anonyme';
+                    $avisArray['email'] = '';
+                    $avisArray['telephone'] = '';
+                    $avisArray['photo'] = null;
+                }
+            } catch (PDOException $e) {
+                // Si erreur MySQL, utiliser des valeurs par défaut
+                $avisArray['nom'] = 'Utilisateur';
+                $avisArray['prenom'] = '';
+                $avisArray['pseudo'] = 'Anonyme';
+                $avisArray['email'] = '';
+                $avisArray['telephone'] = '';
+                $avisArray['photo'] = null;
+            }
+
+            $admin_avis_mongodb[] = $avisArray;
+        }
+    }
+} catch (Exception $e) {
+    $admin_avis_mongodb = [];
+    error_log("Erreur lors de la récupération de tous les avis : " . $e->getMessage());
 }
 
 // Récupérer tous les covoiturages avec les informations des utilisateurs
@@ -177,6 +330,11 @@ require_once __DIR__ . "/../templates/header.php";
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="admin-avis-tab" data-bs-toggle="tab" data-bs-target="#admin_avis_mongodb" type="button" role="tab">
+                    <i class="bi bi-database me-2"></i>Tous les avis (<?= count($admin_avis_mongodb) ?>)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="covoiturages-tab" data-bs-toggle="tab" data-bs-target="#covoiturages" type="button" role="tab">
                     <i class="bi bi-car-front me-2"></i>Covoiturages (<?= count($covoiturages) ?>)
                 </button>
@@ -212,10 +370,10 @@ require_once __DIR__ . "/../templates/header.php";
                                         <div class="card h-100">
                                             <div class="card-header d-flex justify-content-between align-items-center">
                                                 <span class="badge bg-warning">En attente</span>
-                                                <small class="text-muted">ID: <?= $avis['avis_id'] ?></small>
+                                                <small class="text-muted">ID: <?= htmlspecialchars(substr($avis['_id'] ?? $avis['avis_id'] ?? '', 0, 8)) ?></small>
                                             </div>
                                             <div class="card-body">
-                                                <div class="d-flex align-items-center mb-3">
+                                                <div class="d-flex align-items-center justify-content-center mb-3">
                                                     <?php if (!empty($avis['photo'])): ?>
                                                         <img src="data:image/jpeg;base64,<?= base64_encode($avis['photo']) ?>"
                                                             alt="Photo" class="rounded-circle me-3 avatar-photo-employe">
@@ -250,23 +408,23 @@ require_once __DIR__ . "/../templates/header.php";
                                                 </div>
                                             </div>
                                             <div class="card-footer">
-                                                <div class="btn-group w-100" role="group">
-                                                    <form method="POST" class="d-inline">
-                                                        <input type="hidden" name="avis_id" value="<?= $avis['avis_id'] ?>">
+                                                <div class="btn-group justify-content-center w-100" role="group">
+                                                    <form method="POST" class="d-inline ms-2">
+                                                        <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
                                                         <input type="hidden" name="action" value="valider">
                                                         <button type="submit" class="btn btn-success btn-sm">
                                                             <i class="bi bi-check-lg me-1"></i>Valider
                                                         </button>
                                                     </form>
-                                                    <form method="POST" class="d-inline">
-                                                        <input type="hidden" name="avis_id" value="<?= $avis['avis_id'] ?>">
+                                                    <form method="POST" class="d-inline ms-2">
+                                                        <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
                                                         <input type="hidden" name="action" value="refuser">
                                                         <button type="submit" class="btn btn-danger btn-sm">
                                                             <i class="bi bi-x-lg me-1"></i>Refuser
                                                         </button>
                                                     </form>
-                                                    <form method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')">
-                                                        <input type="hidden" name="avis_id" value="<?= $avis['avis_id'] ?>">
+                                                    <form method="POST" class="d-inline ms-2" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')">
+                                                        <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
                                                         <input type="hidden" name="action" value="supprimer">
                                                         <button type="submit" class="btn btn-outline-danger btn-sm">
                                                             <i class="bi bi-trash me-1"></i>Supprimer
@@ -283,10 +441,133 @@ require_once __DIR__ . "/../templates/header.php";
                 </div>
             </div>
 
+            <!-- Onglet Tous les avis -->
+            <div class="tab-pane fade" id="admin_avis_mongodb" role="tabpanel">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-database me-2"></i>
+                            Tous les avis
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($admin_avis_mongodb)): ?>
+                            <div class="text-center py-4">
+                                <i class="bi bi-database text-muted" style="font-size: 3rem;"></i>
+                                <h5 class="mt-3 text-muted">Aucun avis</h5>
+                                <p class="text-muted">Aucun avis n'a été déposé pour le moment.</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Utilisateur</th>
+                                            <th>Note</th>
+                                            <th>Commentaire</th>
+                                            <th>Date</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($admin_avis_mongodb as $avis): ?>
+                                            <?php
+                                            $statut = $avis['statut'] ?? 'en attente';
+                                            $badge_class = 'secondary';
+                                            $statut_text = 'Inconnu';
+
+                                            switch ($statut) {
+                                                case 'valide':
+                                                    $badge_class = 'success';
+                                                    $statut_text = 'Validé';
+                                                    break;
+                                                case 'refuse':
+                                                    $badge_class = 'danger';
+                                                    $statut_text = 'Refusé';
+                                                    break;
+                                                case 'en attente':
+                                                    $badge_class = 'warning';
+                                                    $statut_text = 'En attente';
+                                                    break;
+                                            }
+                                            ?>
+                                            <tr>
+                                                <td class="text-center"><?= htmlspecialchars(substr($avis['_id'] ?? $avis['avis_id'] ?? '', 0, 8)) ?></td>
+                                                <td>
+                                                    <div>
+                                                        <strong><?= htmlspecialchars($avis['prenom'] . ' ' . $avis['nom']) ?></strong><br>
+                                                        <small class="text-muted">@<?= htmlspecialchars($avis['pseudo']) ?></small><br>
+                                                        <small class="text-muted"><?= htmlspecialchars($avis['email']) ?></small>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="text-warning">
+                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                            <?php if ($i <= ($avis['note'] ?? 5)): ?>
+                                                                <i class="bi bi-star-fill"></i>
+                                                            <?php else: ?>
+                                                                <i class="bi bi-star"></i>
+                                                            <?php endif; ?>
+                                                        <?php endfor; ?>
+                                                    </div>
+                                                    <small class="text-muted">(<?= $avis['note'] ?? 5 ?>/5)</small>
+                                                </td>
+                                                <td>
+                                                    <div style="max-width: 300px;">
+                                                        <?= htmlspecialchars($avis['commentaire']) ?>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <?= htmlspecialchars($avis['created_at'] ?? 'N/A') ?>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-<?= $badge_class ?>"><?= $statut_text ?></span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group-vertical btn-group-sm" role="group">
+                                                        <?php if ($statut !== 'valide'): ?>
+                                                            <form method="POST" class="d-inline mb-1">
+                                                                <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
+                                                                <input type="hidden" name="action" value="valider">
+                                                                <button type="submit" class="btn btn-success btn-sm w-100">
+                                                                    <i class="bi bi-check-lg me-1"></i>Valider
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        <?php if ($statut !== 'refuse'): ?>
+                                                            <form method="POST" class="d-inline mb-1">
+                                                                <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
+                                                                <input type="hidden" name="action" value="refuser">
+                                                                <button type="submit" class="btn btn-danger btn-sm w-100">
+                                                                    <i class="bi bi-x-lg me-1"></i>Refuser
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        <form method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')">
+                                                            <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
+                                                            <input type="hidden" name="action" value="supprimer">
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                                                <i class="bi bi-trash me-1"></i>Supprimer
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
             <!-- Onglet Covoiturages -->
             <div class="tab-pane fade" id="covoiturages" role="tabpanel">
                 <div class="card">
-                    <div class="card-header bg-info text-white">
+                    <div class="card-header bg-primary text-white">
                         <h4 class="mb-0">
                             <i class="bi bi-car-front me-2"></i>
                             Tous les covoiturages
@@ -301,7 +582,7 @@ require_once __DIR__ . "/../templates/header.php";
                         <?php else: ?>
                             <div class="table-responsive">
                                 <table class="table table-striped table-hover">
-                                    <thead class="table-dark">
+                                    <thead class="table-dark text-center">
                                         <tr>
                                             <th>ID</th>
                                             <th>Chauffeur</th>
@@ -372,7 +653,7 @@ require_once __DIR__ . "/../templates/header.php";
             <!-- Onglet Réservations -->
             <div class="tab-pane fade" id="reservations" role="tabpanel">
                 <div class="card">
-                    <div class="card-header bg-success text-white">
+                    <div class="card-header bg-primary text-white">
                         <h4 class="mb-0">
                             <i class="bi bi-calendar-check me-2"></i>
                             Réservations
@@ -388,7 +669,7 @@ require_once __DIR__ . "/../templates/header.php";
                         <?php else: ?>
                             <div class="table-responsive">
                                 <table class="table table-striped table-hover">
-                                    <thead class="table-dark">
+                                    <thead class="table-dark text-center">
                                         <tr>
                                             <th>ID Réservation</th>
                                             <th>Passager</th>
@@ -451,5 +732,4 @@ require_once __DIR__ . "/../templates/header.php";
     </div>
 </section>
 
-<?php require_once __DIR__ . "/../templates/footer.php"; ?>
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>

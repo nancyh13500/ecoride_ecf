@@ -3,7 +3,8 @@
     "description": "Plateforme de covoiturage écologique",
     "type": "project",
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "mongodb/mongodb": "^2.0"
     },
     "autoload": {
         "files": []
