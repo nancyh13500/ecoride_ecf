@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
     } else {
         try {
             $avisCollection = getAvisCollection();
-            
+
             if ($avisCollection === null) {
                 throw new Exception("MongoDB n'est pas disponible. Veuillez contacter l'administrateur.");
             }
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
             ];
 
             $result = $avisCollection->insertOne($avisDocument);
-            
+
             if ($result->getInsertedCount() > 0) {
                 // Rediriger vers la page avis avec un message de succès
                 $_SESSION['success_message'] = "Votre avis a été publié avec succès ! Il sera visible après validation par un employé.";

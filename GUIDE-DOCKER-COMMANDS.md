@@ -5,10 +5,12 @@
 ### Ce que `docker-compose down` fait :
 
 ✅ **SUPPRIME** :
+
 - Les conteneurs Docker (app, db, mongodb, phpmyadmin)
 - Les réseaux créés par docker-compose
 
 ❌ **NE SUPPRIME PAS** (par défaut) :
+
 - Les volumes (vos données sont préservées !)
   - `mysql_data` : Toutes vos données MySQL (utilisateurs, covoiturages, etc.)
   - `mongodb_data` : Tous vos avis MongoDB
@@ -18,6 +20,7 @@
 ### Pourquoi utiliser `docker-compose down` ?
 
 Quand vous modifiez :
+
 - Le `docker-compose.yml` (ajout de services, changement de ports, etc.)
 - Le `Dockerfile` (ajout d'extensions PHP, changement de configuration)
 - Les dépendances dans `composer.json`
@@ -42,6 +45,7 @@ docker-compose up -d
 ```
 
 **Résultat** :
+
 - ✅ Vos données MySQL sont préservées
 - ✅ Vos données MongoDB sont préservées (si elles existent déjà)
 - ✅ Les nouvelles modifications (MongoDB, extension PHP) sont appliquées
@@ -62,6 +66,7 @@ docker-compose restart
 ```
 
 **Résultat** :
+
 - ✅ Aucune donnée n'est supprimée
 - ✅ Les conteneurs redémarrent avec la même configuration
 
@@ -81,6 +86,7 @@ docker-compose up -d
 ```
 
 **Résultat** :
+
 - ❌ **TOUTES vos données sont supprimées** (MySQL et MongoDB)
 - ⚠️ Utilisez uniquement si vous voulez repartir de zéro
 
@@ -94,6 +100,7 @@ docker-compose restart app
 ```
 
 **Résultat** :
+
 - ✅ Les modifications de code PHP sont prises en compte
 - ✅ Pas besoin de reconstruire l'image
 
@@ -160,14 +167,17 @@ docker-compose logs mongodb
 ## ✅ Vérification après démarrage
 
 1. **Vérifier que MongoDB est démarré** :
+
    ```bash
    docker-compose exec mongodb mongosh --eval "db.adminCommand('ping')"
    ```
 
 2. **Vérifier que l'extension MongoDB PHP est installée** :
+
    ```bash
    docker-compose exec app php -m | grep mongodb
    ```
+
    Devrait afficher : `mongodb`
 
 3. **Vérifier que Composer a installé les dépendances** :
@@ -181,6 +191,7 @@ docker-compose logs mongodb
 ## 🆘 En cas de problème
 
 ### Les conteneurs ne démarrent pas ?
+
 ```bash
 # Voir les erreurs
 docker-compose logs
@@ -190,6 +201,7 @@ docker-compose restart mongodb
 ```
 
 ### MongoDB ne se connecte pas ?
+
 ```bash
 # Vérifier que le conteneur tourne
 docker-compose ps mongodb
@@ -205,13 +217,12 @@ docker-compose exec app php -r "require 'vendor/autoload.php'; require 'lib/mong
 
 ## 📌 Résumé rapide
 
-| Commande | Supprime conteneurs | Supprime données | Quand l'utiliser |
-|----------|---------------------|------------------|------------------|
-| `docker-compose stop` | ❌ | ❌ | Pause temporaire |
-| `docker-compose down` | ✅ | ❌ | Avant reconstruction |
-| `docker-compose down -v` | ✅ | ✅ | Reset complet |
-| `docker-compose restart` | ❌ | ❌ | Redémarrer simplement |
-| `docker-compose build` | ❌ | ❌ | Reconstruire l'image |
+| Commande                 | Supprime conteneurs | Supprime données | Quand l'utiliser      |
+| ------------------------ | ------------------- | ---------------- | --------------------- |
+| `docker-compose stop`    | ❌                  | ❌               | Pause temporaire      |
+| `docker-compose down`    | ✅                  | ❌               | Avant reconstruction  |
+| `docker-compose down -v` | ✅                  | ✅               | Reset complet         |
+| `docker-compose restart` | ❌                  | ❌               | Redémarrer simplement |
+| `docker-compose build`   | ❌                  | ❌               | Reconstruire l'image  |
 
 **Pour votre cas (ajout MongoDB)** : Utilisez `docker-compose down` puis `build` puis `up -d` ✅
-

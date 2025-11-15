@@ -50,10 +50,9 @@ try {
 
     $mongoClient = new Client($connectionString);
     $mongoDB = $mongoClient->selectDatabase(MONGO_DB);
-    
+
     // Test de connexion
     $mongoDB->command(['ping' => 1]);
-    
 } catch (MongoDBException $e) {
     error_log("Erreur de connexion MongoDB : " . $e->getMessage());
     // Ne pas bloquer l'application si MongoDB n'est pas disponible
@@ -65,11 +64,11 @@ try {
  * Récupère la collection MongoDB pour les avis
  * @return MongoDB\Collection|null
  */
-function getAvisCollection() {
+function getAvisCollection()
+{
     global $mongoDB;
     if ($mongoDB === null) {
         return null;
     }
     return $mongoDB->selectCollection('avis');
 }
-

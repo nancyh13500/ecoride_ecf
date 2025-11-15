@@ -3,12 +3,14 @@
 ## Méthode 1 : Via l'interface web (Recommandé) 🌐
 
 ### Pour les employés
+
 1. Connectez-vous avec un compte employé (`role_id = 2`)
 2. Allez sur `/pages/employe.php`
 3. Onglet "Avis à valider" : voir tous les avis en attente
 4. Les avis validés apparaissent sur `/pages/avis.php`
 
 ### Pour tous les utilisateurs
+
 - Page publique : `/pages/avis.php` (affiche uniquement les avis validés)
 
 ---
@@ -57,8 +59,9 @@ db.avis.find().sort({created_at: -1}).limit(5).pretty()
 ```
 
 ### Quitter MongoDB Shell
+
 ```javascript
-exit
+exit;
 ```
 
 ---
@@ -66,10 +69,12 @@ exit
 ## Méthode 3 : Via MongoDB Compass (Interface graphique) 🎨
 
 ### Installation
+
 1. Téléchargez MongoDB Compass : https://www.mongodb.com/try/download/compass
 2. Installez l'application
 
 ### Connexion
+
 1. Ouvrez MongoDB Compass
 2. Utilisez cette chaîne de connexion :
    ```
@@ -78,6 +83,7 @@ exit
 3. Cliquez sur "Connect"
 
 ### Navigation
+
 - Base de données : `ecoride`
 - Collection : `avis`
 - Vous verrez tous les documents avec une interface graphique
@@ -128,46 +134,46 @@ docker-compose exec mongodb mongosh -u mongodb_user -p mongodb_pass --authentica
 ## Commandes utiles supplémentaires
 
 ### Filtrer par note
+
 ```javascript
 // Avis avec 5 étoiles
-db.avis.find({note: 5}).pretty()
+db.avis.find({ note: 5 }).pretty();
 
 // Avis avec 4 étoiles ou plus
-db.avis.find({note: {$gte: 4}}).pretty()
+db.avis.find({ note: { $gte: 4 } }).pretty();
 ```
 
 ### Filtrer par utilisateur
+
 ```javascript
 // Avis d'un utilisateur spécifique
-db.avis.find({user_id: 123}).pretty()
+db.avis.find({ user_id: 123 }).pretty();
 ```
 
 ### Supprimer un avis (⚠️ Attention)
+
 ```javascript
 // Supprimer un avis par ID
-db.avis.deleteOne({_id: ObjectId("VOTRE_ID_ICI")})
+db.avis.deleteOne({ _id: ObjectId("VOTRE_ID_ICI") });
 
 // Supprimer tous les avis refusés
-db.avis.deleteMany({statut: "refuse"})
+db.avis.deleteMany({ statut: "refuse" });
 ```
 
 ### Statistiques
+
 ```javascript
 // Nombre d'avis par statut
-db.avis.aggregate([
-  {$group: {_id: "$statut", count: {$sum: 1}}}
-])
+db.avis.aggregate([{ $group: { _id: "$statut", count: { $sum: 1 } } }]);
 
 // Note moyenne
-db.avis.aggregate([
-  {$group: {_id: null, moyenne: {$avg: "$note"}}}
-])
+db.avis.aggregate([{ $group: { _id: null, moyenne: { $avg: "$note" } } }]);
 
 // Note moyenne des avis validés
 db.avis.aggregate([
-  {$match: {statut: "valide"}},
-  {$group: {_id: null, moyenne: {$avg: "$note"}}}
-])
+  { $match: { statut: "valide" } },
+  { $group: { _id: null, moyenne: { $avg: "$note" } } },
+]);
 ```
 
 ---
@@ -179,4 +185,3 @@ Pour vérifier rapidement si des avis existent :
 ```bash
 docker-compose exec mongodb mongosh -u mongodb_user -p mongodb_pass --authenticationDatabase admin ecoride --eval "print('Nombre d\'avis: ' + db.avis.countDocuments())"
 ```
-

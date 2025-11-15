@@ -12,6 +12,7 @@ Les avis déposés sur le site sont maintenant stockés dans MongoDB au lieu de 
 ## Configuration Docker
 
 MongoDB a été ajouté au `docker-compose.yml` avec les paramètres suivants :
+
 - **Image** : mongo:7.0
 - **Port** : 27017
 - **Utilisateur** : mongodb_user
@@ -41,6 +42,7 @@ docker-compose exec app composer install
 ### Collection : `avis`
 
 Chaque document avis contient :
+
 ```json
 {
   "_id": ObjectId("..."),
@@ -60,17 +62,20 @@ Chaque document avis contient :
 ## Fonctionnalités
 
 ### Pour les utilisateurs
+
 - **Déposer un avis** : `/pages/deposer_avis.php`
   - L'avis est créé avec le statut "en attente"
   - Nécessite une validation par un employé avant publication
 
 ### Pour les employés
+
 - **Valider les avis** : `/pages/employe.php`
   - Onglet "Avis à valider"
   - Actions disponibles : Valider, Refuser, Supprimer
   - Seuls les utilisateurs avec `role_id = 2` peuvent accéder
 
 ### Affichage public
+
 - **Page des avis** : `/pages/avis.php`
   - Affiche uniquement les avis avec le statut "valide"
   - Les informations utilisateur sont récupérées depuis MySQL
@@ -88,6 +93,7 @@ Chaque document avis contient :
 ## Gestion des erreurs
 
 Le système gère gracieusement les erreurs :
+
 - Si MongoDB n'est pas disponible, un message d'erreur approprié est affiché
 - Les données utilisateur sont toujours récupérées depuis MySQL
 - Les erreurs sont loggées dans les logs PHP
@@ -101,11 +107,13 @@ Si vous avez des avis existants dans MySQL, vous pouvez les migrer vers MongoDB 
 Pour vérifier que MongoDB fonctionne correctement :
 
 1. Vérifier que le conteneur MongoDB est démarré :
+
    ```bash
    docker-compose ps
    ```
 
 2. Tester la connexion depuis le conteneur PHP :
+
    ```bash
    docker-compose exec app php -r "require 'vendor/autoload.php'; require 'lib/mongodb.php'; var_dump(getAvisCollection());"
    ```
@@ -119,7 +127,7 @@ Pour vérifier que MongoDB fonctionne correctement :
 ## Support
 
 En cas de problème :
+
 1. Vérifier les logs Docker : `docker-compose logs mongodb`
 2. Vérifier les logs PHP : `docker-compose logs app`
 3. Vérifier que l'extension MongoDB est installée : `docker-compose exec app php -m | grep mongodb`
-
