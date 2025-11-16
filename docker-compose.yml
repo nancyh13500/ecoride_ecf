@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 services:
   db:
@@ -10,11 +10,43 @@ services:
       MYSQL_USER: ecoride_user
       MYSQL_PASSWORD: ecoride_pass
     volumes:
-      - /home/docker/web/ecoride_ecf/mysql_data:/var/lib/mysql
-      - /home/docker/web/ecoride_ecf/ecoride.sql:/docker-entrypoint-initdb.d/01-ecoride.sql:ro
+      - mysql_data:/var/lib/mysql
+      - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
     networks:
       - ecoride
+
+  app:
+    build:
+      context: ./docker/php      # RELATIF AU REPO GIT
+      dockerfile: Dockerfile
+    container_name: ecoride_app
+    volumes:
+      - ./:/var/www/html         # RELATIF AU REPO GIT
+    depends_on:
+      - db
+      - mongodb
+    networks:
+      - ecoride
+    command: >
+      sh -c "
+      if [ ! -f /var/www/html/vendor/autoload.php ]; then
+        composer install --no-interaction --prefer-dist --optimize-autoloader;
+      fi &&
+      apache2-foreground
+      "
     restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ecoride_phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - db
+    networks:
+      - ecoride
 
   mongodb:
     image: mongo:7.0
@@ -24,42 +56,13 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
       MONGO_INITDB_DATABASE: ecoride
     volumes:
-      - /home/docker/web/ecoride_ecf/mongodb_data:/data/db
+      - mongodb_data:/data/db
     networks:
       - ecoride
-    restart: unless-stopped
 
-  app:
-    build:
-      context: /home/docker/web/ecoride_ecf/docker/php
-      dockerfile: Dockerfile
-    container_name: ecoride_app
-    volumes:
-      - /home/docker/web/ecoride_ecf:/var/www/html
-    depends_on:
-      - db
-      - mongodb
-    networks:
-      - ecoride
-    restart: unless-stopped
-    command: >
-      sh -c "
-      if [ ! -f /var/www/html/vendor/autoload.php ]; then
-        composer install --no-interaction --prefer-dist --optimize-autoloader;
-      fi &&
-      apache2-foreground
-      "
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: ecoride_phpmyadmin
-    environment:
-      PMA_HOST: db
-      PMA_USER: root
-      PMA_PASSWORD: root
-    networks:
-      - ecoride
-    restart: unless-stopped
+volumes:
+  mysql_data:
+  mongodb_data:
 
 networks:
   ecoride:
