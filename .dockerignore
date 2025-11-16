@@ -2,13 +2,3 @@ vendor/
 node_modules/
 .git/
 .gitignore
-*.md
-Documentation/
-docker-compose.yml
-docker-compose.yml.old
-README*.md
-GUIDE-*.md
-data/
-*.log
-.env
-.env.local

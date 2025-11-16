@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     libcurl4-openssl-dev \
-    default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation des extensions PHP
@@ -32,24 +31,8 @@ RUN pecl install mongodb \
 # Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copie de la configuration Apache
-COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
-
 # Activation du module rewrite Apache
 RUN a2enmod rewrite headers
-
-# Copie du code de l'application (sauf ce qui est dans .dockerignore)
-COPY . /var/www/html/
-
-# Copie et configuration du script d'initialisation de la base de données
-COPY docker/init-db.sh /usr/local/bin/init-db.sh
-RUN chmod +x /usr/local/bin/init-db.sh
-
-# Installation des dépendances Composer si composer.json existe
-RUN if [ -f /var/www/html/composer.json ]; then \
-        cd /var/www/html && \
-        composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; \
-    fi
 
 # Configuration des permissions
 RUN chown -R www-data:www-data /var/www/html \
