@@ -18,8 +18,8 @@ services:
 
   app:
     build:
-      context: ./docker/php
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./docker/php/Dockerfile
     container_name: ecoride_app
     volumes:
       - ./:/var/www/html
@@ -30,8 +30,18 @@ services:
       - mongodb
     command: >
       sh -c "
-      if [ ! -f /var/www/html/vendor/autoload.php ]; then
-        composer install --no-interaction --prefer-dist --optimize-autoloader;
+      cd /var/www/html &&
+      echo 'Répertoire de travail: $(pwd)' &&
+      echo 'Contenu du répertoire:' && ls -la &&
+      if [ -f composer.json ]; then
+        echo 'composer.json trouvé, installation des dépendances...' &&
+        if [ ! -f vendor/autoload.php ]; then
+          composer install --no-interaction --prefer-dist --optimize-autoloader;
+        else
+          echo 'vendor/autoload.php existe déjà, pas besoin d\'installer';
+        fi
+      else
+        echo 'ATTENTION: composer.json non trouvé dans /var/www/html';
       fi &&
       apache2-foreground
       "
