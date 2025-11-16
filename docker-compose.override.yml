@@ -10,9 +10,11 @@ services:
     networks: [ecoride]
 
   db:
+    ports: []
     networks: [ecoride]
 
   mongodb:
+    ports: []
     networks: [ecoride]
 
 networks:
