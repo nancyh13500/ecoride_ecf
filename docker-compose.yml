@@ -10,12 +10,11 @@ services:
       MYSQL_USER: ecoride_user
       MYSQL_PASSWORD: ecoride_pass
     volumes:
-      
-mysql_data:/var/lib/mysql
-./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
-networks:
-ecoride
-restart: unless-stopped
+      - mysql_data:/var/lib/mysql
+      - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
+    networks:
+      - ecoride
+    restart: unless-stopped
 
   app:
     build:
@@ -23,22 +22,22 @@ restart: unless-stopped
       dockerfile: Dockerfile
     container_name: ecoride_app
     volumes:
-      
-./:/var/www/html
-  environment:
-DOCKER_ENV=1
-depends_on:
-db
-mongodb
-command: >
-  sh -c "
-  if [ ! -f /var/www/html/vendor/autoload.php ]; then
-    composer install --no-interaction --prefer-dist --optimize-autoloader;
-  fi &&
-  apache2-foreground"
-networks:
-ecoride
-restart: unless-stopped
+      - ./:/var/www/html
+    environment:
+      - DOCKER_ENV=1
+    depends_on:
+      - db
+      - mongodb
+    command: >
+      sh -c "
+      if [ ! -f /var/www/html/vendor/autoload.php ]; then
+        composer install --no-interaction --prefer-dist --optimize-autoloader;
+      fi &&
+      apache2-foreground
+      "
+    networks:
+      - ecoride
+    restart: unless-stopped
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -48,11 +47,10 @@ restart: unless-stopped
       PMA_USER: root
       PMA_PASSWORD: root
     depends_on:
-      
-db
-  networks:
-ecoride
-restart: unless-stopped
+      - db
+    networks:
+      - ecoride
+    restart: unless-stopped
 
   mongodb:
     image: mongo:7.0
@@ -62,11 +60,10 @@ restart: unless-stopped
       MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
       MONGO_INITDB_DATABASE: ecoride
     volumes:
-      
-mongodb_data:/data/db
-  networks:
-ecoride
-restart: unless-stopped
+      - mongodb_data:/data/db
+    networks:
+      - ecoride
+    restart: unless-stopped
 
 volumes:
   mysql_data:
