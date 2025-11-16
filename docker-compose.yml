@@ -21,30 +21,15 @@ services:
       context: .
       dockerfile: ./docker/php/Dockerfile
     container_name: ecoride_app
-    volumes:
-      - ./:/var/www/html
+    # Volume commenté pour la production - le code est copié dans l'image
+    # Pour le développement local, décommentez la ligne suivante :
+    # volumes:
+    #   - ./:/var/www/html
     environment:
       - DOCKER_ENV=1
     depends_on:
       - db
       - mongodb
-    command: >
-      sh -c "
-      cd /var/www/html &&
-      echo 'Répertoire de travail: $(pwd)' &&
-      echo 'Contenu du répertoire:' && ls -la &&
-      if [ -f composer.json ]; then
-        echo 'composer.json trouvé, installation des dépendances...' &&
-        if [ ! -f vendor/autoload.php ]; then
-          composer install --no-interaction --prefer-dist --optimize-autoloader;
-        else
-          echo 'vendor/autoload.php existe déjà, pas besoin d''installer';
-        fi
-      else
-        echo 'ATTENTION: composer.json non trouvé dans /var/www/html';
-      fi &&
-      apache2-foreground
-      "
     networks:
       - ecoride
     restart: unless-stopped
