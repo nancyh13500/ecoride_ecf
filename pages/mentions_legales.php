@@ -13,14 +13,14 @@ require_once __DIR__ . "/../templates/header.php";
         <section class="bg-white p-4 rounded shadow-sm mb-4 border-start border-primary border-4">
             <h3 class="text-secondary mb-3"><i class="bi bi-person-circle"></i> 1. Éditeur du site</h3>
             <p>
-                <strong>Nom du site : </strong>Ecoride.fr<br>
+                <strong>Nom du site : </strong>Ecoride<br>
                 <strong>Responsable de la publication : </strong>José<br>
-                <strong>Adresse : </strong>123 Rue de la Route, 75000 Paris, France<br>
+                <strong>Adresse : </strong>123 Rue de la Route, 13500 Martigues, France<br>
                 <strong>Téléphone : </strong>+33 1 23 45 67 89<br>
                 <strong>Email : </strong>contact@ecoride.fr<br>
                 <strong>Forme juridique : </strong>SASU<br>
                 <strong>SIRET : </strong>123 456 789 00012<br>
-                <strong>RCS : </strong>Paris B 123 456 789
+                <strong>RCS : </strong>Marseille B 123 456 789
             </p>
         </section>
 
@@ -49,7 +49,7 @@ require_once __DIR__ . "/../templates/header.php";
             <h3 class="text-secondary mb-3"><i class="bi bi-person-badge"></i> 4. Données personnelles</h3>
             <p>
                 Conformément au RGPD, vous disposez de droits d'accès, de rectification, de suppression, et de portabilité
-                de vos données. Pour exercer ces droits : <a href="mailto:contact@ecoride.fr">contact@ecoride.fr</a>
+                de vos données. Pour exercer ces droits : <a href="mailto:contact@ecoride.fr">contact@ecoride</a>
             </p>
         </section>
 

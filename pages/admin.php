@@ -1,6 +1,8 @@
 <?php
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../lib/session.php';
 require_once __DIR__ . '/../lib/pdo.php';
+require_once __DIR__ . '/../lib/mongodb.php';
 
 // Vérification du rôle admin (role_id = 1)
 requireLogin();
@@ -145,17 +147,73 @@ try {
 } catch (PDOException $e) {
 }
 
-// Nombre d'avis et moyenne
+// Nombre d'avis et moyenne depuis MongoDB
+$avis_list = [];
+$total_notes = 0;
+$count_notes = 0;
 try {
-    $stmt = $pdo->query("SELECT COUNT(*) FROM avis");
-    $stats['total_avis'] = (int) $stmt->fetchColumn();
-} catch (PDOException $e) {
-}
-try {
-    $stmt = $pdo->query("SELECT AVG(CAST(note AS DECIMAL(10,2))) FROM avis WHERE note IS NOT NULL");
-    $avg = $stmt->fetchColumn();
-    $stats['moyenne_notes'] = $avg !== null ? round((float)$avg, 2) : 0;
-} catch (PDOException $e) {
+    $avisCollection = getAvisCollection();
+
+    if ($avisCollection !== null) {
+        // Récupérer tous les avis depuis MongoDB
+        $cursor = $avisCollection->find([], ['sort' => ['created_at' => -1]]);
+
+        foreach ($cursor as $avis) {
+            $avisArray = [
+                '_id' => (string)$avis['_id'],
+                'user_id' => $avis['user_id'],
+                'note' => $avis['note'],
+                'commentaire' => $avis['commentaire'],
+                'statut' => $avis['statut'],
+                'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
+            ];
+
+            // Récupérer les informations utilisateur depuis MySQL
+            try {
+                $userQuery = $pdo->prepare("SELECT nom, prenom, pseudo, email, photo FROM user WHERE user_id = :user_id LIMIT 1");
+                $userQuery->execute(['user_id' => $avis['user_id']]);
+                $userData = $userQuery->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    $avisArray['nom'] = $userData['nom'];
+                    $avisArray['prenom'] = $userData['prenom'];
+                    $avisArray['pseudo'] = $userData['pseudo'];
+                    $avisArray['email'] = $userData['email'];
+                    $avisArray['photo'] = $userData['photo'];
+                } else {
+                    $avisArray['nom'] = 'Utilisateur';
+                    $avisArray['prenom'] = '';
+                    $avisArray['pseudo'] = 'Anonyme';
+                    $avisArray['email'] = '';
+                    $avisArray['photo'] = null;
+                }
+            } catch (PDOException $e) {
+                $avisArray['nom'] = 'Utilisateur';
+                $avisArray['prenom'] = '';
+                $avisArray['pseudo'] = 'Anonyme';
+                $avisArray['email'] = '';
+                $avisArray['photo'] = null;
+            }
+
+            $avis_list[] = $avisArray;
+
+            // Calculer la moyenne
+            if (isset($avis['note']) && is_numeric($avis['note'])) {
+                $total_notes += (float)$avis['note'];
+                $count_notes++;
+            }
+        }
+
+        $stats['total_avis'] = count($avis_list);
+        $stats['moyenne_notes'] = $count_notes > 0 ? round($total_notes / $count_notes, 2) : 0;
+    } else {
+        $stats['total_avis'] = 0;
+        $stats['moyenne_notes'] = 0;
+    }
+} catch (Exception $e) {
+    $stats['total_avis'] = 0;
+    $stats['moyenne_notes'] = 0;
+    error_log("Erreur lors de la récupération des avis depuis MongoDB : " . $e->getMessage());
 }
 
 // Réservations (si la table existe)
@@ -483,11 +541,106 @@ require_once __DIR__ . '/../templates/header.php';
             </div>
         </div>
 
+        <!-- Liste des avis déposés -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-warning text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-star me-2"></i>
+                            Avis déposés (Moyenne: <?= $stats['moyenne_notes'] ?? 0 ?>/5)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (empty($avis_list)): ?>
+                            <div class="text-center py-4">
+                                <i class="bi bi-star text-muted" style="font-size: 3rem;"></i>
+                                <h5 class="mt-3 text-muted">Aucun avis</h5>
+                                <p class="text-muted">Aucun avis n'a été déposé pour le moment.</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover align-middle text-center">
+                                    <thead class="table-light text-dark text-center">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Utilisateur</th>
+                                            <th>Note</th>
+                                            <th>Commentaire</th>
+                                            <th>Date</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($avis_list as $avis): ?>
+                                            <?php
+                                            $statut = $avis['statut'] ?? 'en attente';
+                                            $badge_class = 'secondary';
+                                            $statut_text = 'Inconnu';
+
+                                            switch ($statut) {
+                                                case 'valide':
+                                                    $badge_class = 'success';
+                                                    $statut_text = 'Validé';
+                                                    break;
+                                                case 'refuse':
+                                                    $badge_class = 'danger';
+                                                    $statut_text = 'Refusé';
+                                                    break;
+                                                case 'en attente':
+                                                    $badge_class = 'warning';
+                                                    $statut_text = 'En attente';
+                                                    break;
+                                            }
+                                            ?>
+                                            <tr>
+                                                <td class="text-center"><?= htmlspecialchars(substr($avis['_id'] ?? '', 0, 8)) ?></td>
+                                                <td>
+                                                    <div>
+                                                        <strong><?= htmlspecialchars($avis['prenom'] . ' ' . $avis['nom']) ?></strong><br>
+                                                        <small class="text-muted">@<?= htmlspecialchars($avis['pseudo']) ?></small><br>
+                                                        <small class="text-muted"><?= htmlspecialchars($avis['email']) ?></small>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="text-warning">
+                                                        <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                            <?php if ($i <= ($avis['note'] ?? 5)): ?>
+                                                                <i class="bi bi-star-fill"></i>
+                                                            <?php else: ?>
+                                                                <i class="bi bi-star"></i>
+                                                            <?php endif; ?>
+                                                        <?php endfor; ?>
+                                                    </div>
+                                                    <small class="text-muted">(<?= $avis['note'] ?? 5 ?>/5)</small>
+                                                </td>
+                                                <td>
+                                                    <div class="text-center">
+                                                        <?= htmlspecialchars($avis['commentaire']) ?>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <?= htmlspecialchars($avis['created_at'] ?? 'N/A') ?>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-<?= $badge_class ?>"><?= $statut_text ?></span>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Graphique des covoiturages par jour -->
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header bg-success text-white">
                         <h5 class="mb-0">
                             <i class="bi bi-graph-up me-2"></i>
                             Évolution des covoiturages (30 derniers jours)
@@ -515,8 +668,8 @@ require_once __DIR__ . '/../templates/header.php';
                             <p class="text-muted mb-0">Aucun employé trouvé.</p>
                         <?php else: ?>
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover align-middle">
-                                    <thead class="table-light">
+                                <table class="table table-striped table-hover align-middle text-center">
+                                    <thead class="table-light text-center">
                                         <tr>
                                             <th>Nom</th>
                                             <th>Email</th>
@@ -573,7 +726,7 @@ require_once __DIR__ . '/../templates/header.php';
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header bg-light">
+                    <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">
                             <i class="bi bi-people me-2"></i>
                             Liste des utilisateurs
@@ -584,8 +737,8 @@ require_once __DIR__ . '/../templates/header.php';
                             <p class="text-muted mb-0">Aucun utilisateur trouvé.</p>
                         <?php else: ?>
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover align-middle">
-                                    <thead class="table-light">
+                                <table class="table table-striped table-hover align-middle text-center">
+                                    <thead class="table-light text-center">
                                         <tr>
                                             <th>Nom</th>
                                             <th>Email</th>

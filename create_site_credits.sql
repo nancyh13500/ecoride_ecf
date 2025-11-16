@@ -15,3 +15,4 @@ CREATE TABLE IF NOT EXISTS `site_credits` (
 INSERT INTO `site_credits` (`total_credits`) VALUES (0);
 
 
+
