@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     git \
     pkg-config \
     libssl-dev \
+    libcurl4-openssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation des extensions PHP
@@ -22,6 +23,10 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
         gd \
         mbstring \
         zip
+
+# Installation de l'extension MongoDB PHP
+RUN pecl install mongodb \
+    && docker-php-ext-enable mongodb
 
 # Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
