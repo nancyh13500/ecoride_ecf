@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  app:
+    ports: []
+    networks: [ecoride]
+
+  phpmyadmin:
+    ports: []
+    networks: [ecoride]
+
+  db:
+    networks: [ecoride]
+
+  mongodb:
+    networks: [ecoride]
+
+networks:
+  ecoride:
+    external: true
+    name: ecoride
