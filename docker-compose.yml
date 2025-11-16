@@ -1,9 +1,8 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
     image: mysql:8.0
-    container_name: ecoride_db
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: ecoride
@@ -12,22 +11,31 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
-    networks:
-      - ecoride
+    networks: [ecoride]
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb_user
+      MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
+      MONGO_INITDB_DATABASE: ecoride
+    volumes:
+      - mongodb_data:/data/db
+    networks: [ecoride]
     restart: unless-stopped
 
   app:
+    # si ton build posait souci, remplace ce bloc build: par une image prête (voir NOTE plus bas)
     build:
       context: ./docker/php
       dockerfile: Dockerfile
-    container_name: ecoride_app
     volumes:
       - ./:/var/www/html
     environment:
       - DOCKER_ENV=1
-    depends_on:
-      - db
-      - mongodb
+    depends_on: [db, mongodb]
+    networks: [ecoride]
     command: >
       sh -c "
       if [ ! -f /var/www/html/vendor/autoload.php ]; then
@@ -35,34 +43,16 @@ services:
       fi &&
       apache2-foreground
       "
-    networks:
-      - ecoride
     restart: unless-stopped
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: ecoride_phpmyadmin
     environment:
       PMA_HOST: db
       PMA_USER: root
       PMA_PASSWORD: root
-    depends_on:
-      - db
-    networks:
-      - ecoride
-    restart: unless-stopped
-
-  mongodb:
-    image: mongo:7.0
-    container_name: ecoride_mongodb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: mongodb_user
-      MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
-      MONGO_INITDB_DATABASE: ecoride
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - ecoride
+    depends_on: [db]
+    networks: [ecoride]
     restart: unless-stopped
 
 volumes:
