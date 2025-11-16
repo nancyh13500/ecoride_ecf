@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     libcurl4-openssl-dev \
+    default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation des extensions PHP
@@ -39,6 +40,10 @@ RUN a2enmod rewrite headers
 
 # Copie du code de l'application (sauf ce qui est dans .dockerignore)
 COPY . /var/www/html/
+
+# Copie et configuration du script d'initialisation de la base de données
+COPY docker/init-db.sh /usr/local/bin/init-db.sh
+RUN chmod +x /usr/local/bin/init-db.sh
 
 # Installation des dépendances Composer si composer.json existe
 RUN if [ -f /var/www/html/composer.json ]; then \

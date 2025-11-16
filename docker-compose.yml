@@ -11,10 +11,16 @@ services:
       MYSQL_PASSWORD: ecoride_pass
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
+      - ./ecoride.sql:/docker-entrypoint-initdb.d/01-ecoride.sql:ro
     networks:
       - ecoride
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   app:
     build:
@@ -28,8 +34,15 @@ services:
     environment:
       - DOCKER_ENV=1
     depends_on:
-      - db
-      - mongodb
+      db:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    command: >
+      sh -c "
+      /usr/local/bin/init-db.sh &&
+      apache2-foreground
+      "
     networks:
       - ecoride
     restart: unless-stopped
