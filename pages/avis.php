@@ -84,7 +84,7 @@ try {
                         <i class="bi bi-star-fill me-2"></i>Déposer un avis
                     </a>
                 <?php else: ?>
-                    <a href="/login.php" class="btn btn-outline-primary btn-lg">
+                    <a href="/login.php" class="btn btn-primary btn-lg">
                         <i class="bi bi-person-fill me-2"></i>Se connecter pour laisser un avis
                     </a>
                 <?php endif; ?>

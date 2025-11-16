@@ -6,13 +6,51 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit9eaaf0d06850843126c805f17d619920
 {
+    public static $files = array (
+        '606a39d89246991a373564698c2d8383' => __DIR__ . '/..' . '/symfony/polyfill-php85/bootstrap.php',
+        '3a37ebac017bc098e9a86b35401e7a68' => __DIR__ . '/..' . '/mongodb/mongodb/src/functions.php',
+    );
+
+    public static $prefixLengthsPsr4 = array (
+        'S' =>
+        array (
+            'Symfony\\Polyfill\\Php85\\' => 23,
+        ),
+        'P' =>
+        array (
+            'Psr\\Log\\' => 8,
+        ),
+        'M' =>
+        array (
+            'MongoDB\\' => 8,
+        ),
+    );
+
+    public static $prefixDirsPsr4 = array (
+        'Symfony\\Polyfill\\Php85\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/symfony/polyfill-php85',
+        ),
+        'Psr\\Log\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/src',
+        ),
+        'MongoDB\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/mongodb/mongodb/src',
+        ),
+    );
+
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'NoDiscard' => __DIR__ . '/..' . '/symfony/polyfill-php85/Resources/stubs/NoDiscard.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
+            $loader->prefixLengthsPsr4 = ComposerStaticInit9eaaf0d06850843126c805f17d619920::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit9eaaf0d06850843126c805f17d619920::$prefixDirsPsr4;
             $loader->classMap = ComposerStaticInit9eaaf0d06850843126c805f17d619920::$classMap;
 
         }, null, ClassLoader::class);

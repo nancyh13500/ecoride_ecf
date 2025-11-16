@@ -32,6 +32,7 @@ services:
       - DOCKER_ENV=1
     depends_on:
       - db
+      - mongodb
     command: >
       sh -c "
       if [ ! -f /var/www/html/vendor/autoload.php ]; then
@@ -53,5 +54,20 @@ services:
     depends_on:
       - db
 
+  # Base de données MongoDB pour les avis
+  mongodb:
+    image: mongo:7.0
+    container_name: ecoride_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb_user
+      MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
+      MONGO_INITDB_DATABASE: ecoride
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
 volumes:
   mysql_data:
+  mongodb_data:

@@ -2,5 +2,3 @@ vendor/
 node_modules/
 .git/
 .gitignore
-*.md
-.DS_Store
