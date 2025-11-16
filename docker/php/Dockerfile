@@ -31,8 +31,20 @@ RUN pecl install mongodb \
 # Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Copie de la configuration Apache
+COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+
 # Activation du module rewrite Apache
 RUN a2enmod rewrite headers
+
+# Copie du code de l'application (le contexte est la racine du projet)
+COPY . /var/www/html/
+
+# Installation des dépendances Composer si composer.json existe
+RUN if [ -f /var/www/html/composer.json ]; then \
+        cd /var/www/html && \
+        composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; \
+    fi
 
 # Configuration des permissions
 RUN chown -R www-data:www-data /var/www/html \
