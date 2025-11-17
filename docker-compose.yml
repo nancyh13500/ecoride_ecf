@@ -13,10 +13,16 @@ services:
       # Données MySQL : chemin absolu
       - /home/docker/web/ecoride_ecf/mysql_data:/var/lib/mysql
       # Fichier SQL d'initialisation : depuis le repo cloné
-      - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql:ro
+      - ./ecoride.sql:/docker-entrypoint-initdb.d/01-ecoride.sql:ro
     networks:
       - ecoride
     restart: unless-stopped
+    # Healthcheck pour s'assurer que MySQL est prêt
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build:
@@ -28,8 +34,10 @@ services:
     environment:
       - DOCKER_ENV=1
     depends_on:
-      - db
-      - mongodb
+      db:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
     networks:
       - ecoride
     restart: unless-stopped

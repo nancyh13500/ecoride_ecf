@@ -8,6 +8,7 @@ docker-compose.yml
 docker-compose.yml.old
 README*.md
 GUIDE-*.md
-*.sql
+# Ne pas exclure ecoride.sql - il est nécessaire pour l'initialisation
+# *.sql
 mysql_data/
 mongodb_data/

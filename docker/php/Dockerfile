@@ -31,6 +31,9 @@ RUN pecl install mongodb \
 # Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Installation du client MySQL pour l'import SQL
+RUN apt-get update && apt-get install -y default-mysql-client && rm -rf /var/lib/apt/lists/*
+
 # Copie de la configuration Apache
 COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
@@ -39,6 +42,10 @@ RUN a2enmod rewrite headers
 
 # Copie du code de l'application (index.php, lib/, pages/, etc.)
 COPY . /var/www/html/
+
+# Copie du script d'initialisation de la base de données
+COPY docker/php/init-db.sh /usr/local/bin/init-db.sh
+RUN chmod +x /usr/local/bin/init-db.sh
 
 # Installation des dépendances Composer
 RUN if [ -f /var/www/html/composer.json ]; then \
@@ -53,5 +60,5 @@ RUN chown -R www-data:www-data /var/www/html \
 # Exposition du port 80 (interne au conteneur, pas exposé sur l'hôte)
 EXPOSE 80
 
-# Démarrage d'Apache
-CMD ["apache2-foreground"]
+# Démarrage : initialise la base de données puis démarre Apache
+CMD ["sh", "-c", "/usr/local/bin/init-db.sh && apache2-foreground"]
