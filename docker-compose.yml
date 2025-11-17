@@ -10,8 +10,8 @@ services:
       MYSQL_USER: ecoride_user
       MYSQL_PASSWORD: ecoride_pass
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
+      - /home/docker/web/ecoride_ecf/mysql_data:/var/lib/mysql
+      - /home/docker/web/ecoride_ecf/ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql:ro
     networks:
       - ecoride
     restart: unless-stopped
@@ -21,10 +21,8 @@ services:
       context: .
       dockerfile: ./docker/php/Dockerfile
     container_name: ecoride_app
-    # Volume commenté pour la production - le code est copié dans l'image lors du build
-    # Pour le développement local, décommentez la ligne suivante pour avoir les modifications en temps réel :
-    # volumes:
-    #   - ./:/var/www/html
+    volumes:
+      - /home/docker/web/ecoride_ecf:/var/www/html
     environment:
       - DOCKER_ENV=1
     depends_on:
@@ -55,14 +53,10 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
       MONGO_INITDB_DATABASE: ecoride
     volumes:
-      - mongodb_data:/data/db
+      - /home/docker/web/ecoride_ecf/mongodb_data:/data/db
     networks:
       - ecoride
     restart: unless-stopped
-
-volumes:
-  mysql_data:
-  mongodb_data:
 
 networks:
   ecoride:

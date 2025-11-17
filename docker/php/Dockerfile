@@ -37,22 +37,13 @@ COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.con
 # Activation du module rewrite Apache
 RUN a2enmod rewrite headers
 
-# Copie du code de l'application (le contexte est la racine du projet)
-COPY . /var/www/html/
-
-# Installation des dépendances Composer si composer.json existe
-RUN if [ -f /var/www/html/composer.json ]; then \
-        cd /var/www/html && \
-        composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; \
-    fi
-
-# Configuration des permissions
+# Configuration des permissions (le code sera monté via volume depuis /home/docker/web/ecoride_ecf)
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
 # Exposition du port
 EXPOSE 80
 
-# Démarrage d'Apache
-CMD ["apache2-foreground"]
+# Commande de démarrage : installe Composer si nécessaire puis démarre Apache
+CMD ["sh", "-c", "cd /var/www/html && if [ -f composer.json ] && [ ! -f vendor/autoload.php ]; then composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; fi && apache2-foreground"]
 
