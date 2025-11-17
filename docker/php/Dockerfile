@@ -44,6 +44,6 @@ RUN chown -R www-data:www-data /var/www/html \
 # Exposition du port
 EXPOSE 80
 
-# Commande de démarrage : installe Composer si nécessaire puis démarre Apache
-CMD ["sh", "-c", "cd /var/www/html && echo '=== Diagnostic ===' && echo 'Répertoire: $(pwd)' && echo 'Contenu:' && ls -la && echo 'index.php existe:' && test -f index.php && echo 'OUI' || echo 'NON' && echo 'composer.json existe:' && test -f composer.json && echo 'OUI' || echo 'NON' && if [ -f composer.json ] && [ ! -f vendor/autoload.php ]; then echo 'Installation Composer...' && composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; fi && echo 'Démarrage Apache...' && apache2-foreground"]
+# Commande de démarrage : corrige les permissions, installe Composer si nécessaire puis démarre Apache
+CMD ["sh", "-c", "cd /var/www/html && echo '=== Correction des permissions ===' && chown -R www-data:www-data /var/www/html 2>/dev/null || true && chmod -R 755 /var/www/html 2>/dev/null || true && find /var/www/html -type f -exec chmod 644 {} \\; 2>/dev/null || true && find /var/www/html -type d -exec chmod 755 {} \\; 2>/dev/null || true && echo '=== Diagnostic ===' && echo 'Répertoire: $(pwd)' && echo 'Contenu:' && ls -la | head -20 && echo 'index.php existe:' && test -f index.php && echo 'OUI' || echo 'NON' && echo 'Permissions index.php:' && ls -l index.php 2>/dev/null || echo 'Fichier introuvable' && echo 'composer.json existe:' && test -f composer.json && echo 'OUI' || echo 'NON' && if [ -f composer.json ] && [ ! -f vendor/autoload.php ]; then echo 'Installation Composer...' && composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; fi && echo 'Démarrage Apache...' && apache2-foreground"]
 
