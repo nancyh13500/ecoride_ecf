@@ -10,9 +10,9 @@ services:
       MYSQL_USER: ecoride_user
       MYSQL_PASSWORD: ecoride_pass
     volumes:
-      # Données persistantes : chemin absolu vers /home/docker/web/ecoride_ecf
+      # Données MySQL : chemin absolu
       - /home/docker/web/ecoride_ecf/mysql_data:/var/lib/mysql
-      # Fichier SQL : chemin relatif (dans le repo cloné par Portainer)
+      # Fichier SQL d'initialisation : depuis le repo cloné
       - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql:ro
     networks:
       - ecoride
@@ -20,14 +20,11 @@ services:
 
   app:
     build:
-      # Context relatif : utilise le répertoire cloné par Portainer
       context: .
-      # Dockerfile relatif au context
       dockerfile: ./docker/php/Dockerfile
     container_name: ecoride_app
-    volumes:
-      # Code : chemin relatif (monte le répertoire cloné par Portainer)
-      - .:/var/www/html
+    # Pas de port exposé - accessible via reverse proxy (SWAG)
+    # Le code est copié dans l'image lors du build
     environment:
       - DOCKER_ENV=1
     depends_on:
@@ -58,7 +55,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
       MONGO_INITDB_DATABASE: ecoride
     volumes:
-      # Données persistantes : chemin absolu vers /home/docker/web/ecoride_ecf
+      # Données MongoDB : chemin absolu
       - /home/docker/web/ecoride_ecf/mongodb_data:/data/db
     networks:
       - ecoride

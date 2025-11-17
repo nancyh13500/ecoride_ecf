@@ -37,13 +37,21 @@ COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.con
 # Activation du module rewrite Apache
 RUN a2enmod rewrite headers
 
-# Configuration des permissions (le code sera monté via volume depuis /home/docker/web/ecoride_ecf)
+# Copie du code de l'application (index.php, lib/, pages/, etc.)
+COPY . /var/www/html/
+
+# Installation des dépendances Composer
+RUN if [ -f /var/www/html/composer.json ]; then \
+        cd /var/www/html && \
+        composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; \
+    fi
+
+# Configuration des permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Exposition du port
+# Exposition du port 80 (interne au conteneur, pas exposé sur l'hôte)
 EXPOSE 80
 
-# Commande de démarrage : corrige les permissions, installe Composer si nécessaire puis démarre Apache
-CMD ["sh", "-c", "cd /var/www/html && echo '=== Correction des permissions ===' && chown -R www-data:www-data /var/www/html 2>/dev/null || true && chmod -R 755 /var/www/html 2>/dev/null || true && find /var/www/html -type f -exec chmod 644 {} \\; 2>/dev/null || true && find /var/www/html -type d -exec chmod 755 {} \\; 2>/dev/null || true && echo '=== Diagnostic ===' && echo 'Répertoire: $(pwd)' && echo 'Contenu:' && ls -la | head -20 && echo 'index.php existe:' && test -f index.php && echo 'OUI' || echo 'NON' && echo 'Permissions index.php:' && ls -l index.php 2>/dev/null || echo 'Fichier introuvable' && echo 'composer.json existe:' && test -f composer.json && echo 'OUI' || echo 'NON' && if [ -f composer.json ] && [ ! -f vendor/autoload.php ]; then echo 'Installation Composer...' && composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; fi && echo 'Démarrage Apache...' && apache2-foreground"]
-
+# Démarrage d'Apache
+CMD ["apache2-foreground"]
