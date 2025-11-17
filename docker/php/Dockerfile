@@ -45,5 +45,5 @@ RUN chown -R www-data:www-data /var/www/html \
 EXPOSE 80
 
 # Commande de démarrage : installe Composer si nécessaire puis démarre Apache
-CMD ["sh", "-c", "cd /var/www/html && if [ -f composer.json ] && [ ! -f vendor/autoload.php ]; then composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; fi && apache2-foreground"]
+CMD ["sh", "-c", "cd /var/www/html && echo '=== Diagnostic ===' && echo 'Répertoire: $(pwd)' && echo 'Contenu:' && ls -la && echo 'index.php existe:' && test -f index.php && echo 'OUI' || echo 'NON' && echo 'composer.json existe:' && test -f composer.json && echo 'OUI' || echo 'NON' && if [ -f composer.json ] && [ ! -f vendor/autoload.php ]; then echo 'Installation Composer...' && composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev; fi && echo 'Démarrage Apache...' && apache2-foreground"]
 
