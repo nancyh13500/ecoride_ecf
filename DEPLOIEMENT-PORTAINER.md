@@ -52,58 +52,53 @@ docker network ls | grep ecoride
 
 ## Déploiement dans Portainer
 
-### ⚠️ IMPORTANT : Cloner le projet d'abord
+### ✅ Déploiement automatique depuis Git (Recommandé)
 
-**Avant de déployer dans Portainer, vous DEVEZ cloner le projet dans `/home/docker/web/ecoride_ecf/`** car tous les chemins dans `docker-compose.yml` sont absolus et pointent vers ce répertoire.
-
-```bash
-# Se connecter au serveur en tant qu'utilisateur docker
-cd /home/docker/web
-
-# Cloner le projet (remplacez par votre URL Git)
-git clone https://github.com/votre-username/ecoride_ecf.git ecoride_ecf
-
-# Vérifier que les fichiers sont présents
-ls -la /home/docker/web/ecoride_ecf/
-# Vous devriez voir : index.php, docker-compose.yml, lib/, pages/, etc.
-```
-
-### Option 1 : Upload manuel (Recommandé)
+Le `docker-compose.yml` est maintenant configuré pour fonctionner directement avec l'option "Repository" de Portainer. **Aucun clonage manuel n'est nécessaire !**
 
 1. **Dans Portainer :**
+
    - Allez dans **Stacks** > **Add stack**
    - **Name** : `ecoride`
-   - **Build method** : Sélectionnez **Upload**
-   - **Compose file** : Ouvrez le fichier `/home/docker/web/ecoride_ecf/docker-compose.yml` sur le serveur et copiez-collez son contenu
-   - Cliquez sur **Deploy the stack**
-
-### Option 2 : Déploiement via Git (nécessite configuration supplémentaire)
-
-Si vous voulez utiliser l'option "Repository" de Portainer :
-
-1. **Cloner le projet manuellement d'abord** (voir ci-dessus)
-
-2. **Dans Portainer :**
    - **Build method** : Sélectionnez **Repository**
-   - **Repository URL** : URL de votre dépôt Git
-   - **Repository reference** : `main` ou `master`
+   - **Repository URL** : `https://github.com/votre-username/ecoride_ecf.git`
+   - **Repository reference** : `dev` (votre branche)
    - **Compose path** : `docker-compose.yml`
-   - ⚠️ **Important** : Après le clonage, Portainer va cloner dans un répertoire temporaire (ex: `/data/compose/X/`), mais votre `docker-compose.yml` pointe vers `/home/docker/web/ecoride_ecf/`. Vous devrez copier les fichiers :
-     ```bash
-     # Après le déploiement, copier les fichiers du répertoire cloné
-     cp -r /data/compose/X/* /home/docker/web/ecoride_ecf/
-     ```
+   - **Repository authentication** : Si votre repo est privé, configurez les credentials
 
-**Recommandation** : Utilisez l'option "Upload" après avoir cloné manuellement le projet dans `/home/docker/web/ecoride_ecf/`.
+2. **Cliquez sur "Deploy the stack"**
+
+Portainer va automatiquement :
+
+- ✅ Cloner le projet depuis Git
+- ✅ Builder l'image Docker
+- ✅ Démarrer tous les conteneurs
+- ✅ Installer les dépendances Composer
+
+### Option alternative : Upload manuel
+
+Si vous préférez cloner manuellement le projet :
+
+```bash
+# Sur le serveur
+cd /home/docker/web
+git clone -b dev https://github.com/votre-username/ecoride_ecf.git ecoride_ecf
+```
+
+Puis dans Portainer :
+
+- **Build method** : Sélectionnez **Upload**
+- **Compose file** : Copiez-collez le contenu de `docker-compose.yml`
+- Cliquez sur **Deploy the stack**
 
 ## Structure des volumes
 
-Tous les volumes utilisent des chemins absolus :
+Configuration hybride optimale :
 
-- **Code de l'application** : `/home/docker/web/ecoride_ecf` → `/var/www/html`
-- **Données MySQL** : `/home/docker/web/ecoride_ecf/mysql_data` → `/var/lib/mysql`
-- **Données MongoDB** : `/home/docker/web/ecoride_ecf/mongodb_data` → `/data/db`
-- **Fichier SQL d'initialisation** : `/home/docker/web/ecoride_ecf/ecoride.sql` → `/docker-entrypoint-initdb.d/ecoride.sql`
+- **Code de l'application** : Chemin relatif (`.`) → `/var/www/html` (monte le répertoire cloné par Portainer)
+- **Données MySQL** : `/home/docker/web/ecoride_ecf/mysql_data` → `/var/lib/mysql` (chemin absolu pour persistance)
+- **Données MongoDB** : `/home/docker/web/ecoride_ecf/mongodb_data` → `/data/db` (chemin absolu pour persistance)
+- **Fichier SQL d'initialisation** : Chemin relatif (`./ecoride.sql`) → `/docker-entrypoint-initdb.d/ecoride.sql` (depuis le repo cloné)
 
 ## Vérification après déploiement
 
