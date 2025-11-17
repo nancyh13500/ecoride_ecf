@@ -1,5 +1,9 @@
 version: '3.8'
 
+# VERSION AVEC CHEMINS ABSOLUS
+# Utilisez cette version si vous clonez manuellement le projet dans /home/docker/web/ecoride_ecf
+# Dans Portainer, utilisez l'option "Upload" au lieu de "Repository"
+
 services:
   db:
     image: mysql:8.0
@@ -19,7 +23,7 @@ services:
   app:
     build:
       context: /home/docker/web/ecoride_ecf
-      dockerfile: /home/docker/web/ecoride_ecf/docker/php/Dockerfile
+      dockerfile: ./docker/php/Dockerfile
     container_name: ecoride_app
     volumes:
       - /home/docker/web/ecoride_ecf:/var/www/html
@@ -62,3 +66,4 @@ networks:
   ecoride:
     external: true
     name: ecoride
+

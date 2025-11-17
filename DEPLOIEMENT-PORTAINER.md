@@ -52,59 +52,49 @@ docker network ls | grep ecoride
 
 ## Déploiement dans Portainer
 
-### Option 1 : Déploiement via Git (Recommandé)
+### ⚠️ IMPORTANT : Cloner le projet d'abord
 
-1. **Accédez à Portainer** et allez dans **Stacks**
+**Avant de déployer dans Portainer, vous DEVEZ cloner le projet dans `/home/docker/web/ecoride_ecf/`** car tous les chemins dans `docker-compose.yml` sont absolus et pointent vers ce répertoire.
 
-2. **Cliquez sur "Add stack"**
+```bash
+# Se connecter au serveur en tant qu'utilisateur docker
+cd /home/docker/web
 
-3. **Configurez la stack :**
+# Cloner le projet (remplacez par votre URL Git)
+git clone https://github.com/votre-username/ecoride_ecf.git ecoride_ecf
 
-   - **Name** : `ecoride` (ou le nom de votre choix)
-   - **Build method** : Sélectionnez **Repository**
-   - **Repository URL** : URL de votre dépôt Git
-     - Exemple : `https://github.com/votre-username/ecoride_ecf.git`
-   - **Repository reference** : `main` ou `master` (selon votre branche principale)
-   - **Compose path** : `docker-compose.yml`
-   - **Repository authentication** : Si votre repo est privé, configurez les credentials
+# Vérifier que les fichiers sont présents
+ls -la /home/docker/web/ecoride_ecf/
+# Vous devriez voir : index.php, docker-compose.yml, lib/, pages/, etc.
+```
 
-4. **Important : Configuration du chemin de clonage**
+### Option 1 : Upload manuel (Recommandé)
 
-   Par défaut, Portainer clone dans un répertoire temporaire. Pour que le code soit dans `/home/docker/web/ecoride_ecf/`, vous avez deux options :
-
-   **Option A : Cloner manuellement avant**
-
-   ```bash
-   cd /home/docker/web/ecoride_ecf
-   git clone https://github.com/votre-username/ecoride_ecf.git .
-   ```
-
-   Puis dans Portainer, utilisez l'option "Upload" au lieu de "Repository"
-
-   **Option B : Utiliser le répertoire cloné par Portainer**
-
-   Si Portainer clone dans `/data/compose/X/` (où X est l'ID de la stack), vous devrez soit :
-
-   - Modifier le `docker-compose.yml` pour pointer vers ce répertoire
-   - Ou créer un lien symbolique : `ln -s /data/compose/X /home/docker/web/ecoride_ecf`
-
-5. **Cliquez sur "Deploy the stack"**
-
-### Option 2 : Upload manuel
-
-1. **Clonez le projet sur le serveur :**
-
-   ```bash
-   cd /home/docker/web/ecoride_ecf
-   git clone https://github.com/votre-username/ecoride_ecf.git .
-   ```
-
-2. **Dans Portainer :**
+1. **Dans Portainer :**
    - Allez dans **Stacks** > **Add stack**
    - **Name** : `ecoride`
    - **Build method** : Sélectionnez **Upload**
-   - **Compose file** : Copiez-collez le contenu de `docker-compose.yml`
+   - **Compose file** : Ouvrez le fichier `/home/docker/web/ecoride_ecf/docker-compose.yml` sur le serveur et copiez-collez son contenu
    - Cliquez sur **Deploy the stack**
+
+### Option 2 : Déploiement via Git (nécessite configuration supplémentaire)
+
+Si vous voulez utiliser l'option "Repository" de Portainer :
+
+1. **Cloner le projet manuellement d'abord** (voir ci-dessus)
+
+2. **Dans Portainer :**
+   - **Build method** : Sélectionnez **Repository**
+   - **Repository URL** : URL de votre dépôt Git
+   - **Repository reference** : `main` ou `master`
+   - **Compose path** : `docker-compose.yml`
+   - ⚠️ **Important** : Après le clonage, Portainer va cloner dans un répertoire temporaire (ex: `/data/compose/X/`), mais votre `docker-compose.yml` pointe vers `/home/docker/web/ecoride_ecf/`. Vous devrez copier les fichiers :
+     ```bash
+     # Après le déploiement, copier les fichiers du répertoire cloné
+     cp -r /data/compose/X/* /home/docker/web/ecoride_ecf/
+     ```
+
+**Recommandation** : Utilisez l'option "Upload" après avoir cloné manuellement le projet dans `/home/docker/web/ecoride_ecf/`.
 
 ## Structure des volumes
 
@@ -155,18 +145,36 @@ Si vous utilisez SWAG, vérifiez que la configuration pointe vers `ecoride_app:8
 
 ## Mise à jour du projet
 
-### Via Git (si déployé avec Repository)
-
-1. Dans Portainer, allez dans votre stack
-2. Cliquez sur **Editor**
-3. Cliquez sur **Pull and redeploy** pour récupérer les dernières modifications
-
-### Via Git manuel
+### Mise à jour via Git
 
 ```bash
+# Sur le serveur, mettre à jour le code
 cd /home/docker/web/ecoride_ecf
 git pull origin main
-# Redémarrez la stack dans Portainer
+
+# Dans Portainer, redéployer la stack
+# Allez dans votre stack > Editor > Update the stack
+```
+
+### Mise à jour automatique (optionnel)
+
+Vous pouvez créer un script pour automatiser la mise à jour :
+
+```bash
+#!/bin/bash
+# /home/docker/web/ecoride_ecf/update.sh
+
+cd /home/docker/web/ecoride_ecf
+git pull origin main
+
+# Redémarrer les conteneurs si nécessaire
+docker restart ecoride_app
+```
+
+Rendez-le exécutable :
+
+```bash
+chmod +x /home/docker/web/ecoride_ecf/update.sh
 ```
 
 ## Dépannage
