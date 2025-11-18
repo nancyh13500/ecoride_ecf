@@ -1,0 +1,69 @@
+version: '3.8'
+
+# VERSION AVEC CHEMINS ABSOLUS
+# Utilisez cette version si vous clonez manuellement le projet dans /home/docker/web/ecoride_ecf
+# Dans Portainer, utilisez l'option "Upload" au lieu de "Repository"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: ecoride_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ecoride
+      MYSQL_USER: ecoride_user
+      MYSQL_PASSWORD: ecoride_pass
+    volumes:
+      - /home/docker/web/ecoride_ecf/mysql_data:/var/lib/mysql
+      - /home/docker/web/ecoride_ecf/ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql:ro
+    networks:
+      - ecoride
+    restart: unless-stopped
+
+  app:
+    build:
+      context: /home/docker/web/ecoride_ecf
+      dockerfile: ./docker/php/Dockerfile
+    container_name: ecoride_app
+    volumes:
+      - /home/docker/web/ecoride_ecf:/var/www/html
+    environment:
+      - DOCKER_ENV=1
+    depends_on:
+      - db
+      - mongodb
+    networks:
+      - ecoride
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ecoride_phpmyadmin
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - db
+    networks:
+      - ecoride
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    container_name: ecoride_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb_user
+      MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
+      MONGO_INITDB_DATABASE: ecoride
+    volumes:
+      - /home/docker/web/ecoride_ecf/mongodb_data:/data/db
+    networks:
+      - ecoride
+    restart: unless-stopped
+
+networks:
+  ecoride:
+    external: true
+    name: ecoride
+

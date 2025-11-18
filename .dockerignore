@@ -2,3 +2,13 @@ vendor/
 node_modules/
 .git/
 .gitignore
+*.md
+Documentation/
+docker-compose.yml
+docker-compose.yml.old
+README*.md
+GUIDE-*.md
+# Ne pas exclure ecoride.sql - il est nécessaire pour l'initialisation
+# *.sql
+mysql_data/
+mongodb_data/

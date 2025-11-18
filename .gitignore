@@ -7,3 +7,6 @@ node_modules/
 .env.*.local
 *.env
 
+deploiement-portainer-simple.node_modules
+deploiement-portainer.md 
+deploiement-simple.md
