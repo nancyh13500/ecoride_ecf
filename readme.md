@@ -243,7 +243,7 @@ Consultez les logs de votre serveur web pour plus de détails sur les erreurs.
 
 ## 📝 Licence
 
-Ce projet est développé dans le cadre d'un ECF (Épreuve de Contrôle Final) en 2025.
+Ce projet est développé dans le cadre d'un ECF (Épreuve en Cours de formation) en 2025.
 
 ## 👨‍💻 Développement
 
