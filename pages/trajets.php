@@ -384,7 +384,7 @@ try {
                     <?php foreach ($covoiturages_suggestion as $covoiturage): ?>
                         <div class="col-lg-4 col-md-6 mb-4">
                             <div class="card h-100 suggestion-card border-light">
-                                <div class="card-header bg-dark text-dark text-center">
+                                <div class="card-header bg-dark text-white text-center">
                                     <h6 class="mb-0">
                                         <?php if ($covoiturage['statut'] == 2): ?>
                                             <i class="bi bi-clock-history me-2"></i>Trajet en attente
