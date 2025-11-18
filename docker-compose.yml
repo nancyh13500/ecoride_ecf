@@ -1,26 +1,31 @@
 version: '3.8'
 
 services:
+  # Base de données MySQL
   db:
     image: mysql:8.0
     container_name: ecoride_db
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: ecoride
-      MYSQL_USER: ecoride_user
+      MYSQL_ROOT_PASSWORD: root        # mot de passe root
+      MYSQL_DATABASE: ecoride          # base créée automatiquement
+      MYSQL_USER: ecoride_user         # utilisateur dédié (optionnel mais recommandé)
       MYSQL_PASSWORD: ecoride_pass
+    ports:
+      - "3307:3306"                    # expose MySQL sur localhost:3307
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql      # persistance des données
       - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
-    networks:
-      - ecoride
-    restart: unless-stopped
+  # optionnel : script d’init (importer le dump SQL)
 
+  # Serveur Apache + PHP
   app:
     build:
-      context: .
-      dockerfile: ./docker/php/Dockerfile
+      context: ./docker/php
+      dockerfile: Dockerfile
+
     container_name: ecoride_app
+    ports:
+      - "8000:80"
     volumes:
       - ./:/var/www/html
     environment:
@@ -30,38 +35,26 @@ services:
       - mongodb
     command: >
       sh -c "
-      cd /var/www/html &&
-      echo 'Répertoire de travail: $(pwd)' &&
-      echo 'Contenu du répertoire:' && ls -la &&
-      if [ -f composer.json ]; then
-        echo 'composer.json trouvé, installation des dépendances...' &&
-        if [ ! -f vendor/autoload.php ]; then
-          composer install --no-interaction --prefer-dist --optimize-autoloader;
-        else
-          echo 'vendor/autoload.php existe déjà, pas besoin d''installer';
-        fi
-      else
-        echo 'ATTENTION: composer.json non trouvé dans /var/www/html';
+      if [ ! -f /var/www/html/vendor/autoload.php ]; then
+        composer install --no-interaction --prefer-dist --optimize-autoloader;
       fi &&
       apache2-foreground
       "
-    networks:
-      - ecoride
-    restart: unless-stopped
 
+  # phpMyAdmin (pour gérer MySQL depuis le navigateur)
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: ecoride_phpmyadmin
+    ports:
+      - "8080:80"    # accessible sur http://localhost:8080
     environment:
       PMA_HOST: db
       PMA_USER: root
       PMA_PASSWORD: root
     depends_on:
       - db
-    networks:
-      - ecoride
-    restart: unless-stopped
 
+  # Base de données MongoDB pour les avis
   mongodb:
     image: mongo:7.0
     container_name: ecoride_mongodb
@@ -69,17 +62,12 @@ services:
       MONGO_INITDB_ROOT_USERNAME: mongodb_user
       MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
       MONGO_INITDB_DATABASE: ecoride
+    ports:
+      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-    networks:
-      - ecoride
     restart: unless-stopped
 
 volumes:
   mysql_data:
   mongodb_data:
-
-networks:
-  ecoride:
-    external: true
-    name: ecoride
