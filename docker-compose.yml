@@ -13,9 +13,11 @@ services:
     ports:
       - "3307:3306"                    # expose MySQL sur localhost:3307
     volumes:
-      - mysql_data:/var/lib/mysql      # persistance des données
+      - mysql_data:/var/lib/mysql
       - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
-  # optionnel : script d’init (importer le dump SQL)
+    networks:
+      - ecoride
+    restart: unless-stopped
 
   # Serveur Apache + PHP
   app:
@@ -24,8 +26,6 @@ services:
       dockerfile: Dockerfile
 
     container_name: ecoride_app
-    ports:
-      - "8000:80"
     volumes:
       - ./:/var/www/html
     environment:
@@ -35,11 +35,24 @@ services:
       - mongodb
     command: >
       sh -c "
-      if [ ! -f /var/www/html/vendor/autoload.php ]; then
-        composer install --no-interaction --prefer-dist --optimize-autoloader;
+      cd /var/www/html &&
+      echo 'Répertoire de travail: $(pwd)' &&
+      echo 'Contenu du répertoire:' && ls -la &&
+      if [ -f composer.json ]; then
+        echo 'composer.json trouvé, installation des dépendances...' &&
+        if [ ! -f vendor/autoload.php ]; then
+          composer install --no-interaction --prefer-dist --optimize-autoloader;
+        else
+          echo 'vendor/autoload.php existe déjà, pas besoin d''installer';
+        fi
+      else
+        echo 'ATTENTION: composer.json non trouvé dans /var/www/html';
       fi &&
       apache2-foreground
       "
+    networks:
+      - ecoride
+    restart: unless-stopped
 
   # phpMyAdmin (pour gérer MySQL depuis le navigateur)
   phpmyadmin:
@@ -66,8 +79,15 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - ecoride
     restart: unless-stopped
 
 volumes:
   mysql_data:
   mongodb_data:
+
+networks:
+  ecoride:
+    external: true
+    name: ecoride
