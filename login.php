@@ -29,7 +29,7 @@ if (isset($_POST['loginUser'])) {
                 $query_params[$key] = $value;
             }
         }
-        
+
         if (!empty($query_params)) {
             $redirect_path .= '?' . http_build_query($query_params);
         }
@@ -122,7 +122,7 @@ if (isset($_POST['registerUser'])) {
                     $query_params[$key] = $value;
                 }
             }
-            
+
             if (!empty($query_params)) {
                 $redirect_path .= '?' . http_build_query($query_params);
             }

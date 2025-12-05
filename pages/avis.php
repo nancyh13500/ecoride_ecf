@@ -1,22 +1,69 @@
 <?php
+require_once __DIR__ . "/../vendor/autoload.php";
 require_once __DIR__ . "/../templates/header.php";
 require_once __DIR__ . "/../lib/pdo.php";
+require_once __DIR__ . "/../lib/mongodb.php";
 
-// Récupérer les avis validés depuis la base de données avec gestion d'erreur
+// Récupérer les avis validés depuis MongoDB
+$avis_list = [];
+$error_message = '';
+
 try {
-    $query = $pdo->prepare("
-        SELECT a.*, u.nom, u.prenom, u.photo, u.pseudo
-        FROM avis a
-        LEFT JOIN user u ON a.user_id = u.user_id
-        WHERE a.statut = 'valide'
-        ORDER BY a.avis_id DESC
-    ");
-    $query->execute();
-    $avis_list = $query->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    // Si la table avis n'existe pas, on utilise des données statiques
+    $avisCollection = getAvisCollection();
+
+    if ($avisCollection === null) {
+        $error_message = "MongoDB n'est pas disponible.";
+        $avis_list = [];
+    } else {
+        // Récupérer uniquement les avis validés (statut = 'valide')
+        $cursor = $avisCollection->find(
+            ['statut' => 'valide'],
+            ['sort' => ['created_at' => -1]]
+        );
+
+        // Convertir les résultats en tableau et enrichir avec les données utilisateur depuis MySQL
+        foreach ($cursor as $avis) {
+            $avisArray = [
+                '_id' => (string)$avis['_id'],
+                'user_id' => $avis['user_id'],
+                'note' => $avis['note'],
+                'commentaire' => $avis['commentaire'],
+                'statut' => $avis['statut'],
+                'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
+            ];
+
+            // Récupérer les informations utilisateur depuis MySQL
+            try {
+                $userQuery = $pdo->prepare("SELECT nom, prenom, pseudo, photo FROM user WHERE user_id = :user_id LIMIT 1");
+                $userQuery->execute(['user_id' => $avis['user_id']]);
+                $userData = $userQuery->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    $avisArray['nom'] = $userData['nom'];
+                    $avisArray['prenom'] = $userData['prenom'];
+                    $avisArray['pseudo'] = $userData['pseudo'];
+                    $avisArray['photo'] = $userData['photo'];
+                } else {
+                    $avisArray['nom'] = 'Utilisateur';
+                    $avisArray['prenom'] = '';
+                    $avisArray['pseudo'] = 'Anonyme';
+                    $avisArray['photo'] = null;
+                }
+            } catch (PDOException $e) {
+                // Si erreur MySQL, utiliser des valeurs par défaut
+                $avisArray['nom'] = 'Utilisateur';
+                $avisArray['prenom'] = '';
+                $avisArray['pseudo'] = 'Anonyme';
+                $avisArray['photo'] = null;
+            }
+
+            $avis_list[] = $avisArray;
+        }
+    }
+} catch (Exception $e) {
     $avis_list = [];
-    $error_message = "Table avis non trouvée, affichage des données statiques.";
+    $error_message = "Erreur lors de la récupération des avis : " . $e->getMessage();
+    error_log("Erreur MongoDB dans avis.php : " . $e->getMessage());
 }
 ?>
 

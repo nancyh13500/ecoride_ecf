@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserver'])) {
         $checkReservation = $pdo->prepare("
             SELECT reservation_id
             FROM reservations
-            WHERE user_id = :user_id AND covoiturage_id = :covoiturage_id
+            WHERE user_id = :user_id AND covoiturage_id = :covoiturage_id AND statut != 'annulée'
             LIMIT 1
         ");
         $checkReservation->execute([
@@ -173,7 +173,7 @@ if ($isConnected && $user) {
         $checkReservationDisplay = $pdo->prepare("
             SELECT reservation_id
             FROM reservations
-            WHERE user_id = :user_id AND covoiturage_id = :covoiturage_id
+            WHERE user_id = :user_id AND covoiturage_id = :covoiturage_id AND statut != 'annulée'
             LIMIT 1
         ");
         $checkReservationDisplay->execute([

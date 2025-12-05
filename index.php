@@ -1,6 +1,8 @@
 <?php
+require_once __DIR__ . "/vendor/autoload.php";
 require_once __DIR__ . "/lib/session.php";
 require_once __DIR__ . "/lib/pdo.php";
+require_once __DIR__ . "/lib/mongodb.php";
 require_once __DIR__ . "/templates/header.php";
 
 // Récupérer les villes disponibles depuis la base de données
@@ -40,22 +42,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
     exit();
 }
 
-// Récupérer les avis validés depuis la base de données pour le carrousel
+// Récupérer les avis validés depuis MongoDB pour le carrousel
 $avis_list = [];
 try {
-    $query_avis = $pdo->prepare("
-        SELECT a.*, u.nom, u.prenom, u.pseudo
-        FROM avis a
-        LEFT JOIN user u ON a.user_id = u.user_id
-        WHERE a.statut = 'valide'
-        ORDER BY a.avis_id DESC
-        LIMIT 3
-    ");
-    $query_avis->execute();
-    $avis_list = $query_avis->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
+    $avisCollection = getAvisCollection();
+
+    if ($avisCollection !== null) {
+        // Récupérer uniquement les avis validés (statut = 'valide'), limité à 3
+        $cursor = $avisCollection->find(
+            ['statut' => 'valide'],
+            ['sort' => ['created_at' => -1], 'limit' => 3]
+        );
+
+        // Convertir les résultats en tableau et enrichir avec les données utilisateur depuis MySQL
+        foreach ($cursor as $avis) {
+            $avisArray = [
+                '_id' => (string)$avis['_id'],
+                'user_id' => $avis['user_id'],
+                'note' => $avis['note'],
+                'commentaire' => $avis['commentaire'],
+                'statut' => $avis['statut'],
+                'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
+            ];
+
+            // Récupérer les informations utilisateur depuis MySQL
+            try {
+                $userQuery = $pdo->prepare("SELECT nom, prenom, pseudo FROM user WHERE user_id = :user_id LIMIT 1");
+                $userQuery->execute(['user_id' => $avis['user_id']]);
+                $userData = $userQuery->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    $avisArray['nom'] = $userData['nom'];
+                    $avisArray['prenom'] = $userData['prenom'];
+                    $avisArray['pseudo'] = $userData['pseudo'];
+                } else {
+                    $avisArray['nom'] = 'Utilisateur';
+                    $avisArray['prenom'] = '';
+                    $avisArray['pseudo'] = 'Anonyme';
+                }
+            } catch (PDOException $e) {
+                // Si erreur MySQL, utiliser des valeurs par défaut
+                $avisArray['nom'] = 'Utilisateur';
+                $avisArray['prenom'] = '';
+                $avisArray['pseudo'] = 'Anonyme';
+            }
+
+            $avis_list[] = $avisArray;
+        }
+    }
+} catch (Exception $e) {
     // En cas d'erreur, on continue avec une liste vide
     $avis_list = [];
+    error_log("Erreur MongoDB dans index.php : " . $e->getMessage());
 }
 
 // Récupérer les suggestions de trajets
