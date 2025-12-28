@@ -1,12 +1,17 @@
-# Dépendances
-vendor/
-node_modules/
+# PHPUnit
+.phpunit.cache/
+coverage/
+tests/.phpunit.result.cache
 
-.env
-.env.local
-.env.*.local
-*.env
+# Composer
+/vendor/
 
-deploiement-portainer-simple.node_modules
-deploiement-portainer.md 
-deploiement-simple.md
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
