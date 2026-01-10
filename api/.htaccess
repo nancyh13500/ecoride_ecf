@@ -9,3 +9,4 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^v1/(.*)$ v1/$1 [L]
 
+

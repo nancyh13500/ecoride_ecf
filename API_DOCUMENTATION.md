@@ -353,3 +353,4 @@ curl -X POST http://localhost:8000/api/v1/avis \
 - Les endpoints PUT et DELETE sont réservés aux employés (role_id = 2)
 - Les réponses sont toujours au format JSON
 - Les timestamps sont au format `Y-m-d H:i:s`
+

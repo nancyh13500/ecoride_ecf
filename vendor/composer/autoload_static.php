@@ -27,6 +27,10 @@ class ComposerStaticInit9eaaf0d06850843126c805f17d619920
         array (
             'MongoDB\\' => 8,
         ),
+        'E' =>
+        array (
+            'Ecoride\\Ecf\\' => 12,
+        ),
         'D' =>
         array (
             'DeepCopy\\' => 9,
@@ -49,6 +53,10 @@ class ComposerStaticInit9eaaf0d06850843126c805f17d619920
         'MongoDB\\' =>
         array (
             0 => __DIR__ . '/..' . '/mongodb/mongodb/src',
+        ),
+        'Ecoride\\Ecf\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/src',
         ),
         'DeepCopy\\' =>
         array (

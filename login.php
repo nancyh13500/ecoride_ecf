@@ -1,28 +1,35 @@
 <?php
-require_once __DIR__ . "/lib/session.php";
-require_once __DIR__ . "/lib/pdo.php";
-require_once __DIR__ . "/lib/user.php";
+require_once __DIR__ . '/vendor/autoload.php';
+
+use Ecoride\Ecf\Core\Session;
+use Ecoride\Ecf\Models\User;
+
+$session = new Session();
+$userModel = new User();
 
 $errors = [];
 
 if (isset($_POST['loginUser'])) {
-    $user = verifyUserLoginPassword($pdo, $_POST['email'], $_POST['password']);
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+
+    $user = $userModel->verifyLogin($email, $password);
 
     if ($user) {
-        // on va le connecter => session
+        // Connecter l'utilisateur
         $_SESSION['user'] = $user;
 
         // Gérer la redirection après connexion
         $redirect = $_GET['redirect'] ?? 'index.php';
 
-        // Construire le chemin de redirection correct pour le serveur de développement
+        // Construire le chemin de redirection correct
         if ($redirect === 'index.php') {
             $redirect_path = 'index.php';
         } else {
             $redirect_path = 'pages/' . $redirect;
         }
 
-        // Préserver les paramètres GET supplémentaires (comme id, from_covoiturage, etc.)
+        // Préserver les paramètres GET supplémentaires
         $query_params = [];
         foreach ($_GET as $key => $value) {
             if ($key !== 'redirect') {
@@ -42,7 +49,6 @@ if (isset($_POST['loginUser'])) {
         header("Location: $redirect_path");
         exit();
     } else {
-        // afficher une erreur
         $errors[] = "Identifiants incorrects. Veuillez réessayer.";
     }
 }
@@ -52,8 +58,8 @@ if (isset($_POST['registerUser'])) {
     $nom = filter_input(INPUT_POST, 'nom', FILTER_SANITIZE_SPECIAL_CHARS);
     $prenom = filter_input(INPUT_POST, 'prenom', FILTER_SANITIZE_SPECIAL_CHARS);
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-    $password = $_POST['password'];
-    $confirmPassword = $_POST['confirmPassword'];
+    $password = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirmPassword'] ?? '';
     $telephone = filter_input(INPUT_POST, 'telephone', FILTER_SANITIZE_SPECIAL_CHARS);
     $adresse = filter_input(INPUT_POST, 'adresse', FILTER_SANITIZE_SPECIAL_CHARS);
     $cp = filter_input(INPUT_POST, 'cp', FILTER_SANITIZE_SPECIAL_CHARS);
@@ -74,48 +80,38 @@ if (isset($_POST['registerUser'])) {
     }
 
     // Vérifier si l'email existe déjà
-    $emailQuery = $pdo->prepare("SELECT COUNT(*) FROM user WHERE email = :email");
-    $emailQuery->bindValue(':email', $email, PDO::PARAM_STR);
-    $emailQuery->execute();
-    if ($emailQuery->fetchColumn() > 0) {
+    if ($userModel->emailExists($email)) {
         $errors[] = "Cette adresse email est déjà utilisée.";
     }
 
     // Si pas d'erreurs, on procède à l'enregistrement
     if (empty($errors)) {
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $adresseComplete = trim($adresse . ', ' . $cp . ' ' . $ville);
 
-        $roleCovoiturage = 'Passager';
+        $userData = [
+            'nom' => $nom,
+            'prenom' => $prenom,
+            'email' => $email,
+            'password' => $password,
+            'telephone' => $telephone ?? '',
+            'adresse' => $adresseComplete,
+            'date_naissance' => $date_naissance ?? '1970-01-01',
+            'role_covoiturage' => 'Passager'
+        ];
 
-        $registerQuery = $pdo->prepare("INSERT INTO user (nom, prenom, email, password, telephone, adresse, date_naissance, photo, pseudo, role_id, role_covoiturage) 
-                               VALUES (:nom, :prenom, :email, :password, :telephone, :adresse, :date_naissance, :photo, :pseudo, :role_id, :role_covoiturage)");
-
-        $registerQuery->bindValue(':nom', $nom, PDO::PARAM_STR);
-        $registerQuery->bindValue(':prenom', $prenom, PDO::PARAM_STR);
-        $registerQuery->bindValue(':email', $email, PDO::PARAM_STR);
-        $registerQuery->bindValue(':password', $hashedPassword, PDO::PARAM_STR);
-        $registerQuery->bindValue(':telephone', $telephone, PDO::PARAM_STR);
-        $registerQuery->bindValue(':adresse', $adresse . ', ' . $cp . ' ' . $ville, PDO::PARAM_STR);
-        $registerQuery->bindValue(':date_naissance', $date_naissance, PDO::PARAM_STR);
-        $registerQuery->bindValue(':photo', '', PDO::PARAM_STR);
-        $registerQuery->bindValue(':pseudo', $prenom . ' ' . $nom, PDO::PARAM_STR);
-        $registerQuery->bindValue(':role_id', 3, PDO::PARAM_INT); // 3 = Utilisateur par défaut
-        $registerQuery->bindValue(':role_covoiturage', $roleCovoiturage, PDO::PARAM_STR);
-
-        if ($registerQuery->execute()) {
+        if ($userModel->register($userData)) {
             $_SESSION['success'] = "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.";
 
             // Gérer la redirection après inscription
             $redirect = $_GET['redirect'] ?? 'index.php';
 
-            // Construire le chemin de redirection correct pour le serveur de développement
             if ($redirect === 'index.php') {
                 $redirect_path = 'index.php';
             } else {
                 $redirect_path = 'pages/' . $redirect;
             }
 
-            // Préserver les paramètres GET supplémentaires (comme id, etc.)
+            // Préserver les paramètres GET supplémentaires
             $query_params = [];
             foreach ($_GET as $key => $value) {
                 if ($key !== 'redirect') {
