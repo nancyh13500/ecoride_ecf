@@ -409,21 +409,21 @@ require_once __DIR__ . "/../templates/header.php";
                                             </div>
                                             <div class="card-footer">
                                                 <div class="btn-group justify-content-center w-100" role="group">
-                                                    <form method="POST" class="d-inline ms-2">
+                                                    <form method="POST" class="d-inline ms-2 js-avis-action">
                                                         <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
                                                         <input type="hidden" name="action" value="valider">
                                                         <button type="submit" class="btn btn-success btn-sm">
                                                             <i class="bi bi-check-lg me-1"></i>Valider
                                                         </button>
                                                     </form>
-                                                    <form method="POST" class="d-inline ms-2">
+                                                    <form method="POST" class="d-inline ms-2 js-avis-action">
                                                         <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
                                                         <input type="hidden" name="action" value="refuser">
                                                         <button type="submit" class="btn btn-danger btn-sm">
                                                             <i class="bi bi-x-lg me-1"></i>Refuser
                                                         </button>
                                                     </form>
-                                                    <form method="POST" class="d-inline ms-2" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')">
+                                                    <form method="POST" class="d-inline ms-2 js-avis-action">
                                                         <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
                                                         <input type="hidden" name="action" value="supprimer">
                                                         <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -528,7 +528,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                 <td>
                                                     <div class="btn-group-vertical btn-group-sm" role="group">
                                                         <?php if ($statut !== 'valide'): ?>
-                                                            <form method="POST" class="d-inline mb-1">
+                                                            <form method="POST" class="d-inline mb-1 js-avis-action">
                                                                 <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
                                                                 <input type="hidden" name="action" value="valider">
                                                                 <button type="submit" class="btn btn-success btn-sm w-100">
@@ -537,7 +537,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                             </form>
                                                         <?php endif; ?>
                                                         <?php if ($statut !== 'refuse'): ?>
-                                                            <form method="POST" class="d-inline mb-1">
+                                                            <form method="POST" class="d-inline mb-1 js-avis-action">
                                                                 <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
                                                                 <input type="hidden" name="action" value="refuser">
                                                                 <button type="submit" class="btn btn-danger btn-sm w-100">
@@ -545,7 +545,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                                 </button>
                                                             </form>
                                                         <?php endif; ?>
-                                                        <form method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')">
+                                                        <form method="POST" class="d-inline js-avis-action">
                                                             <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? $avis['avis_id'] ?? '') ?>">
                                                             <input type="hidden" name="action" value="supprimer">
                                                             <button type="submit" class="btn btn-outline-danger btn-sm w-100">
@@ -731,5 +731,7 @@ require_once __DIR__ . "/../templates/header.php";
         </div>
     </div>
 </section>
+
+<script src="/assets/js/ajax-avis.js"></script>
 
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>

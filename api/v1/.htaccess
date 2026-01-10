@@ -16,3 +16,4 @@ RewriteRule ^([^/]+)/([^/]+)$ $1.php [L,QSA]
 # Pour les endpoints sans ID (ex: /api/v1/avis)
 RewriteRule ^([^/]+)$ $1.php [L,QSA]
 
+

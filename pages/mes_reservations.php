@@ -424,9 +424,10 @@ require_once __DIR__ . "/../templates/header.php";
                                                     $peutAnnuler = ($statutReservationMin !== 'confirmée' && $statutReservationMin !== 'annulée' && $reservationId > 0);
                                                     ?>
                                                     <?php if ($peutAnnuler): ?>
-                                                        <form method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir annuler cette réservation ? Les places seront libérées.');">
+                                                        <form method="POST" class="d-inline js-reservation-action">
                                                             <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)$reservationId) ?>">
-                                                            <button type="submit" name="cancel_reservation" class="btn btn-sm btn-danger">
+                                                            <input type="hidden" name="action" value="cancel_reservation">
+                                                            <button type="submit" class="btn btn-sm btn-danger">
                                                                 Annuler
                                                             </button>
                                                         </form>
@@ -493,13 +494,12 @@ require_once __DIR__ . "/../templates/header.php";
                                                 <?php elseif ($reservationConfirmee): ?>
                                                     <span class="badge bg-primary mt-2">Réservation confirmée</span>
                                                 <?php else: ?>
-                                                    <form method="POST" class="d-inline">
+                                                    <form method="POST" class="d-inline js-reservation-action">
                                                         <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)($reservation['reservation_id'] ?? '')) ?>">
+                                                        <input type="hidden" name="action" value="validate_reservation">
                                                         <button
                                                             type="submit"
-                                                            name="validate_reservation"
-                                                            class="btn btn-sm btn-primary mt-2"
-                                                            onclick="return confirm('Confirmer cette réservation pour le passager sélectionné ?');">
+                                                            class="btn btn-sm btn-primary mt-2">
                                                             Valider la réservation
                                                         </button>
                                                     </form>
@@ -627,5 +627,7 @@ require_once __DIR__ . "/../templates/header.php";
     </div>
 
 </section>
+
+<script src="/assets/js/ajax-reservations.js"></script>
 
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>
