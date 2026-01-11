@@ -70,5 +70,6 @@ function getAvisCollection()
     if ($mongoDB === null) {
         return null;
     }
+    // Collection hiérarchique : avis
     return $mongoDB->selectCollection('avis');
 }

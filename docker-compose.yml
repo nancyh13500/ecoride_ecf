@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Base de données MySQL
   db:
@@ -13,9 +11,11 @@ services:
     ports:
       - "3307:3306"                    # expose MySQL sur localhost:3307
     volumes:
-      - mysql_data:/var/lib/mysql      # persistance des données
+      - mysql_data:/var/lib/mysql
       - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
-  # optionnel : script d’init (importer le dump SQL)
+    networks:
+      - ecoride
+    restart: unless-stopped
 
   # Serveur Apache + PHP
   app:
@@ -24,8 +24,6 @@ services:
       dockerfile: Dockerfile
 
     container_name: ecoride_app
-    ports:
-      - "8000:80"
     volumes:
       - ./:/var/www/html
     environment:
@@ -33,13 +31,33 @@ services:
     depends_on:
       - db
       - mongodb
+    ports:
+      - "8000:80"                   # expose Apache sur localhost:8000
     command: >
       sh -c "
-      if [ ! -f /var/www/html/vendor/autoload.php ]; then
-        composer install --no-interaction --prefer-dist --optimize-autoloader;
+      cd /var/www/html &&
+      echo 'Répertoire de travail: $(pwd)' &&
+      if [ -f composer.json ]; then
+        echo 'composer.json trouvé, installation des dépendances...' &&
+        if [ ! -f vendor/autoload.php ] || [ ! -d vendor/symfony ]; then
+          echo 'Installation/réinstallation des dépendances Composer...' &&
+          rm -rf vendor composer.lock 2>/dev/null || true &&
+          composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts &&
+          echo 'Dépendances installées avec succès' &&
+          chown -R www-data:www-data vendor 2>/dev/null || true &&
+          chmod -R 755 vendor 2>/dev/null || true;
+        else
+          echo 'vendor/autoload.php existe déjà';
+        fi
+      else
+        echo 'ATTENTION: composer.json non trouvé dans /var/www/html';
       fi &&
+      /usr/local/bin/init-db.sh &
       apache2-foreground
       "
+    networks:
+      - ecoride
+    restart: unless-stopped
 
   # phpMyAdmin (pour gérer MySQL depuis le navigateur)
   phpmyadmin:
@@ -53,6 +71,8 @@ services:
       PMA_PASSWORD: root
     depends_on:
       - db
+    networks:
+      - ecoride
 
   # Base de données MongoDB pour les avis
   mongodb:
@@ -66,8 +86,14 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - ecoride
     restart: unless-stopped
 
 volumes:
   mysql_data:
   mongodb_data:
+
+networks:
+  ecoride:
+    driver: bridge

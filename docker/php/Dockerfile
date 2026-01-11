@@ -31,6 +31,13 @@ RUN pecl install mongodb \
 # Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Installation du client MySQL pour l'import SQL
+RUN apt-get update && apt-get install -y default-mysql-client && rm -rf /var/lib/apt/lists/*
+
+# Copie du script d'initialisation de la base de données
+COPY init-db.sh /usr/local/bin/init-db.sh
+RUN chmod +x /usr/local/bin/init-db.sh
+
 # Activation du module rewrite Apache
 RUN a2enmod rewrite headers
 
