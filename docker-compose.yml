@@ -37,17 +37,21 @@ services:
       sh -c "
       cd /var/www/html &&
       echo 'Répertoire de travail: $(pwd)' &&
-      echo 'Contenu du répertoire:' && ls -la &&
       if [ -f composer.json ]; then
-        echo 'composer.json trouvé, installation des dépendances...' &&
-        if [ ! -f vendor/autoload.php ]; then
-          composer install --no-interaction --prefer-dist --optimize-autoloader;
+        echo 'composer.json trouvé, vérification des dépendances...' &&
+        if [ ! -f vendor/autoload.php ] || [ ! -d vendor/symfony/polyfill-php85 ] || [ ! -d vendor/mongodb ]; then
+          echo 'Installation/réinstallation des dépendances Composer...' &&
+          composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts &&
+          echo 'Dépendances installées avec succès' &&
+          chown -R www-data:www-data vendor 2>/dev/null || true &&
+          chmod -R 755 vendor 2>/dev/null || true;
         else
-          echo 'vendor/autoload.php existe déjà, pas besoin d''installer';
+          echo 'Dépendances Composer déjà installées';
         fi
       else
         echo 'ATTENTION: composer.json non trouvé dans /var/www/html';
       fi &&
+      /usr/local/bin/init-db.sh &
       apache2-foreground
       "
     networks:
