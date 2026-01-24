@@ -2,7 +2,7 @@
 RewriteEngine On
 
 # Rediriger /api vers /api/index.php
-RewriteRule ^$ index.php [L]
+RewriteRule ^ index.php [QSA,L]
 
 # Pour les endpoints /api/v1/...
 RewriteCond %{REQUEST_FILENAME} !-f

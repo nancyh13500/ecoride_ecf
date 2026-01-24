@@ -15,3 +15,5 @@ tests/.phpunit.result.cache
 # OS
 .DS_Store
 Thumbs.db
+
+.env

@@ -4,7 +4,8 @@
     "type": "project",
     "require": {
         "php": ">=8.2",
-        "mongodb/mongodb": "^2.0"
+        "mongodb/mongodb": "^2.0",
+        "vlucas/phpdotenv": "^5.5"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5"
@@ -16,5 +17,3 @@
         "files": []
     }
 }
-
-
