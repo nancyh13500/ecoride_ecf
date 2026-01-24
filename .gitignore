@@ -1,19 +1,42 @@
-# PHPUnit
-.phpunit.cache/
-coverage/
-tests/.phpunit.result.cache
+# Dépendances
+vendor/
+node_modules/
 
-# Composer
-/vendor/
+# Variables d'environnement
+.env
+.env.local
+.env.*.local
+*.env
+
+# Fichiers Markdown (sauf guides)
+*.md
+!GUIDE-DOCKER-COMMANDS.md
+!GUIDE-VOIR-AVIS-MONGODB.md
+!README-Docker.md
+!README-MongoDB.md
+!readme.md
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
 
 # IDE
 .idea/
 .vscode/
-*.swp
-*.swo
+*.sublime-project
+*.sublime-workspace
 
-# OS
-.DS_Store
-Thumbs.db
-
-.env
+# Docker (optionnel - à garder si vous voulez versionner)
+# docker-compose.override.yml 
