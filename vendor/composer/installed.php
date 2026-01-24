@@ -3,7 +3,7 @@
         'name' => 'ecoride/ecf',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '0188365b8ca8eccf60410db3506c8a8d73169660',
+        'reference' => '9ca3e54d153ccf788e9cd86aeb8c9684ace005b3',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'ecoride/ecf' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '0188365b8ca8eccf60410db3506c8a8d73169660',
+            'reference' => '9ca3e54d153ccf788e9cd86aeb8c9684ace005b3',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
