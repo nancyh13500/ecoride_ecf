@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     libcurl4-openssl-dev \
+    bash \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation des extensions PHP
@@ -45,7 +46,9 @@ COPY . /var/www/html/
 
 # Copie du script d'initialisation de la base de données
 COPY docker/php/init-db.sh /usr/local/bin/init-db.sh
-RUN chmod +x /usr/local/bin/init-db.sh
+# Conversion des fins de ligne Windows (CRLF) en Linux (LF) et rendre exécutable
+RUN sed -i 's/\r$//' /usr/local/bin/init-db.sh && \
+    chmod +x /usr/local/bin/init-db.sh
 
 # Installation des dépendances Composer
 RUN if [ -f /var/www/html/composer.json ]; then \
