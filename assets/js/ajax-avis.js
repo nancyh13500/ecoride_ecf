@@ -33,8 +33,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     body: formData
                 });
 
+                // Vérifier si la réponse est OK
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
                 // Parser la réponse JSON
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    // Si la réponse n'est pas du JSON valide, lire le texte
+                    const text = await response.text();
+                    throw new Error('Réponse invalide du serveur: ' + text.substring(0, 100));
+                }
 
                 // Vérifier si la requête a réussi
                 if (data.success) {
@@ -63,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 // Gérer les erreurs réseau
                 console.error('Erreur:', error);
-                showMessage('Erreur réseau. Veuillez réessayer.', 'danger');
+                showMessage('Erreur: ' + (error.message || 'Erreur réseau. Veuillez réessayer.'), 'danger');
                 submitButton.disabled = false;
                 submitButton.innerHTML = originalText;
             }
