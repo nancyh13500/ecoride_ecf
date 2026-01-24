@@ -94,3 +94,6 @@ volumes:
   mysql_data:
   mongodb_data:
 
+networks:
+  ecoride:
+    driver: bridge
