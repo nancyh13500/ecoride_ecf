@@ -42,16 +42,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
     exit();
 }
 
-// Récupérer les avis validés depuis MongoDB pour le carrousel
+// Récupérer tous les avis validés depuis MongoDB
 $avis_list = [];
 try {
     $avisCollection = getAvisCollection();
 
     if ($avisCollection !== null) {
-        // Récupérer uniquement les avis validés (statut = 'valide'), limité à 3
+        // Récupérer tous les avis validés (statut = 'valide')
         $cursor = $avisCollection->find(
             ['statut' => 'valide'],
-            ['sort' => ['created_at' => -1], 'limit' => 3]
+            ['sort' => ['created_at' => -1]]
         );
 
         // Convertir les résultats en tableau et enrichir avec les données utilisateur depuis MySQL
@@ -289,89 +289,62 @@ try {
 <section class="avis">
     <div class="container py-5">
         <h1 class="text-center mb-5">Chaque avis nous donne un peu plus envie</h1>
-        <div id="avisCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                <div class="carousel-item active">
-                    <div class="row justify-content-center g-4">
-                        <div class="col-12 col-md-4 d-flex justify-content-center">
-                            <div class="card p-3 shadow-sm avis-card">
-                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
+        <?php if (!empty($avis_list)): ?>
+            <div id="avisCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <?php foreach ($avis_list as $index => $avis): ?>
+                        <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                            <div class="row justify-content-center g-4">
+                                <div class="col-12 col-md-4 d-flex justify-content-center">
+                                    <div class="card p-3 shadow-sm avis-card">
+                                        <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                                            <?php
+                                            $note = isset($avis['note']) ? (int)$avis['note'] : 5;
+                                            for ($i = 1; $i <= 5; $i++):
+                                            ?>
+                                                <?php if ($i <= $note): ?>
+                                                    <i class="bi bi-star-fill"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-star"></i>
+                                                <?php endif; ?>
+                                            <?php endfor; ?>
+                                        </div>
+                                        <h5 class="text-center fw-bold mb-2">
+                                            <?= htmlspecialchars(trim(($avis['prenom'] ?? '') . ' ' . ($avis['nom'] ?? '')) ?: ($avis['pseudo'] ?? 'Utilisateur')) ?>
+                                        </h5>
+                                        <p class="text-center"><?= htmlspecialchars($avis['commentaire'] ?? '') ?></p>
+                                    </div>
                                 </div>
-                                <h5 class="text-center fw-bold mb-2">Laura</h5>
-                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
                             </div>
                         </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
-                <div class="carousel-item">
-                    <div class="row justify-content-center g-4">
-                        <div class="col-12 col-md-4 d-flex justify-content-center">
-                            <div class="card p-3 shadow-sm avis-card">
-                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </div>
-                                <h5 class="text-center fw-bold mb-2">Nancy</h5>
-                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-item">
-                    <div class="row justify-content-center g-4">
-                        <div class="col-12 col-md-4 d-flex justify-content-center">
-                            <div class="card p-3 shadow-sm avis-card">
-                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </div>
-                                <h5 class="text-center fw-bold mb-2">Baptiste</h5>
-                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-item">
-                    <div class="row justify-content-center g-4">
-                        <div class="col-12 col-md-4 d-flex justify-content-center">
-                            <div class="card p-3 shadow-sm avis-card">
-                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </div>
-                                <h5 class="text-center fw-bold mb-2">David</h5>
-                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
-                            </div>
-                        </div>
-                    </div>
+                <?php if (count($avis_list) > 1): ?>
+                    <button class="carousel-control-prev d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="prev" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; left: -80px;">
+                        <span aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                            </svg>
+                        </span>
+                        <span class="visually-hidden">Précédent</span>
+                    </button>
+                    <button class="carousel-control-next d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="next" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; right: -80px;">
+                        <span aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+                            </svg>
+                        </span>
+                        <span class="visually-hidden">Suivant</span>
+                    </button>
+                <?php endif; ?>
+            </div>
+        <?php else: ?>
+            <div class="row justify-content-center">
+                <div class="col-12 text-center">
+                    <p class="text-muted">Aucun avis disponible pour le moment.</p>
                 </div>
             </div>
-            <button class="carousel-control-prev d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="prev" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; left: -80px;">
-                <span aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-left" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
-                    </svg>
-                </span>
-                <span class="visually-hidden">Précédent</span>
-            </button>
-            <button class="carousel-control-next d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="next" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; right: -80px;">
-                <span aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-right" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
-                    </svg>
-                </span>
-                <span class="visually-hidden">Suivant</span>
-            </button>
-        </div>
+        <?php endif; ?>
 
         <div class="container text-center p-4">
             <div class="row justify-content-center gy-2">
