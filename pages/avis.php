@@ -96,10 +96,10 @@ try {
                 </div>
             </div>
         <?php else: ?>
-            <div class="row justify-content-center g-4">
+            <div class="row justify-content-center g-0">
                 <?php foreach ($avis_list as $avis): ?>
                     <div class="col-12 col-md-3 d-flex justify-content-center">
-                        <div class="card p-3 shadow-sm avis-card">
+                        <div class="card p-3 shadow-sm avis-card mt-2 mb-2">
                             <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
                                 <?php
                                 $note = $avis['note'] ?? 5;
@@ -125,7 +125,7 @@ try {
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <h3 class="mb-4">Partagez votre expérience</h3>
-                <p class="text-muted mb-4">Votre avis nous aide à améliorer nos services et aide d'autres utilisateurs à faire leur choix.</p>
+                <p class="text-muted mb-4 ms-3 me-3">Votre avis nous aide à améliorer nos services et aide d'autres utilisateurs à faire leur choix.</p>
                 <?php if (isset($_SESSION['user'])): ?>
                     <a href="/pages/deposer_avis.php" class="btn btn-primary btn-lg">
                         <i class="bi bi-star-fill me-2"></i>Déposer un avis

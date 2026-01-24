@@ -294,7 +294,7 @@ try {
                 <div class="carousel-inner">
                     <?php foreach ($avis_list as $index => $avis): ?>
                         <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
-                            <div class="row justify-content-center g-4">
+                            <div class="row justify-content-center g-0">
                                 <div class="col-12 col-md-4 d-flex justify-content-center">
                                     <div class="card p-3 shadow-sm avis-card">
                                         <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
