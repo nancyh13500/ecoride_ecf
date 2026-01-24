@@ -69,9 +69,17 @@ if ($isDocker) {
 }
 
 // Paramètres de connexion PDO
-define('DB_DSN', "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4");
-define('DB_OPTIONS', [
+// Ajout du port pour forcer une connexion TCP/IP (évite l'erreur "No such file or directory")
+$dbPort = $isDocker ? '3306' : '3306';
+define('DB_DSN', "mysql:host=" . DB_HOST . ";port=" . $dbPort . ";dbname=" . DB_NAME . ";charset=utf8mb4");
+$dbOptions = [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     PDO::ATTR_EMULATE_PREPARES => false
-]);
+];
+// Désactiver la vérification SSL pour MySQL dans Docker (certificat auto-signé)
+if ($isDocker) {
+    $dbOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+    $dbOptions[PDO::MYSQL_ATTR_SSL_CA] = '';
+}
+define('DB_OPTIONS', $dbOptions);

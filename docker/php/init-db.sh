@@ -22,7 +22,7 @@ RETRY=0
 MYSQL_READY=0
 
 while [ $RETRY -lt $MAX_RETRIES ]; do
-    if mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" -e "SELECT 1" >/dev/null 2>&1; then
+    if mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" --ssl=0 -e "SELECT 1" >/dev/null 2>&1; then
         MYSQL_READY=1
         break
     fi
@@ -44,7 +44,7 @@ echo ""
 # Vérifier si la table 'user' existe (seulement si MySQL est prêt)
 if [ $MYSQL_READY -eq 1 ]; then
     echo "Vérification de l'existence de la table 'user'..."
-    TABLE_COUNT=$(mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DB_NAME' AND table_name='user';" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "0")
+    TABLE_COUNT=$(mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" --ssl=0 "$DB_NAME" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DB_NAME' AND table_name='user';" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "0")
     
     if [ "$TABLE_COUNT" -eq "0" ] || [ -z "$TABLE_COUNT" ]; then
         echo "✗ La table 'user' n'existe pas"
@@ -53,10 +53,10 @@ if [ $MYSQL_READY -eq 1 ]; then
         if [ -f "$SQL_FILE" ]; then
             echo "Fichier SQL trouvé: $SQL_FILE"
             echo "Import en cours..."
-            mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$SQL_FILE" 2>&1
+            mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" --ssl=0 "$DB_NAME" < "$SQL_FILE" 2>&1
             
             # Vérifier que l'import a réussi
-            TABLE_COUNT_AFTER=$(mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DB_NAME' AND table_name='user';" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "0")
+            TABLE_COUNT_AFTER=$(mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" --ssl=0 "$DB_NAME" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DB_NAME' AND table_name='user';" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || echo "0")
             if [ "$TABLE_COUNT_AFTER" -eq "1" ]; then
                 echo "✓ Import réussi - La table 'user' existe maintenant"
             else
@@ -75,7 +75,7 @@ if [ $MYSQL_READY -eq 1 ]; then
     
     echo ""
     echo "=== Tables présentes dans la base de données ==="
-    mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "SHOW TABLES;" 2>/dev/null || echo "Erreur lors de la vérification"
+    mysql -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" --ssl=0 "$DB_NAME" -e "SHOW TABLES;" 2>/dev/null || echo "Erreur lors de la vérification"
 else
     echo "⚠️  Impossible de vérifier/initialiser la base de données (MySQL non disponible)"
 fi
