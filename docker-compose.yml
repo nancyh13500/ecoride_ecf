@@ -21,7 +21,7 @@ services:
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
       interval: 5s
-      timeout: 4s
+      timeout: 3s
       retries: 10
 
   # Serveur Apache + PHP
