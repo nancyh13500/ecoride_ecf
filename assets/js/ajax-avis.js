@@ -1,10 +1,12 @@
 // Gestion des requêtes AJAX pour les avis (validation, refus, suppression)
 document.addEventListener('DOMContentLoaded', function() {
-    // Sélectionner tous les formulaires d'action sur les avis
-    const forms = document.querySelectorAll('.js-avis-action');
-
-    forms.forEach(form => {
-        form.addEventListener('submit', async function(event) {
+    // Utiliser la délégation d'événements pour gérer les formulaires dynamiques
+    document.addEventListener('submit', async function(event) {
+        // Vérifier si c'est un formulaire d'action sur les avis
+        const form = event.target.closest('.js-avis-action');
+        if (!form) return;
+        
+        event.preventDefault();
             // Empêcher le rechargement de page
             event.preventDefault();
 
@@ -53,18 +55,93 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Afficher un message de succès
                     showMessage(data.message, 'success');
 
-                    // Retirer l'élément de la page (carte ou ligne de tableau)
                     const cardElement = form.closest('.col-md-6, .col-lg-4, tr');
-                    if (cardElement) {
-                        // Animation de disparition
-                        cardElement.style.transition = 'opacity 0.3s';
-                        cardElement.style.opacity = '0';
-                        setTimeout(() => {
-                            cardElement.remove();
+                    
+                    if (action === 'supprimer') {
+                        // Pour la suppression, retirer l'élément de la page
+                        if (cardElement) {
+                            // Animation de disparition
+                            cardElement.style.transition = 'opacity 0.3s';
+                            cardElement.style.opacity = '0';
+                            setTimeout(() => {
+                                cardElement.remove();
 
-                            // Mettre à jour les compteurs dans les onglets
-                            updateTabCounters();
-                        }, 300);
+                                // Mettre à jour les compteurs dans les onglets
+                                updateTabCounters();
+                            }, 300);
+                        }
+                    } else if (action === 'valider' || action === 'refuser') {
+                        // Pour validation/refus, mettre à jour le statut dans le tableau
+                        if (cardElement && cardElement.tagName === 'TR') {
+                            // Trouver la cellule de statut
+                            const statutCell = cardElement.querySelector('td:nth-child(6)');
+                            if (statutCell) {
+                                const newStatut = action === 'valider' ? 'valide' : 'refuse';
+                                const newStatutText = action === 'valider' ? 'Validé' : 'Refusé';
+                                const newBadgeClass = action === 'valider' ? 'success' : 'danger';
+                                
+                                statutCell.innerHTML = `<span class="badge bg-${newBadgeClass}">${newStatutText}</span>`;
+                            }
+                            
+                            // Mettre à jour les boutons d'action
+                            const actionsCell = cardElement.querySelector('td:last-child');
+                            if (actionsCell) {
+                                const btnGroup = actionsCell.querySelector('.btn-group-vertical');
+                                if (btnGroup) {
+                                    // Retirer tous les formulaires existants
+                                    btnGroup.innerHTML = '';
+                                    
+                                    // Ajouter les nouveaux boutons selon le statut
+                                    const newStatut = action === 'valider' ? 'valide' : 'refuse';
+                                    
+                                    if (newStatut !== 'valide') {
+                                        btnGroup.innerHTML += `
+                                            <form method="POST" class="d-inline mb-1 js-avis-action">
+                                                <input type="hidden" name="avis_id" value="${avisId}">
+                                                <input type="hidden" name="action" value="valider">
+                                                <button type="submit" class="btn btn-success btn-sm w-100">
+                                                    <i class="bi bi-check-lg me-1"></i>Valider
+                                                </button>
+                                            </form>
+                                        `;
+                                    }
+                                    
+                                    if (newStatut !== 'refuse') {
+                                        btnGroup.innerHTML += `
+                                            <form method="POST" class="d-inline mb-1 js-avis-action">
+                                                <input type="hidden" name="avis_id" value="${avisId}">
+                                                <input type="hidden" name="action" value="refuser">
+                                                <button type="submit" class="btn btn-danger btn-sm w-100">
+                                                    <i class="bi bi-x-lg me-1"></i>Refuser
+                                                </button>
+                                            </form>
+                                        `;
+                                    }
+                                    
+                                    btnGroup.innerHTML += `
+                                        <form method="POST" class="d-inline js-avis-action">
+                                            <input type="hidden" name="avis_id" value="${avisId}">
+                                            <input type="hidden" name="action" value="supprimer">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                                <i class="bi bi-trash me-1"></i>Supprimer
+                                            </button>
+                                        </form>
+                                    `;
+                                }
+                            }
+                            
+                            // Réinitialiser le bouton
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = originalText;
+                        } else if (cardElement) {
+                            // Pour les cartes (page employe), retirer l'élément
+                            cardElement.style.transition = 'opacity 0.3s';
+                            cardElement.style.opacity = '0';
+                            setTimeout(() => {
+                                cardElement.remove();
+                                updateTabCounters();
+                            }, 300);
+                        }
                     }
                 } else {
                     // Afficher un message d'erreur
@@ -79,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitButton.disabled = false;
                 submitButton.innerHTML = originalText;
             }
-        });
+        }
     });
 
     // Fonction pour afficher des messages (toast/alerte)

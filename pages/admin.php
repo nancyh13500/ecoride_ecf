@@ -4,11 +4,11 @@ require_once __DIR__ . '/../lib/session.php';
 require_once __DIR__ . '/../lib/pdo.php';
 require_once __DIR__ . '/../lib/mongodb.php';
 
-// Vérification du rôle admin (role_id = 1)
+// Vérification du rôle admin (role_id = 1) ou employé (role_id = 2)
 requireLogin();
 
-if (!isset($_SESSION['user']) || $_SESSION['user']['role_id'] != 1) {
-    $_SESSION['error'] = "Accès refusé. Cette page est réservée aux administrateurs.";
+if (!isset($_SESSION['user']) || ($_SESSION['user']['role_id'] != 1 && $_SESSION['user']['role_id'] != 2)) {
+    $_SESSION['error'] = "Accès refusé. Cette page est réservée aux administrateurs et aux employés.";
     header('Location: /index.php');
     exit();
 }
@@ -569,6 +569,7 @@ require_once __DIR__ . '/../templates/header.php';
                                             <th>Commentaire</th>
                                             <th>Date</th>
                                             <th>Statut</th>
+                                            <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -624,6 +625,35 @@ require_once __DIR__ . '/../templates/header.php';
                                                 </td>
                                                 <td class="text-center">
                                                     <span class="badge bg-<?= $badge_class ?>"><?= $statut_text ?></span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn-group-vertical btn-group-sm" role="group">
+                                                        <?php if ($statut !== 'valide'): ?>
+                                                            <form method="POST" class="d-inline mb-1 js-avis-action">
+                                                                <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? '') ?>">
+                                                                <input type="hidden" name="action" value="valider">
+                                                                <button type="submit" class="btn btn-success btn-sm w-100">
+                                                                    <i class="bi bi-check-lg me-1"></i>Valider
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        <?php if ($statut !== 'refuse'): ?>
+                                                            <form method="POST" class="d-inline mb-1 js-avis-action">
+                                                                <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? '') ?>">
+                                                                <input type="hidden" name="action" value="refuser">
+                                                                <button type="submit" class="btn btn-danger btn-sm w-100">
+                                                                    <i class="bi bi-x-lg me-1"></i>Refuser
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                        <form method="POST" class="d-inline js-avis-action">
+                                                            <input type="hidden" name="avis_id" value="<?= htmlspecialchars($avis['_id'] ?? '') ?>">
+                                                            <input type="hidden" name="action" value="supprimer">
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                                                <i class="bi bi-trash me-1"></i>Supprimer
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -827,6 +857,7 @@ require_once __DIR__ . '/../templates/header.php';
 <!-- Script Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="/assets/js/chart.js"></script>
-
+<!-- Script pour la gestion des avis -->
+<script src="/assets/js/ajax-avis.js"></script>
 
 <?php require_once __DIR__ . '/../templates/footer.php'; ?>

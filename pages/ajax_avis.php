@@ -12,13 +12,13 @@ try {
     require_once __DIR__ . "/../lib/pdo.php";
     require_once __DIR__ . "/../lib/mongodb.php";
 
-    // Vérifier si l'utilisateur est connecté et a le rôle employé (role_id = 2)
+    // Vérifier si l'utilisateur est connecté et a le rôle admin (role_id = 1) ou employé (role_id = 2)
     requireLogin();
 
-    if (!isset($_SESSION['user']) || $_SESSION['user']['role_id'] != 2) {
+    if (!isset($_SESSION['user']) || ($_SESSION['user']['role_id'] != 1 && $_SESSION['user']['role_id'] != 2)) {
         echo json_encode([
             'success' => false,
-            'message' => "Accès refusé. Cette page est réservée aux employés."
+            'message' => "Accès refusé. Cette page est réservée aux administrateurs et aux employés."
         ]);
         exit();
     }
