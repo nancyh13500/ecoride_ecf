@@ -12,7 +12,9 @@ services:
       - "3307:3306"                    # expose MySQL sur localhost:3307
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./ecoride.sql:/docker-entrypoint-initdb.d/ecoride.sql
+      - ./ecoride.sql:/docker-entrypoint-initdb.d/01_ecoride.sql
+      - ./create_site_credits.sql:/docker-entrypoint-initdb.d/02_create_site_credits.sql
+      - ./alter_covoiturage.sql:/docker-entrypoint-initdb.d/03_alter_covoiturage.sql
     networks:
       - ecoride
     restart: unless-stopped
