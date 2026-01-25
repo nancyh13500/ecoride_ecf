@@ -32,6 +32,11 @@ try {
                 'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
             ];
 
+            // Ajouter le covoiturage_id si présent
+            if (isset($avis['covoiturage_id'])) {
+                $avisArray['covoiturage_id'] = $avis['covoiturage_id'];
+            }
+
             // Récupérer les informations utilisateur depuis MySQL
             try {
                 $userQuery = $pdo->prepare("SELECT nom, prenom, pseudo, photo FROM user WHERE user_id = :user_id LIMIT 1");
@@ -55,6 +60,24 @@ try {
                 $avisArray['prenom'] = '';
                 $avisArray['pseudo'] = 'Anonyme';
                 $avisArray['photo'] = null;
+            }
+
+            // Récupérer les informations du covoiturage si présent
+            if (isset($avisArray['covoiturage_id'])) {
+                try {
+                    $covQuery = $pdo->prepare("SELECT lieu_depart, lieu_arrivee, date_depart, heure_depart FROM covoiturage WHERE covoiturage_id = :covoiturage_id LIMIT 1");
+                    $covQuery->execute(['covoiturage_id' => $avisArray['covoiturage_id']]);
+                    $covData = $covQuery->fetch(PDO::FETCH_ASSOC);
+
+                    if ($covData) {
+                        $avisArray['covoiturage_lieu_depart'] = $covData['lieu_depart'];
+                        $avisArray['covoiturage_lieu_arrivee'] = $covData['lieu_arrivee'];
+                        $avisArray['covoiturage_date_depart'] = $covData['date_depart'];
+                        $avisArray['covoiturage_heure_depart'] = $covData['heure_depart'];
+                    }
+                } catch (PDOException $e) {
+                    // En cas d'erreur, on continue sans les infos du covoiturage
+                }
             }
 
             $avis_list[] = $avisArray;
@@ -96,27 +119,65 @@ try {
                 </div>
             </div>
         <?php else: ?>
-            <div class="row justify-content-center g-0">
-                <?php foreach ($avis_list as $avis): ?>
-                    <div class="col-12 col-md-3 d-flex justify-content-center">
-                        <div class="card p-3 shadow-sm avis-card mt-2 mb-2">
-                            <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                <?php
-                                $note = $avis['note'] ?? 5;
-                                for ($i = 1; $i <= 5; $i++):
-                                ?>
-                                    <?php if ($i <= $note): ?>
-                                        <i class="bi bi-star-fill"></i>
-                                    <?php else: ?>
-                                        <i class="bi bi-star"></i>
-                                    <?php endif; ?>
-                                <?php endfor; ?>
-                            </div>
-                            <h5 class="text-center fw-bold mb-2"><?= htmlspecialchars(($avis['prenom'] ?? 'Utilisateur') . ' ' . ($avis['nom'] ?? 'EcoRide')) ?></h5>
-                            <p class="text-center"><?= htmlspecialchars($avis['commentaire'] ?? 'Excellent service, je recommande !') ?></p>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+            <div class="container">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle">
+                        <thead class="table-light text-center">
+                            <tr>
+                                <th scope="col" style="width: 15%;">Utilisateur</th>
+                                <th scope="col" style="width: 10%;">Note</th>
+                                <th scope="col" style="width: 15%;">Covoiturage</th>
+                                <th scope="col" style="width: 45%;">Commentaire</th>
+                                <th scope="col" style="width: 15%;">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($avis_list as $avis): ?>
+                                <tr>
+                                    <td>
+                                        <strong><?= htmlspecialchars(trim(($avis['prenom'] ?? '') . ' ' . ($avis['nom'] ?? '')) ?: ($avis['pseudo'] ?? 'Utilisateur')) ?></strong>
+                                    </td>
+                                    <td>
+                                        <div class="text-warning text-center">
+                                            <?php
+                                            $note = $avis['note'] ?? 5;
+                                            for ($i = 1; $i <= 5; $i++):
+                                            ?>
+                                                <?php if ($i <= $note): ?>
+                                                    <i class="bi bi-star-fill"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-star"></i>
+                                                <?php endif; ?>
+                                            <?php endfor; ?>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if (isset($avis['covoiturage_lieu_depart']) && isset($avis['covoiturage_lieu_arrivee'])): ?>
+                                            <small>
+                                                <i class="bi bi-geo-alt me-1"></i>
+                                                <?= htmlspecialchars($avis['covoiturage_lieu_depart'] . ' → ' . $avis['covoiturage_lieu_arrivee']) ?>
+                                            </small>
+                                        <?php else: ?>
+                                            <span class="text-muted small">Avis général</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <p class="mb-0"><?= htmlspecialchars($avis['commentaire'] ?? '') ?></p>
+                                    </td>
+                                    <td class="text-center">
+                                        <small class="text-muted">
+                                            <?php if (!empty($avis['created_at'])): ?>
+                                                <?= date('d/m/Y', strtotime($avis['created_at'])) ?>
+                                            <?php else: ?>
+                                                -
+                                            <?php endif; ?>
+                                        </small>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         <?php endif; ?>
     </div>

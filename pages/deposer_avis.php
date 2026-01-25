@@ -14,10 +14,78 @@ $user = $_SESSION['user'];
 $success_message = '';
 $error_message = '';
 
+// Récupérer les covoiturages auxquels l'utilisateur a participé
+$covoiturages = [];
+try {
+    $currentUserId = (int)$user['user_id'];
+    
+    // Récupérer les covoiturages où l'utilisateur est conducteur (trajets terminés)
+    $stmt = $pdo->prepare("
+        SELECT c.covoiturage_id, c.lieu_depart, c.lieu_arrivee, c.date_depart, c.heure_depart
+        FROM covoiturage c
+        WHERE c.user_id = :user_id
+        AND (c.date_depart < CURDATE() OR (c.date_depart = CURDATE() AND c.heure_depart < CURTIME()))
+        ORDER BY c.date_depart DESC, c.heure_depart DESC
+        LIMIT 20
+    ");
+    $stmt->execute([':user_id' => $currentUserId]);
+    $covoituragesConducteur = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Récupérer les covoiturages où l'utilisateur est passager (via réservations)
+    $reservationSupport = null;
+    $reservationTables = ['reservations', 'reservation'];
+    foreach ($reservationTables as $tableName) {
+        try {
+            $pdo->query("SELECT 1 FROM {$tableName} LIMIT 1");
+            $reservationSupport = $tableName;
+            break;
+        } catch (Throwable $ignored) {
+            continue;
+        }
+    }
+    
+    $covoituragesPassager = [];
+    if ($reservationSupport) {
+        $stmt = $pdo->prepare("
+            SELECT c.covoiturage_id, c.lieu_depart, c.lieu_arrivee, c.date_depart, c.heure_depart
+            FROM {$reservationSupport} r
+            JOIN covoiturage c ON c.covoiturage_id = r.covoiturage_id
+            WHERE r.user_id = :user_id
+            AND (c.date_depart < CURDATE() OR (c.date_depart = CURDATE() AND c.heure_depart < CURTIME()))
+            ORDER BY c.date_depart DESC, c.heure_depart DESC
+            LIMIT 20
+        ");
+        $stmt->execute([':user_id' => $currentUserId]);
+        $covoituragesPassager = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    // Fusionner et dédupliquer les covoiturages
+    $covoituragesIds = [];
+    foreach ($covoituragesConducteur as $cov) {
+        $id = (int)$cov['covoiturage_id'];
+        if (!isset($covoituragesIds[$id])) {
+            $covoituragesIds[$id] = $cov;
+            $covoiturages[] = $cov;
+        }
+    }
+    foreach ($covoituragesPassager as $cov) {
+        $id = (int)$cov['covoiturage_id'];
+        if (!isset($covoituragesIds[$id])) {
+            $covoituragesIds[$id] = $cov;
+            $covoiturages[] = $cov;
+        }
+    }
+} catch (Exception $e) {
+    $covoiturages = [];
+}
+
 // Traitement du formulaire d'avis
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
     $note = intval($_POST['note']);
     $commentaire = trim($_POST['commentaire']);
+    $covoiturage_id = isset($_POST['covoiturage_id']) && $_POST['covoiturage_id'] !== '' 
+        ? intval($_POST['covoiturage_id']) 
+        : null;
 
     // Validation des données
     if ($note < 1 || $note > 5) {
@@ -27,35 +95,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
     } elseif (strlen($commentaire) > 250) {
         $error_message = "Le commentaire ne doit pas dépasser 250 caractères (actuellement " . strlen($commentaire) . " caractères).";
     } else {
-        try {
-            $avisCollection = getAvisCollection();
-
-            if ($avisCollection === null) {
-                throw new Exception("MongoDB n'est pas disponible. Veuillez contacter l'administrateur.");
+        // Si un covoiturage est sélectionné, vérifier qu'il appartient bien à l'utilisateur
+        if ($covoiturage_id !== null) {
+            $covoiturageValide = false;
+            foreach ($covoiturages as $cov) {
+                if ((int)$cov['covoiturage_id'] === $covoiturage_id) {
+                    $covoiturageValide = true;
+                    break;
+                }
             }
-
-            // Créer un nouvel avis dans MongoDB
-            $avisDocument = [
-                'user_id' => (int)$user['user_id'],
-                'note' => $note,
-                'commentaire' => $commentaire,
-                'statut' => 'en attente',
-                'created_at' => new MongoDB\BSON\UTCDateTime(),
-                'updated_at' => new MongoDB\BSON\UTCDateTime()
-            ];
-
-            $result = $avisCollection->insertOne($avisDocument);
-
-            if ($result->getInsertedCount() > 0) {
-                // Rediriger vers la page avis avec un message de succès
-                $_SESSION['success_message'] = "Votre avis a été publié avec succès ! Il sera visible après validation par un employé.";
-                header("Location: /pages/avis.php");
-                exit();
-            } else {
-                throw new Exception("Erreur lors de l'insertion de l'avis.");
+            if (!$covoiturageValide) {
+                $error_message = "Le covoiturage sélectionné n'est pas valide.";
             }
-        } catch (Exception $e) {
-            $error_message = "Erreur lors de la publication de votre avis : " . $e->getMessage();
+        }
+        
+        if (empty($error_message)) {
+            try {
+                $avisCollection = getAvisCollection();
+
+                if ($avisCollection === null) {
+                    throw new Exception("MongoDB n'est pas disponible. Veuillez contacter l'administrateur.");
+                }
+
+                // Créer un nouvel avis dans MongoDB
+                $avisDocument = [
+                    'user_id' => (int)$user['user_id'],
+                    'note' => $note,
+                    'commentaire' => $commentaire,
+                    'statut' => 'en attente',
+                    'created_at' => new MongoDB\BSON\UTCDateTime(),
+                    'updated_at' => new MongoDB\BSON\UTCDateTime()
+                ];
+                
+                // Ajouter le covoiturage_id si sélectionné
+                if ($covoiturage_id !== null) {
+                    $avisDocument['covoiturage_id'] = $covoiturage_id;
+                }
+
+                $result = $avisCollection->insertOne($avisDocument);
+
+                if ($result->getInsertedCount() > 0) {
+                    // Rediriger vers la page avis avec un message de succès
+                    $_SESSION['success_message'] = "Votre avis a été publié avec succès ! Il sera visible après validation par un employé.";
+                    header("Location: /pages/avis.php");
+                    exit();
+                } else {
+                    throw new Exception("Erreur lors de l'insertion de l'avis.");
+                }
+            } catch (Exception $e) {
+                $error_message = "Erreur lors de la publication de votre avis : " . $e->getMessage();
+            }
         }
     }
 }
@@ -101,6 +190,40 @@ require_once __DIR__ . "/../templates/header.php";
                         <?php endif; ?>
 
                         <form method="POST" action="deposer_avis.php" id="avisForm">
+                            <!-- Nouveau champ pour sélectionner un covoiturage -->
+                            <div class="mb-4">
+                                <label for="covoiturage_id" class="form-label fw-bold">Covoiturage concerné (optionnel) :</label>
+                                <select class="form-select" id="covoiturage_id" name="covoiturage_id">
+                                    <option value="">Avis général sur EcoRide</option>
+                                    <?php if (!empty($covoiturages)): ?>
+                                        <?php foreach ($covoiturages as $cov): ?>
+                                            <?php
+                                            $dateDepart = '';
+                                            if (!empty($cov['date_depart']) && $cov['date_depart'] !== '0000-00-00') {
+                                                $dateDepart = date('d/m/Y', strtotime($cov['date_depart']));
+                                            }
+                                            $heureDepart = '';
+                                            if (!empty($cov['heure_depart']) && $cov['heure_depart'] !== '00:00:00') {
+                                                $heureDepart = date('H:i', strtotime($cov['heure_depart']));
+                                            }
+                                            $label = htmlspecialchars($cov['lieu_depart'] . ' → ' . $cov['lieu_arrivee']);
+                                            if ($dateDepart) {
+                                                $label .= ' (' . $dateDepart;
+                                                if ($heureDepart) {
+                                                    $label .= ' à ' . $heureDepart;
+                                                }
+                                                $label .= ')';
+                                            }
+                                            ?>
+                                            <option value="<?= htmlspecialchars((string)$cov['covoiturage_id']) ?>">
+                                                <?= $label ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                                <small class="text-avis">Sélectionnez un covoiturage auquel vous avez participé, ou laissez "Avis général" pour un avis global</small>
+                            </div>
+
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Votre note globale :</label>
                                 <div class="d-flex align-items-center justify-content-between">

@@ -65,6 +65,11 @@ try {
                 'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
             ];
 
+            // Ajouter le covoiturage_id si présent
+            if (isset($avis['covoiturage_id'])) {
+                $avisArray['covoiturage_id'] = $avis['covoiturage_id'];
+            }
+
             // Récupérer les informations utilisateur depuis MySQL
             try {
                 $userQuery = $pdo->prepare("SELECT nom, prenom, pseudo FROM user WHERE user_id = :user_id LIMIT 1");
@@ -85,6 +90,24 @@ try {
                 $avisArray['nom'] = 'Utilisateur';
                 $avisArray['prenom'] = '';
                 $avisArray['pseudo'] = 'Anonyme';
+            }
+
+            // Récupérer les informations du covoiturage si présent
+            if (isset($avisArray['covoiturage_id'])) {
+                try {
+                    $covQuery = $pdo->prepare("SELECT lieu_depart, lieu_arrivee, date_depart, heure_depart FROM covoiturage WHERE covoiturage_id = :covoiturage_id LIMIT 1");
+                    $covQuery->execute(['covoiturage_id' => $avisArray['covoiturage_id']]);
+                    $covData = $covQuery->fetch(PDO::FETCH_ASSOC);
+
+                    if ($covData) {
+                        $avisArray['covoiturage_lieu_depart'] = $covData['lieu_depart'];
+                        $avisArray['covoiturage_lieu_arrivee'] = $covData['lieu_arrivee'];
+                        $avisArray['covoiturage_date_depart'] = $covData['date_depart'];
+                        $avisArray['covoiturage_heure_depart'] = $covData['heure_depart'];
+                    }
+                } catch (PDOException $e) {
+                    // En cas d'erreur, on continue sans les infos du covoiturage
+                }
             }
 
             $avis_list[] = $avisArray;
@@ -312,6 +335,12 @@ try {
                                         <h5 class="text-center fw-bold mb-2">
                                             <?= htmlspecialchars(trim(($avis['prenom'] ?? '') . ' ' . ($avis['nom'] ?? '')) ?: ($avis['pseudo'] ?? 'Utilisateur')) ?>
                                         </h5>
+                                        <?php if (isset($avis['covoiturage_lieu_depart']) && isset($avis['covoiturage_lieu_arrivee'])): ?>
+                                            <p class="text-center text-muted small mb-2">
+                                                <i class="bi bi-geo-alt me-1"></i>
+                                                <?= htmlspecialchars($avis['covoiturage_lieu_depart'] . ' → ' . $avis['covoiturage_lieu_arrivee']) ?>
+                                            </p>
+                                        <?php endif; ?>
                                         <p class="text-center"><?= htmlspecialchars($avis['commentaire'] ?? '') ?></p>
                                     </div>
                                 </div>

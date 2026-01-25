@@ -95,7 +95,7 @@ try {
         
         $avis = [];
         foreach ($cursor as $doc) {
-            $avis[] = [
+            $avisItem = [
                 '_id' => (string)$doc['_id'],
                 'user_id' => $doc['user_id'],
                 'note' => $doc['note'],
@@ -103,6 +103,10 @@ try {
                 'statut' => $doc['statut'],
                 'created_at' => isset($doc['created_at']) ? $doc['created_at']->toDateTime()->format('Y-m-d H:i:s') : null
             ];
+            if (isset($doc['covoiturage_id'])) {
+                $avisItem['covoiturage_id'] = $doc['covoiturage_id'];
+            }
+            $avis[] = $avisItem;
         }
         
         sendResponse(true, [
@@ -129,14 +133,18 @@ try {
             sendError('Avis non trouvé', 404);
         }
         
-        sendResponse(true, [
+        $avisData = [
             '_id' => (string)$avis['_id'],
             'user_id' => $avis['user_id'],
             'note' => $avis['note'],
             'commentaire' => $avis['commentaire'],
             'statut' => $avis['statut'],
             'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : null
-        ]);
+        ];
+        if (isset($avis['covoiturage_id'])) {
+            $avisData['covoiturage_id'] = $avis['covoiturage_id'];
+        }
+        sendResponse(true, $avisData);
     }
     
     // POST /api/v1/avis - Crée un nouvel avis
@@ -151,6 +159,9 @@ try {
         
         $note = isset($input['note']) ? (int)$input['note'] : 0;
         $commentaire = trim($input['commentaire'] ?? '');
+        $covoiturage_id = isset($input['covoiturage_id']) && $input['covoiturage_id'] !== '' 
+            ? (int)$input['covoiturage_id'] 
+            : null;
         
         // Validation
         if ($note < 1 || $note > 5) {
@@ -175,6 +186,11 @@ try {
             'created_at' => new MongoDB\BSON\UTCDateTime(),
             'updated_at' => new MongoDB\BSON\UTCDateTime()
         ];
+        
+        // Ajouter le covoiturage_id si fourni
+        if ($covoiturage_id !== null) {
+            $avisDocument['covoiturage_id'] = $covoiturage_id;
+        }
         
         $result = $avisCollection->insertOne($avisDocument);
         

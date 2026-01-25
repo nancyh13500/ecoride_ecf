@@ -125,6 +125,11 @@ try {
                 'statut' => $avis['statut'],
                 'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
             ];
+            
+            // Ajouter le covoiturage_id si présent
+            if (isset($avis['covoiturage_id'])) {
+                $avisArray['covoiturage_id'] = $avis['covoiturage_id'];
+            }
 
             // Récupérer les informations utilisateur depuis MySQL
             try {
@@ -155,6 +160,24 @@ try {
                 $avisArray['email'] = '';
                 $avisArray['telephone'] = '';
                 $avisArray['photo'] = null;
+            }
+            
+            // Récupérer les informations du covoiturage si présent
+            if (isset($avisArray['covoiturage_id'])) {
+                try {
+                    $covQuery = $pdo->prepare("SELECT lieu_depart, lieu_arrivee, date_depart, heure_depart FROM covoiturage WHERE covoiturage_id = :covoiturage_id LIMIT 1");
+                    $covQuery->execute(['covoiturage_id' => $avisArray['covoiturage_id']]);
+                    $covData = $covQuery->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($covData) {
+                        $avisArray['covoiturage_lieu_depart'] = $covData['lieu_depart'];
+                        $avisArray['covoiturage_lieu_arrivee'] = $covData['lieu_arrivee'];
+                        $avisArray['covoiturage_date_depart'] = $covData['date_depart'];
+                        $avisArray['covoiturage_heure_depart'] = $covData['heure_depart'];
+                    }
+                } catch (PDOException $e) {
+                    // En cas d'erreur, on continue sans les infos du covoiturage
+                }
             }
 
             $avis_en_attente[] = $avisArray;
@@ -188,6 +211,11 @@ try {
                 'statut' => $avis['statut'],
                 'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
             ];
+            
+            // Ajouter le covoiturage_id si présent
+            if (isset($avis['covoiturage_id'])) {
+                $avisArray['covoiturage_id'] = $avis['covoiturage_id'];
+            }
 
             // Récupérer les informations utilisateur depuis MySQL
             try {
@@ -218,6 +246,24 @@ try {
                 $avisArray['email'] = '';
                 $avisArray['telephone'] = '';
                 $avisArray['photo'] = null;
+            }
+            
+            // Récupérer les informations du covoiturage si présent
+            if (isset($avisArray['covoiturage_id'])) {
+                try {
+                    $covQuery = $pdo->prepare("SELECT lieu_depart, lieu_arrivee, date_depart, heure_depart FROM covoiturage WHERE covoiturage_id = :covoiturage_id LIMIT 1");
+                    $covQuery->execute(['covoiturage_id' => $avisArray['covoiturage_id']]);
+                    $covData = $covQuery->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($covData) {
+                        $avisArray['covoiturage_lieu_depart'] = $covData['lieu_depart'];
+                        $avisArray['covoiturage_lieu_arrivee'] = $covData['lieu_arrivee'];
+                        $avisArray['covoiturage_date_depart'] = $covData['date_depart'];
+                        $avisArray['covoiturage_heure_depart'] = $covData['heure_depart'];
+                    }
+                } catch (PDOException $e) {
+                    // En cas d'erreur, on continue sans les infos du covoiturage
+                }
             }
 
             $admin_avis_mongodb[] = $avisArray;
@@ -398,6 +444,25 @@ require_once __DIR__ . "/../templates/header.php";
                                                     <?php endfor; ?>
                                                 </div>
 
+                                                <?php if (isset($avis['covoiturage_lieu_depart']) && isset($avis['covoiturage_lieu_arrivee'])): ?>
+                                                    <div class="mb-2 p-2 bg-light rounded">
+                                                        <small class="text-muted d-block mb-1">
+                                                            <i class="bi bi-car-front me-1"></i><strong>Covoiturage concerné :</strong>
+                                                        </small>
+                                                        <small>
+                                                            <i class="bi bi-geo-alt me-1"></i>
+                                                            <?= htmlspecialchars($avis['covoiturage_lieu_depart'] . ' → ' . $avis['covoiturage_lieu_arrivee']) ?>
+                                                            <?php if (!empty($avis['covoiturage_date_depart']) && $avis['covoiturage_date_depart'] !== '0000-00-00'): ?>
+                                                                <br><i class="bi bi-calendar me-1"></i>
+                                                                <?= date('d/m/Y', strtotime($avis['covoiturage_date_depart'])) ?>
+                                                                <?php if (!empty($avis['covoiturage_heure_depart']) && $avis['covoiturage_heure_depart'] !== '00:00:00'): ?>
+                                                                    à <?= date('H:i', strtotime($avis['covoiturage_heure_depart'])) ?>
+                                                                <?php endif; ?>
+                                                            <?php endif; ?>
+                                                        </small>
+                                                    </div>
+                                                <?php endif; ?>
+
                                                 <p class="card-text"><?= htmlspecialchars($avis['commentaire']) ?></p>
 
                                                 <div class="mt-3">
@@ -465,6 +530,7 @@ require_once __DIR__ . "/../templates/header.php";
                                             <th>ID</th>
                                             <th>Utilisateur</th>
                                             <th>Note</th>
+                                            <th>Covoiturage</th>
                                             <th>Commentaire</th>
                                             <th>Date</th>
                                             <th>Statut</th>
@@ -513,6 +579,23 @@ require_once __DIR__ . "/../templates/header.php";
                                                         <?php endfor; ?>
                                                     </div>
                                                     <small class="text-muted">(<?= $avis['note'] ?? 5 ?>/5)</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <?php if (isset($avis['covoiturage_lieu_depart']) && isset($avis['covoiturage_lieu_arrivee'])): ?>
+                                                        <small>
+                                                            <i class="bi bi-geo-alt me-1"></i>
+                                                            <strong><?= htmlspecialchars($avis['covoiturage_lieu_depart'] . ' → ' . $avis['covoiturage_lieu_arrivee']) ?></strong>
+                                                            <?php if (!empty($avis['covoiturage_date_depart']) && $avis['covoiturage_date_depart'] !== '0000-00-00'): ?>
+                                                                <br><i class="bi bi-calendar me-1"></i>
+                                                                <?= date('d/m/Y', strtotime($avis['covoiturage_date_depart'])) ?>
+                                                                <?php if (!empty($avis['covoiturage_heure_depart']) && $avis['covoiturage_heure_depart'] !== '00:00:00'): ?>
+                                                                    à <?= date('H:i', strtotime($avis['covoiturage_heure_depart'])) ?>
+                                                                <?php endif; ?>
+                                                            <?php endif; ?>
+                                                        </small>
+                                                    <?php else: ?>
+                                                        <span class="text-muted small">Avis général</span>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <div style="max-width: 300px;">
