@@ -7,6 +7,9 @@ require_once __DIR__ . "/../lib/mongodb.php";
 // Récupérer les avis validés depuis MongoDB
 $avis_list = [];
 $error_message = '';
+$moyenne_notes = 0;
+$total_notes = 0;
+$count_notes = 0;
 
 try {
     $avisCollection = getAvisCollection();
@@ -81,12 +84,22 @@ try {
             }
 
             $avis_list[] = $avisArray;
+
+            // Calculer la moyenne des notes
+            if (isset($avis['note']) && is_numeric($avis['note'])) {
+                $total_notes += (float)$avis['note'];
+                $count_notes++;
+            }
         }
+
+        // Calculer la note moyenne
+        $moyenne_notes = $count_notes > 0 ? round($total_notes / $count_notes, 2) : 0;
     }
 } catch (Exception $e) {
     $avis_list = [];
     $error_message = "Erreur lors de la récupération des avis : " . $e->getMessage();
     error_log("Erreur MongoDB dans avis.php : " . $e->getMessage());
+    $moyenne_notes = 0;
 }
 ?>
 
@@ -124,6 +137,26 @@ try {
             </div>
         <?php else: ?>
             <div class="container">
+                <!-- Affichage de la note moyenne -->
+                <div class="row mb-4 justify-content-center">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card bg-light text-dark">
+                            <div class="card-body">
+                                <div class="d-flex flex-column align-items-center justify-content-center text-center">
+                                    <div class="mb-2">
+                                        <h3 class="mb-0">
+                                            <i class="bi bi-star-fill me-2"></i>
+                                            Note moyenne : <?= $moyenne_notes ?>/5
+                                        </h3>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0">Basée sur <?= $count_notes ?> avis publiés</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-hover table-striped align-middle">
                         <thead class="table-light text-center">
