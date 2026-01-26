@@ -1,9 +1,13 @@
 FROM php:8.2-apache
 
-# Installation des dépendances système en une seule fois
+# Forcer l'utilisation de miroirs Debian fiables
+RUN echo "deb http://deb.debian.org/debian bookworm main" > /etc/apt/sources.list && \
+    echo "deb http://deb.debian.org/debian bookworm-updates main" >> /etc/apt/sources.list && \
+    echo "deb http://security.debian.org/debian-security bookworm-security main" >> /etc/apt/sources.list
+
+# Installation des dépendances système avec retry
 RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get update && \
+    apt-get update --fix-missing || apt-get update || true && \
     apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
@@ -42,12 +46,11 @@ COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.con
 # Activation du module rewrite Apache
 RUN a2enmod rewrite headers
 
-# Copie du code de l'application (index.php, lib/, pages/, etc.)
+# Copie du code de l'application
 COPY . /var/www/html/
 
-# Copie du script d'initialisation de la base de données
+# Copie du script d'initialisation
 COPY docker/php/init-db.sh /usr/local/bin/init-db.sh
-# Conversion des fins de ligne Windows (CRLF) en Linux (LF) et rendre exécutable
 RUN sed -i 's/\r$//' /usr/local/bin/init-db.sh && \
     chmod +x /usr/local/bin/init-db.sh
 
@@ -61,8 +64,6 @@ RUN if [ -f /var/www/html/composer.json ]; then \
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Exposition du port 80 (interne au conteneur, pas exposé sur l'hôte)
 EXPOSE 80
 
-# Démarrage : initialise la base de données puis démarre Apache
 CMD ["sh", "-c", "/usr/local/bin/init-db.sh && apache2-foreground"]
