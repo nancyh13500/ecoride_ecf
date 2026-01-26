@@ -1,7 +1,10 @@
 FROM php:8.2-apache
 
-# Installation des dépendances système
-RUN apt-get update && apt-get install -y \
+# Installation des dépendances système en une seule fois
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -13,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libcurl4-openssl-dev \
     bash \
+    default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Installation des extensions PHP
@@ -31,9 +35,6 @@ RUN pecl install mongodb \
 
 # Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Installation du client MySQL pour l'import SQL
-RUN apt-get update && apt-get install -y default-mysql-client && rm -rf /var/lib/apt/lists/*
 
 # Copie de la configuration Apache
 COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
