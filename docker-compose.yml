@@ -24,6 +24,22 @@ services:
       timeout: 3s
       retries: 10
 
+  # Base de données MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: ecoride_mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb_user
+      MONGO_INITDB_ROOT_PASSWORD: mongodb_pass
+      MONGO_INITDB_DATABASE: ecoride
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - ecoride
+    restart: unless-stopped
+
   # Serveur Apache + PHP
   app:
     image: nancy13500/ecoride-app:latest
@@ -36,9 +52,16 @@ services:
       - DB_NAME=ecoride
       - DB_USER=ecoride_user
       - DB_PASS=ecoride_pass
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MONGO_DB=ecoride
+      - MONGO_USER=mongodb_user
+      - MONGO_PASS=mongodb_pass
     depends_on:
       db:
         condition: service_healthy
+      mongodb:
+        condition: service_started
     ports:
       - "8001:80"
     command: apache2-foreground
@@ -64,6 +87,7 @@ services:
 
 volumes:
   mysql_data:
+  mongodb_data:
 
 networks:
   ecoride:
