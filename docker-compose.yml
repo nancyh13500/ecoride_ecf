@@ -64,7 +64,7 @@ services:
         condition: service_started
     ports:
       - "8001:80"
-    command: apache2-foreground
+     command: ["apache2-foreground"]
     networks:
       - ecoride
     restart: unless-stopped
