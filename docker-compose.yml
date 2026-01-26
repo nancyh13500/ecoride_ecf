@@ -26,7 +26,7 @@ services:
 
   # Base de données MongoDB
   mongodb:
-    image: mongo:7.0
+    image: mongo:4.4
     container_name: ecoride_mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongodb_user
