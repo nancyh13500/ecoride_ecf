@@ -4,12 +4,12 @@ services:
     image: mysql:8.0
     container_name: ecoride_db
     environment:
-      MYSQL_ROOT_PASSWORD: root        # mot de passe root
-      MYSQL_DATABASE: ecoride          # base créée automatiquement
-      MYSQL_USER: ecoride_user         # utilisateur dédié (optionnel mais recommandé)
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ecoride
+      MYSQL_USER: ecoride_user
       MYSQL_PASSWORD: ecoride_pass
     ports:
-      - "3307:3306"                    # expose MySQL sur localhost:3307
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./ecoride.sql:/docker-entrypoint-initdb.d/01_ecoride.sql
@@ -29,8 +29,15 @@ services:
     build:
       context: .
       dockerfile: ./docker/php/Dockerfile
-
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     container_name: ecoride_app
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
     volumes:
       - ./:/var/www/html
     environment:
@@ -50,11 +57,11 @@ services:
       mongodb:
         condition: service_started
     ports:
-      - "8000:80"                   # expose Apache sur localhost:8000
+      - "8000:80"
     command: >
       sh -c "
       cd /var/www/html &&
-      echo 'Répertoire de travail: $(pwd)' &&
+      echo 'Répertoire de travail: $$(pwd)' &&
       if [ -f composer.json ]; then
         echo 'composer.json trouvé, installation des dépendances...' &&
         if [ ! -f vendor/autoload.php ] || [ ! -d vendor/symfony ]; then
@@ -77,12 +84,12 @@ services:
       - ecoride
     restart: unless-stopped
 
-  # phpMyAdmin (pour gérer MySQL depuis le navigateur)
+  # phpMyAdmin
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: ecoride_phpmyadmin
     ports:
-      - "8080:80"    # accessible sur http://localhost:8080
+      - "8080:80"
     environment:
       PMA_HOST: db
       PMA_USER: root
@@ -91,8 +98,9 @@ services:
       - db
     networks:
       - ecoride
+    restart: unless-stopped
 
-  # Base de données MongoDB pour les avis
+  # Base de données MongoDB
   mongodb:
     image: mongo:7.0
     container_name: ecoride_mongodb
