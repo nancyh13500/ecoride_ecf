@@ -65,7 +65,7 @@ services:
     ports:
       - "8001:80"
     entrypoint: []
-    command: ["apache2-foreground"]
+    command: 
     networks:
       - ecoride
     restart: unless-stopped
