@@ -1,60 +1,60 @@
 <?php
-require_once __DIR__ . "/../templates/header.php";
 require_once __DIR__ . "/../vendor/autoload.php";
+require_once __DIR__ . "/../templates/header.php";
 
 use App\Service\MailerService;
 
-// Variables pour les messages
-$success = false;
-$error = false;
-$message = '';
-
-// Valeurs du formulaire
-$name = '';
-$email = '';
-$subject = '';
-$messageContent = '';
-
 // Traitement du formulaire
+$messageSuccess = '';
+$messageError = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Récupération et validation des données
-    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
-    $email = isset($_POST['email']) ? filter_var($_POST['email'], FILTER_VALIDATE_EMAIL) : false;
-    $subject = isset($_POST['subject']) ? trim($_POST['subject']) : '';
-    $messageContent = isset($_POST['message']) ? trim($_POST['message']) : '';
+    // Récupération et nettoyage des données
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $subject = trim($_POST['subject'] ?? '');
+    $message = trim($_POST['message'] ?? '');
 
     // Validation
-    if (empty($name) || !$email || empty($subject) || empty($messageContent)) {
-        $error = true;
-        $message = "Tous les champs sont obligatoires et l'email doit être valide.";
-    } else {
-        // Envoi de l'email
-        try {
-            $mailer = new MailerService();
-            $emailSent = $mailer->sendContactEmail(array(
-                'name' => $name,
-                'email' => $email,
-                'phone' => $subject,
-                'message' => $messageContent
-            ));
+    $errors = [];
 
-            if ($emailSent) {
-                $success = true;
-                $message = "Votre message a été envoyé avec succès ! Nous vous répondrons sous 48 heures.";
-                // Réinitialiser les variables pour vider le formulaire
-                $name = '';
-                $email = '';
-                $subject = '';
-                $messageContent = '';
-            } else {
-                $error = true;
-                $message = "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.";
-            }
-        } catch (Exception $e) {
-            $error = true;
-            $message = "Une erreur technique est survenue. Veuillez réessayer plus tard.";
-            error_log("Erreur formulaire contact: " . $e->getMessage());
+    if (empty($name)) {
+        $errors[] = "Le nom est obligatoire";
+    }
+
+    if (empty($email)) {
+        $errors[] = "L'email est obligatoire";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "L'email n'est pas valide";
+    }
+
+    if (empty($subject)) {
+        $errors[] = "Le sujet est obligatoire";
+    }
+
+    if (empty($message)) {
+        $errors[] = "Le message est obligatoire";
+    }
+
+    // Si pas d'erreurs, envoyer l'email
+    if (empty($errors)) {
+        $mailer = new MailerService();
+        $success = $mailer->sendContactEmail([
+            'name' => $name,
+            'email' => $email,
+            'subject' => $subject,
+            'message' => $message
+        ]);
+
+        if ($success) {
+            $messageSuccess = "Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.";
+            // Réinitialiser les champs
+            $name = $email = $subject = $message = '';
+        } else {
+            $messageError = "Une erreur est survenue lors de l'envoi. Veuillez réessayer.";
         }
+    } else {
+        $messageError = implode('<br>', $errors);
     }
 }
 ?>
@@ -69,16 +69,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="container contact mt-3 mb-3">
 
-        <?php if ($success): ?>
-            <div class="alert alert-success alert-dismissible fade show mx-auto" style="max-width: 600px;" role="alert">
-                <strong>✅ Succès !</strong> <?php echo htmlspecialchars($message); ?>
+        <?php if (!empty($messageSuccess)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>✅ Succès !</strong> <?= htmlspecialchars($messageSuccess) ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
 
-        <?php if ($error): ?>
-            <div class="alert alert-danger alert-dismissible fade show mx-auto" style="max-width: 600px;" role="alert">
-                <strong>❌ Erreur !</strong> <?php echo htmlspecialchars($message); ?>
+        <?php if (!empty($messageError)): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>❌ Erreur !</strong> <?= $messageError ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
@@ -90,37 +90,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         name="name"
                         class="form-control bg-light border-dark rounded"
                         placeholder="Ex. Durand"
-                        value="<?php echo htmlspecialchars($name); ?>"
+                        value="<?= htmlspecialchars($name ?? '') ?>"
                         required>
                 </div>
             </div>
+
             <div class="mb-4 row d-flex justify-content-center">
                 <div class="col-md-4">
                     <input type="email"
                         name="email"
                         class="form-control bg-light border-dark rounded"
                         placeholder="name@example.com"
-                        value="<?php echo htmlspecialchars($email); ?>"
+                        value="<?= htmlspecialchars($email ?? '') ?>"
                         required>
                 </div>
             </div>
+
             <div class="mb-4 row d-flex justify-content-center">
                 <div class="col-md-4">
                     <input type="text"
                         name="subject"
                         class="form-control bg-light border-dark rounded"
                         placeholder="Sujet"
-                        value="<?php echo htmlspecialchars($subject); ?>"
+                        value="<?= htmlspecialchars($subject ?? '') ?>"
                         required>
                 </div>
             </div>
+
             <div class="mb-4 row d-flex justify-content-center">
                 <div class="col-md-4">
                     <textarea name="message"
                         class="form-control bg-light border-dark rounded"
                         rows="5"
                         placeholder="Message"
-                        required><?php echo htmlspecialchars($messageContent); ?></textarea>
+                        required><?= htmlspecialchars($message ?? '') ?></textarea>
                 </div>
                 <p class="text-center mt-3">Une réponse vous sera envoyée par mail sous 48 heures</p>
                 <div class="text-center mt-2 mb-2">
