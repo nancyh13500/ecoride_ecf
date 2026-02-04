@@ -2998,217 +2998,138 @@ Parfait ! Je vois ton formulaire. Il manque juste les attributs name sur les cha
 
 Fichier modifié : pages/contact.php
 
-Fichier créé, lu un fichier
-Télécharge ce fichier et remplace ton pages/contact.php actuel.
-
-Modifications apportées :
-✅ Ajout des attributs name sur tous les champs du formulaire
-✅ Traitement PHP en haut du fichier pour gérer l'envoi
-✅ Validation des données (email valide, champs remplis)
-✅ Appel du MailerService pour envoyer l'email
-✅ Messages de succès/erreur avec Bootstrap alerts
-✅ Conservation des valeurs en cas d'erreur (pour que l'utilisateur ne retape pas tout)
-✅ Sécurité avec htmlspecialchars() pour éviter les injections XSS
-Maintenant : Git Commit & Push
-Dans VSCode Terminal :
-
-powershell
-cd C:\wamp64\www\ecoride_ecf
-
-# Vérifier les fichiers modifiés
-git status
-
-# Ajouter tous les fichiers
-git add .
-
-# Commit
-git commit -m "Ajout système de mailing pour le formulaire de contact
-
-- Installation de PHPMailer via Composer
-- Création du service MailerService pour l'envoi d'emails
-- Modification du formulaire contact avec traitement PHP
-- Ajout du fichier .env.example pour la configuration SMTP
-- Messages de succès/erreur pour l'utilisateur"
-
-# Push
-git push origin main
-(Remplace main par master si c'est ta branche principale)
-
-Déploiement sur le serveur
-En SSH :
-
-bash
-# Pull les modifications
-cd /home/docker/ecoride_ecf
-git pull
-
-# Copier vers le dossier Portainer
-sudo cp -r /home/docker/ecoride_ecf/* /data/compose/20/
-sudo chown -R 33:33 /data/compose/20
-
-# Installer les dépendances Composer dans le conteneur
-docker exec -it ecoride_app composer install --no-dev
-
-# Redémarrer
-docker restart ecoride_app
-Configuration des variables d'environnement
-Dans Portainer → Stacks → ecoride → Editor, ajoute dans environment: du service php-apache :
-
-yaml
-environment:
-  # ... variables existantes
-  - SMTP_HOST=smtp.gmail.com
-  - SMTP_PORT=587
-  - SMTP_USER=ton-email@gmail.com
-  - SMTP_PASSWORD=ton-mot-de-passe-application-gmail
-  - MAIL_FROM=noreply@ecoride.fr
-  - MAIL_FROM_NAME=EcoRide
-  - CONTACT_EMAIL=ton-email@gmail.com
-Update the stack
-
-Configuration Gmail
-Va sur https://myaccount.google.com/apppasswords
-Crée un mot de passe d'application nommé "EcoRide"
-Copie le mot de passe (16 caractères)
-Utilise-le dans SMTP_PASSWORD
-Test
-Une fois déployé, teste ton formulaire sur http://192.168.1.151:8001/pages/contact.php
-
-Dis-moi quand tu as commité et poussé sur Git ! 🚀
-
-Contact
-Code · PHP 
+Créer le fichier contact.php avec le formulaire et le traitement de l'envoi d'email
 
 
 
 
 
 Claude est une IA et peut faire des erreurs. Veuillez vérifier les réponses.
-Contact · PHP
+Mailerservice · PHP
 Copier
 
 <?php
-require_once __DIR__ . "/../templates/header.php";
-require_once __DIR__ . "/../vendor/autoload.php";
 
-use App\Service\MailerService;
+namespace App\Service;
 
-// Variables pour les messages
-$success = false;
-$error = false;
-$message = '';
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
-// Traitement du formulaire
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Récupération et validation des données
-    $name = trim($_POST['name'] ?? '');
-    $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
-    $subject = trim($_POST['subject'] ?? '');
-    $messageContent = trim($_POST['message'] ?? '');
+class MailerService
+{
+    private string $smtpHost;
+    private int $smtpPort;
+    private string $smtpUser;
+    private string $smtpPassword;
+    private string $fromEmail;
+    private string $fromName;
 
-    // Validation
-    if (empty($name) || !$email || empty($subject) || empty($messageContent)) {
-        $error = true;
-        $message = "Tous les champs sont obligatoires et l'email doit être valide.";
-    } else {
-        // Envoi de l'email
+    public function __construct()
+    {
+        // Récupération depuis les variables d'environnement
+        $this->smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+        $this->smtpPort = (int)(getenv('SMTP_PORT') ?: 587);
+        $this->smtpUser = getenv('SMTP_USER') ?: '';
+        $this->smtpPassword = getenv('SMTP_PASSWORD') ?: '';
+        $this->fromEmail = getenv('MAIL_FROM') ?: 'noreply@ecoride.fr';
+        $this->fromName = getenv('MAIL_FROM_NAME') ?: 'EcoRide';
+    }
+
+    /**
+     * Envoie un email de contact
+     * 
+     * @param array $data Données du formulaire (name, email, phone, message)
+     * @return bool True si envoyé, False sinon
+     */
+    public function sendContactEmail(array $data): bool
+    {
+        $mail = new PHPMailer(true);
+
         try {
-            $mailer = new MailerService();
-            $emailSent = $mailer->sendContactEmail([
-                'name' => $name,
-                'email' => $email,
-                'phone' => $subject, // On utilise le champ sujet comme téléphone/sujet
-                'message' => $messageContent
-            ]);
+            // Configuration SMTP
+            $mail->isSMTP();
+            $mail->Host = $this->smtpHost;
+            $mail->SMTPAuth = true;
+            $mail->Username = $this->smtpUser;
+            $mail->Password = $this->smtpPassword;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = $this->smtpPort;
+            $mail->CharSet = 'UTF-8';
 
-            if ($emailSent) {
-                $success = true;
-                $message = "Votre message a été envoyé avec succès ! Nous vous répondrons sous 48 heures.";
-                // Réinitialiser les variables pour vider le formulaire
-                $name = $email = $subject = $messageContent = '';
-            } else {
-                $error = true;
-                $message = "Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.";
-            }
+            // Expéditeur et destinataire
+            $mail->setFrom($this->fromEmail, $this->fromName);
+            $mail->addAddress(getenv('CONTACT_EMAIL') ?: 'contact@ecoride.fr');
+            $mail->addReplyTo($data['email'], $data['name']);
+
+            // Contenu
+            $mail->isHTML(true);
+            $mail->Subject = 'Nouveau message de contact - EcoRide';
+            $mail->Body = $this->getEmailTemplate($data);
+            $mail->AltBody = $this->getPlainTextEmail($data);
+
+            $mail->send();
+            return true;
         } catch (Exception $e) {
-            $error = true;
-            $message = "Une erreur technique est survenue. Veuillez réessayer plus tard.";
-            error_log("Erreur formulaire contact: " . $e->getMessage());
+            error_log("Erreur d'envoi email: {$mail->ErrorInfo}");
+            return false;
         }
     }
+
+    /**
+     * Template HTML de l'email
+     */
+    private function getEmailTemplate(array $data): string
+    {
+        return "
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 20px; margin-top: 0; border-radius: 0 0 5px 5px; }
+                    .field { margin-bottom: 15px; padding: 10px; background: white; border-radius: 3px; }
+                    .label { font-weight: bold; color: #4CAF50; }
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <div class='header'>
+                        <h2 style='margin: 0;'>🚗 Nouveau message de contact EcoRide</h2>
+                    </div>
+                    <div class='content'>
+                        <div class='field'>
+                            <span class='label'>👤 Nom :</span> " . htmlspecialchars($data['name']) . "
+                        </div>
+                        <div class='field'>
+                            <span class='label'>📧 Email :</span> " . htmlspecialchars($data['email']) . "
+                        </div>
+                        <div class='field'>
+                            <span class='label'>📞 Téléphone :</span> " . htmlspecialchars($data['phone'] ?? 'Non renseigné') . "
+                        </div>
+                        <div class='field'>
+                            <span class='label'>💬 Message :</span><br><br>
+                            <p style='margin: 0; padding: 10px; background: #fff; border-left: 3px solid #4CAF50;'>" . nl2br(htmlspecialchars($data['message'])) . "</p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+        ";
+    }
+
+    /**
+     * Version texte brut de l'email
+     */
+    private function getPlainTextEmail(array $data): string
+    {
+        return "=== Nouveau message de contact EcoRide ===\n\n" .
+               "Nom: {$data['name']}\n" .
+               "Email: {$data['email']}\n" .
+               "Téléphone: " . ($data['phone'] ?? 'Non renseigné') . "\n\n" .
+               "Message:\n" .
+               "----------------------------------------\n" .
+               "{$data['message']}\n" .
+               "----------------------------------------\n";
+    }
 }
-?>
-
-<section class="hero px-4 py-5">
-    <div class="background-contact"></div>
-    <div class="contact-title text-black text-center mt-5">
-        <div class="container">
-            <h1 class="contact-title mt-3 mb-3 fw-bold">Contact</h1>
-        </div>
-    </div>
-
-    <div class="container contact mt-3 mb-3">
-        
-        <?php if ($success): ?>
-            <div class="alert alert-success alert-dismissible fade show mx-auto" style="max-width: 600px;" role="alert">
-                <strong>✅ Succès !</strong> <?= htmlspecialchars($message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($error): ?>
-            <div class="alert alert-danger alert-dismissible fade show mx-auto" style="max-width: 600px;" role="alert">
-                <strong>❌ Erreur !</strong> <?= htmlspecialchars($message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        <?php endif; ?>
-
-        <form action="" method="POST">
-            <div class="mb-4 row d-flex justify-content-center">
-                <div class="col-md-4">
-                    <input type="text" 
-                           name="name" 
-                           class="form-control bg-light border-dark rounded" 
-                           placeholder="Ex. Durand" 
-                           value="<?= htmlspecialchars($name ?? '') ?>"
-                           required>
-                </div>
-            </div>
-            <div class="mb-4 row d-flex justify-content-center">
-                <div class="col-md-4">
-                    <input type="email" 
-                           name="email" 
-                           class="form-control bg-light border-dark rounded" 
-                           placeholder="name@example.com" 
-                           value="<?= htmlspecialchars($email ?? '') ?>"
-                           required>
-                </div>
-            </div>
-            <div class="mb-4 row d-flex justify-content-center">
-                <div class="col-md-4">
-                    <input type="text" 
-                           name="subject" 
-                           class="form-control bg-light border-dark rounded" 
-                           placeholder="Sujet" 
-                           value="<?= htmlspecialchars($subject ?? '') ?>"
-                           required>
-                </div>
-            </div>
-            <div class="mb-4 row d-flex justify-content-center">
-                <div class="col-md-4">
-                    <textarea name="message" 
-                              class="form-control bg-light border-dark rounded" 
-                              rows="5" 
-                              placeholder="Message" 
-                              required><?= htmlspecialchars($messageContent ?? '') ?></textarea>
-                </div>
-                <p class="text-center mt-3">Une réponse vous sera envoyée par mail sous 48 heures</p>
-                <div class="text-center mt-2 mb-2">
-                    <button type="submit" class="btn btn-secondary">Envoyer le message</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</section>
-
-<?php require_once __DIR__ . "/../templates/footer.php"; ?>

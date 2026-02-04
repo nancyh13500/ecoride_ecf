@@ -3,7 +3,7 @@
         'name' => 'ecoride/ecf',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '3153527d0039b0953252c97919193e02f6a8b8f6',
+        'reference' => 'c7b461a1dbd4e5d38e7c45fed358d4719e44a5d3',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'ecoride/ecf' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '3153527d0039b0953252c97919193e02f6a8b8f6',
+            'reference' => 'c7b461a1dbd4e5d38e7c45fed358d4719e44a5d3',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -78,6 +78,15 @@
             'install_path' => __DIR__ . '/../phar-io/version',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'phpmailer/phpmailer' => array(
+            'pretty_version' => 'v7.0.2',
+            'version' => '7.0.2.0',
+            'reference' => 'ebf1655bd5b99b3f97e1a3ec0a69e5f4cd7ea088',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpmailer/phpmailer',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'phpoption/phpoption' => array(
             'pretty_version' => '1.9.5',
