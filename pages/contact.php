@@ -2,7 +2,7 @@
 require_once __DIR__ . "/../vendor/autoload.php";
 require_once __DIR__ . "/../templates/header.php";
 
-use App\Service\MailerService;
+use Ecoride\Ecf\Service\MailerService;
 
 // Traitement du formulaire
 $messageSuccess = '';

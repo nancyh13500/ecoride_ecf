@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace Ecoride\Ecf\Service;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -48,7 +48,7 @@ class MailerService
 
             // Expéditeur et destinataire
             $mail->setFrom($this->fromEmail, $this->fromName);
-            $mail->addAddress(getenv('CONTACT_EMAIL') ?: 'contact@ecoride.fr');
+            $mail->addAddress(getenv('CONTACT_EMAIL') ?: 'contact@ecoride.lokia.fr');
             $mail->addReplyTo($data['email'], $data['name']);
 
             // Contenu
