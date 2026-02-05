@@ -17,7 +17,7 @@ class MailerService
     public function __construct()
     {
         // Récupération depuis les variables d'environnement
-        $this->smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+        $this->smtpHost = getenv('SMTP_HOST') ?: 'smtp.free.fr';
         $this->smtpPort = (int)(getenv('SMTP_PORT') ?: 587);
         $this->smtpUser = getenv('SMTP_USER') ?: '';
         $this->smtpPassword = getenv('SMTP_PASSWORD') ?: '';
@@ -75,7 +75,7 @@ class MailerService
             <head>
                 <style>
                     body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 10px; }
                     .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
                     .content { background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; }
                     .field { margin-bottom: 15px; padding: 10px; background: white; border-radius: 3px; }
@@ -85,7 +85,7 @@ class MailerService
             <body>
                 <div class='container'>
                     <div class='header'>
-                        <h2 style='margin: 0;'>🚗 Nouveau message de contact EcoRide</h2>
+                        <h2 style='margin: 0;'>🚗 Nouveau message de contact Ecoride</h2>
                     </div>
                     <div class='content'>
                         <div class='field'>
