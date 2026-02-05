@@ -17,13 +17,7 @@ try {
     die("Erreur de connexion : " . $e->getMessage());
 }
 
-// Fonction helper pour vérifier la connexion
-function isUserConnected()
-{
-    return isset($_SESSION['user']);
-}
-
-// Vérifier si l'utilisateur est connecté
+// Vérifier si l'utilisateur est connecté (fonction isUserConnected() définie dans lib/session.php)
 if (!isUserConnected()) {
     header("Location: /login.php");
     exit();
