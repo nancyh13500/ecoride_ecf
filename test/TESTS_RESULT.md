@@ -74,14 +74,3 @@ docker-compose exec app vendor/bin/phpunit --coverage-html coverage/
 5. 🔄 Créer des tests d'intégration
 6. 🔄 Améliorer la couverture de code
 
-## 🎓 Pour le titre RNCP
-
-Tu as maintenant :
-- ✅ Tests unitaires fonctionnels
-- ✅ Utilisation de PHPUnit (framework de test standard)
-- ✅ Tests de fonctions métier (authentification, sessions)
-- ✅ Structure de tests organisée
-- ✅ Documentation des tests
-
-**Compétence RNCP validée : Tests unitaires et d'intégration** ✅
-

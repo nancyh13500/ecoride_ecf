@@ -23,12 +23,12 @@ RUN apt-get update && \
 # Installation des extensions PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install -j$(nproc) \
-        pdo \
-        pdo_mysql \
-        mysqli \
-        gd \
-        mbstring \
-        zip
+    pdo \
+    pdo_mysql \
+    mysqli \
+    gd \
+    mbstring \
+    zip
 
 # Installation de l'extension MongoDB PHP
 RUN pecl install mongodb && \
@@ -49,8 +49,8 @@ COPY . /var/www/html/
 # Installation des dépendances Composer
 RUN cd /var/www/html && \
     if [ -f composer.json ]; then \
-        composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev && \
-        chown -R www-data:www-data vendor; \
+    composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev && \
+    chown -R www-data:www-data vendor; \
     fi
 
 # Configuration des permissions

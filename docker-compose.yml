@@ -7,7 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: ecoride
       MYSQL_USER: ecoride_user
-      MYSQL_PASSWORD: ecoride_pass
+      MYSQL_PASSWORD: ecoride_passS
     ports:
       - "3307:3306"
     volumes:

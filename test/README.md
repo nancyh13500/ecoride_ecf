@@ -1,4 +1,4 @@
-# Tests Unitaires - EcoRide
+# Tests Unitaires - Ecoride
 
 ## 📋 Qu'est-ce qu'un test unitaire ?
 

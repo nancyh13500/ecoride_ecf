@@ -13,7 +13,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Ecoride\\Ecf\\": "src/"
+            "Ecoride\\Ecf\\": "src/",
+            "Ecoride\\Ecf\\Core\\": "lib/"
         },
         "files": []
     }
