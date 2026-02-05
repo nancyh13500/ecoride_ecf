@@ -1,8 +1,27 @@
 <?php
 ob_start();
 require_once __DIR__ . "/../templates/header.php";
-require_once __DIR__ . "/../lib/pdo.php";
-require_once __DIR__ . "/../lib/session.php";
+require_once __DIR__ . "/../vendor/autoload.php";
+
+use Ecoride\Ecf\Core\Session;
+
+// Connexion PDO
+try {
+    $pdo = new PDO(
+        "mysql:host=" . getenv('DB_HOST') . ";dbname=" . getenv('DB_NAME') . ";charset=utf8",
+        getenv('DB_USER'),
+        getenv('DB_PASS')
+    );
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Erreur de connexion : " . $e->getMessage());
+}
+
+// Fonction helper pour vérifier la connexion
+function isUserConnected()
+{
+    return isset($_SESSION['user']);
+}
 
 // Vérifier si l'utilisateur est connecté
 if (!isUserConnected()) {
@@ -71,13 +90,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_voiture'])) {
 
 // Traitement du formulaire de covoiturage
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
-    $date_depart = $_POST['date_depart'] ?? '';
-    $heure_depart_input = $_POST['heure_depart'] ?? '';
-    $lieu_depart = $_POST['lieu_depart'] ?? '';
-    $lieu_arrivee = $_POST['lieu_arrivee'] ?? '';
-    $nb_place = $_POST['nb_place'] ?? '';
-    $prix_personne = $_POST['prix_personne'] ?? '';
-    $voiture_id = $_POST['voiture_id'] ?? '';
+    $date_depart = isset($_POST['date_depart']) ? $_POST['date_depart'] : '';
+    $heure_depart_input = isset($_POST['heure_depart']) ? $_POST['heure_depart'] : '';
+    $lieu_depart = isset($_POST['lieu_depart']) ? $_POST['lieu_depart'] : '';
+    $lieu_arrivee = isset($_POST['lieu_arrivee']) ? $_POST['lieu_arrivee'] : '';
+    $nb_place = isset($_POST['nb_place']) ? $_POST['nb_place'] : '';
+    $prix_personne = isset($_POST['prix_personne']) ? $_POST['prix_personne'] : '';
+    $voiture_id = isset($_POST['voiture_id']) ? $_POST['voiture_id'] : '';
 
     $date_depart_obj = DateTime::createFromFormat('Y-m-d', $date_depart);
     $date_depart_valide = $date_depart_obj && $date_depart_obj->format('Y-m-d') === $date_depart;
@@ -141,10 +160,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
 
                     <h3 class="mb-4 pb-2 pb-md-0 mb-md-5 ms-2">Informations</h3>
                     <?php if ($success_message): ?>
-                        <div class="alert alert-success"><?= htmlspecialchars($success_message) ?></div>
+                        <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
                     <?php endif; ?>
                     <?php if ($error_message): ?>
-                        <div class="alert alert-danger"><?= htmlspecialchars($error_message) ?></div>
+                        <div class="alert alert-danger"><?php echo htmlspecialchars($error_message); ?></div>
                     <?php endif; ?>
 
 
@@ -180,8 +199,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                                     <select id="voiture_id" name="voiture_id" class="form-control bg-light" required>
                                         <option value="">Sélectionnez une voiture</option>
                                         <?php foreach ($voitures as $voiture): ?>
-                                            <option value="<?= $voiture['voiture_id'] ?>">
-                                                <?= htmlspecialchars($voiture['modele']) ?> (<?= htmlspecialchars($voiture['immatriculation']) ?>)
+                                            <option value="<?php echo $voiture['voiture_id']; ?>">
+                                                <?php echo htmlspecialchars($voiture['modele']); ?> (<?php echo htmlspecialchars($voiture['immatriculation']); ?>)
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -216,8 +235,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                                         <select class="form-select" aria-label="Default select example" name="marque_id">
                                             <option value="">Choisissez une marque</option>
                                             <?php foreach ($marques as $marque): ?>
-                                                <option value="<?= htmlspecialchars($marque['marque_id']) ?>">
-                                                    <?= htmlspecialchars($marque['libelle']) ?>
+                                                <option value="<?php echo htmlspecialchars($marque['marque_id']); ?>">
+                                                    <?php echo htmlspecialchars($marque['libelle']); ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
@@ -229,8 +248,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                                         <select class="form-select" aria-label="Default select example" name="energie_id">
                                             <option value="">Choisissez une option</option>
                                             <?php foreach ($energies as $energie): ?>
-                                                <option value="<?= htmlspecialchars($energie['energie_id']) ?>">
-                                                    <?= htmlspecialchars($energie['libelle']) ?>
+                                                <option value="<?php echo htmlspecialchars($energie['energie_id']); ?>">
+                                                    <?php echo htmlspecialchars($energie['libelle']); ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
@@ -269,6 +288,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                             </div>
 
                         </form>
+                    <?php else: ?>
+                        <div class="alert alert-warning">
+                            Vous devez d'abord ajouter une voiture pour pouvoir proposer un covoiturage.
+                            <a href="/pages/mes_voitures.php" class="alert-link">Ajouter une voiture</a>
+                        </div>
                     <?php endif; ?>
 
                 </div>
@@ -278,8 +302,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
 
 </section>
 
-
-
-
-<?php require_once __DIR__ . "/../templates/footer.php";
-?>
+<?php require_once __DIR__ . "/../templates/footer.php"; ?>
