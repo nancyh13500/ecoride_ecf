@@ -126,12 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_reservation'])
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'])) {
-    // DEBUT DEBUG
-    error_log("=== VALIDATION RESERVATION ===");
-    error_log("POST data: " . print_r($_POST, true));
-    error_log("reservationSupport: " . ($reservationSupport ?? 'NULL'));
-    // FIN DEBUG
-
     if (!$reservationSupport) {
         $validation_error = "Impossible de valider la réservation : module indisponible.";
     } else {
@@ -493,7 +487,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                     <?php if ($peutAnnuler): ?>
                                                         <form method="POST" class="d-inline">
                                                             <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)$reservationId) ?>">
-                                                            <input type="hidden" name="action" value="1">
+                                                            <input type="hidden" name="cancel_reservation" value="1">
                                                             <button type="submit" class="btn btn-sm btn-danger">
                                                                 Annuler
                                                             </button>
@@ -563,7 +557,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                 <?php else: ?>
                                                     <form method="POST" class="d-inline">
                                                         <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)($reservation['reservation_id'] ?? '')) ?>">
-                                                        <input type="hidden" name="action" value="1">
+                                                        <input type="hidden" name="validate_reservation" value="1">
                                                         <button
                                                             type="submit"
                                                             class="btn btn-sm btn-primary mt-2">
