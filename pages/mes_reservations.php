@@ -487,7 +487,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                     <?php if ($peutAnnuler): ?>
                                                         <form method="POST" class="d-inline">
                                                             <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)$reservationId) ?>">
-                                                            <input type="hidden" name="action" value="cancel_reservation">
+                                                            <input type="hidden" name="action" value="1">
                                                             <button type="submit" class="btn btn-sm btn-danger">
                                                                 Annuler
                                                             </button>
@@ -557,7 +557,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                 <?php else: ?>
                                                     <form method="POST" class="d-inline">
                                                         <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)($reservation['reservation_id'] ?? '')) ?>">
-                                                        <input type="hidden" name="action" value="validate_reservation">
+                                                        <input type="hidden" name="action" value="1">
                                                         <button
                                                             type="submit"
                                                             class="btn btn-sm btn-primary mt-2">
