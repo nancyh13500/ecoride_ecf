@@ -689,6 +689,6 @@ require_once __DIR__ . "/../templates/header.php";
 
 </section>
 
-<!-- <script src="/assets/js/ajax-reservations.js"></script> -->
+<script src="/assets/js/ajax-reservations.js"></script>
 
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>
