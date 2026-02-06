@@ -22,7 +22,7 @@ class MailerService
         $this->smtpUser = getenv('SMTP_USER') ?: '';
         $this->smtpPassword = getenv('SMTP_PASSWORD') ?: '';
         $this->fromEmail = getenv('MAIL_FROM') ?: 'noreply@ecoride.fr';
-        $this->fromName = getenv('MAIL_FROM_NAME') ?: 'EcoRide';
+        $this->fromName = getenv('MAIL_FROM_NAME') ?: 'Ecoride';
     }
 
     /**
@@ -53,7 +53,7 @@ class MailerService
 
             // Contenu
             $mail->isHTML(true);
-            $mail->Subject = 'EcoRide - ' . (isset($data['subject']) ? $data['subject'] : 'Nouveau message de contact');
+            $mail->Subject = 'Ecoride - ' . (isset($data['subject']) ? $data['subject'] : 'Nouveau message de contact');
             $mail->Body = $this->getContactEmailTemplate($data);
             $mail->AltBody = $this->getContactPlainTextEmail($data);
 
@@ -92,7 +92,7 @@ class MailerService
 
             // Contenu
             $mail->isHTML(true);
-            $mail->Subject = 'Confirmation de réservation - EcoRide';
+            $mail->Subject = 'Confirmation de réservation - Ecoride';
             $mail->Body = $this->getReservationEmailTemplate($data);
             $mail->AltBody = $this->getReservationPlainTextEmail($data);
 
@@ -131,7 +131,7 @@ class MailerService
 
             // Contenu
             $mail->isHTML(true);
-            $mail->Subject = 'Nouvelle réservation pour votre covoiturage - EcoRide';
+            $mail->Subject = 'Nouvelle réservation pour votre covoiturage - Ecoride';
             $mail->Body = $this->getDriverNotificationTemplate($data);
             $mail->AltBody = $this->getDriverNotificationPlainText($data);
 
@@ -191,7 +191,7 @@ class MailerService
      */
     private function getContactPlainTextEmail(array $data): string
     {
-        return "=== Nouveau message de contact EcoRide ===\n\n" .
+        return "=== Nouveau message de contact Ecoride ===\n\n" .
             "Nom: {$data['name']}\n" .
             "Email: {$data['email']}\n" .
             "Sujet: " . (isset($data['subject']) ? $data['subject'] : 'Non renseigné') . "\n\n" .
@@ -223,7 +223,7 @@ class MailerService
             <body>
                 <div class='container'>
                     <div class='header'>
-                        <h2 style='margin: 0;'>🚗 Confirmation de réservation EcoRide</h2>
+                        <h2 style='margin: 0;'>🚗 Confirmation de réservation Ecoride</h2>
                     </div>
                     <div class='content'>
                         <p>Bonjour <strong>" . htmlspecialchars($data['passenger_name']) . "</strong>,</p>
@@ -259,7 +259,7 @@ class MailerService
                             <p style='margin: 0;'><strong>Numéro de réservation :</strong> #" . htmlspecialchars($data['reservation_id']) . "</p>
                         </div>
                         
-                        <p style='margin-top: 20px;'>Merci de voyager avec EcoRide ! 🌱</p>
+                        <p style='margin-top: 20px;'>Merci de voyager avec Ecoride ! 🌱</p>
                         <p style='font-size: 12px; color: #666;'>Pour toute question, contactez-nous via le formulaire de contact sur notre site.</p>
                     </div>
                 </div>
@@ -273,7 +273,7 @@ class MailerService
      */
     private function getReservationPlainTextEmail(array $data): string
     {
-        return "=== Confirmation de réservation EcoRide ===\n\n" .
+        return "=== Confirmation de réservation Ecoride ===\n\n" .
             "Bonjour " . $data['passenger_name'] . ",\n\n" .
             "Votre réservation de covoiturage a bien été confirmée par le chauffeur !\n\n" .
             "INFORMATIONS DU TRAJET\n" .
@@ -287,7 +287,7 @@ class MailerService
             "Prix : " . $data['prix'] . " crédits\n" .
             "----------------------------------------\n\n" .
             "Numéro de réservation : #" . $data['reservation_id'] . "\n\n" .
-            "Merci de voyager avec EcoRide !\n";
+            "Merci de voyager avec Ecoride !\n";
     }
 
     /**
@@ -330,7 +330,7 @@ class MailerService
                         </div>
                         
                         <p style='margin-top: 20px;'>Un email de confirmation a été envoyé au passager.</p>
-                        <p style='font-size: 12px; color: #666;'>Bon voyage avec EcoRide ! 🚗</p>
+                        <p style='font-size: 12px; color: #666;'>Bon voyage avec Ecoride ! 🚗</p>
                     </div>
                 </div>
             </body>
@@ -343,7 +343,7 @@ class MailerService
      */
     private function getDriverNotificationPlainText(array $data): string
     {
-        return "=== Confirmation de validation - EcoRide ===\n\n" .
+        return "=== Confirmation de validation - Ecoride ===\n\n" .
             "Bonjour " . $data['driver_name'] . ",\n\n" .
             "Vous avez validé la réservation de " . $data['passenger_name'] . " pour " . $data['nb_places'] . " place(s).\n\n" .
             "DÉTAILS DU TRAJET\n" .
@@ -353,6 +353,6 @@ class MailerService
             "Passager : " . $data['passenger_name'] . "\n" .
             "----------------------------------------\n\n" .
             "Un email de confirmation a été envoyé au passager.\n\n" .
-            "Bon voyage avec EcoRide !\n";
+            "Bon voyage avec Ecoride !\n";
     }
 }
