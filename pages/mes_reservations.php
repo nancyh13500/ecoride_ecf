@@ -212,6 +212,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
                     // Envoyer l'email au passager
                     $emailPassagerEnvoye = false;
                     if (!empty($reservationRow['passager_email'])) {
+                        error_log("=== ENVOI EMAIL PASSAGER ===");
+                        error_log("Email passager: " . $reservationRow['passager_email']);
+                        error_log("Nom passager: " . $passagerNomComplet);
+
                         $mailer = new MailerService();
                         $emailPassagerEnvoye = $mailer->sendReservationConfirmation([
                             'passenger_name' => $passagerNomComplet,
@@ -225,6 +229,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
                             'prix' => number_format($prixTotal, 0),
                             'reservation_id' => $reservationId
                         ]);
+
+                        error_log("Email passager envoyé: " . ($emailPassagerEnvoye ? 'OUI' : 'NON'));
+                    } else {
+                        error_log("=== PAS D'EMAIL PASSAGER (vide) ===");
                     }
 
                     // Envoyer l'email au chauffeur (confirmation pour toi)
