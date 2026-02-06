@@ -126,6 +126,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_reservation'])
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'])) {
+    // DEBUT DEBUG
+    error_log("=== VALIDATION RESERVATION ===");
+    error_log("POST data: " . print_r($_POST, true));
+    error_log("reservationSupport: " . ($reservationSupport ?? 'NULL'));
+    // FIN DEBUG
+
     if (!$reservationSupport) {
         $validation_error = "Impossible de valider la réservation : module indisponible.";
     } else {
