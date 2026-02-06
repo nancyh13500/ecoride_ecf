@@ -485,7 +485,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                     $peutAnnuler = ($statutReservationMin !== 'confirmée' && $statutReservationMin !== 'annulée' && $reservationId > 0);
                                                     ?>
                                                     <?php if ($peutAnnuler): ?>
-                                                        <form method="POST" class="d-inline js-reservation-action">
+                                                        <form method="POST" class="d-inline">
                                                             <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)$reservationId) ?>">
                                                             <input type="hidden" name="action" value="cancel_reservation">
                                                             <button type="submit" class="btn btn-sm btn-danger">
@@ -555,7 +555,7 @@ require_once __DIR__ . "/../templates/header.php";
                                                 <?php elseif ($reservationConfirmee): ?>
                                                     <span class="badge bg-primary mt-2">Réservation confirmée</span>
                                                 <?php else: ?>
-                                                    <form method="POST" class="d-inline js-reservation-action">
+                                                    <form method="POST" class="d-inline">
                                                         <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)($reservation['reservation_id'] ?? '')) ?>">
                                                         <input type="hidden" name="action" value="validate_reservation">
                                                         <button
