@@ -896,7 +896,7 @@ require_once __DIR__ . '/../templates/header.php';
 </script>
 <!-- Script Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/assets/js/chart.js"></script>
+<script src="/assets/js/admin-chart.js"></script>
 <!-- Script pour la gestion des avis -->
 <script src="/assets/js/ajax-avis.js"></script>
 
