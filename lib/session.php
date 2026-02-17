@@ -1,12 +1,13 @@
 <?php
-ob_start();
-session_set_cookie_params([
-    'lifetime' => 3600,
-    'path' => '/',
-    'httponly' => true
-]);
-
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    ob_start();
+    session_set_cookie_params([
+        'lifetime' => 3600,
+        'path' => '/',
+        'httponly' => true
+    ]);
+    session_start();
+}
 
 function isUserConnected(): bool
 {

@@ -4,11 +4,18 @@
     "type": "project",
     "require": {
         "php": ">=8.2",
-        "mongodb/mongodb": "^2.0"
+        "mongodb/mongodb": "^2.0",
+        "vlucas/phpdotenv": "^5.5",
+        "phpmailer/phpmailer": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
     },
     "autoload": {
+        "psr-4": {
+            "Ecoride\\Ecf\\": "src/",
+            "Ecoride\\Ecf\\Core\\": "lib/"
+        },
         "files": []
     }
 }
-
-

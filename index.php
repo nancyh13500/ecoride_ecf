@@ -1,6 +1,8 @@
 <?php
+require_once __DIR__ . "/vendor/autoload.php";
 require_once __DIR__ . "/lib/session.php";
 require_once __DIR__ . "/lib/pdo.php";
+require_once __DIR__ . "/lib/mongodb.php";
 require_once __DIR__ . "/templates/header.php";
 
 // Récupérer les villes disponibles depuis la base de données
@@ -40,22 +42,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
     exit();
 }
 
-// Récupérer les avis validés depuis la base de données pour le carrousel
+// Récupérer tous les avis validés depuis MongoDB
 $avis_list = [];
 try {
-    $query_avis = $pdo->prepare("
-        SELECT a.*, u.nom, u.prenom, u.pseudo
-        FROM avis a
-        LEFT JOIN user u ON a.user_id = u.user_id
-        WHERE a.statut = 'valide'
-        ORDER BY a.avis_id DESC
-        LIMIT 3
-    ");
-    $query_avis->execute();
-    $avis_list = $query_avis->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
+    $avisCollection = getAvisCollection();
+
+    if ($avisCollection !== null) {
+        // Récupérer tous les avis validés (statut = 'valide')
+        $cursor = $avisCollection->find(
+            ['statut' => 'valide'],
+            ['sort' => ['created_at' => -1]]
+        );
+
+        // Convertir les résultats en tableau et enrichir avec les données utilisateur depuis MySQL
+        foreach ($cursor as $avis) {
+            $avisArray = [
+                '_id' => (string)$avis['_id'],
+                'user_id' => $avis['user_id'],
+                'note' => $avis['note'],
+                'commentaire' => $avis['commentaire'],
+                'statut' => $avis['statut'],
+                'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
+            ];
+
+            // Ajouter le covoiturage_id si présent
+            if (isset($avis['covoiturage_id'])) {
+                $avisArray['covoiturage_id'] = $avis['covoiturage_id'];
+            }
+
+            // Récupérer les informations utilisateur depuis MySQL
+            try {
+                $userQuery = $pdo->prepare("SELECT nom, prenom, pseudo FROM user WHERE user_id = :user_id LIMIT 1");
+                $userQuery->execute(['user_id' => $avis['user_id']]);
+                $userData = $userQuery->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    $avisArray['nom'] = $userData['nom'];
+                    $avisArray['prenom'] = $userData['prenom'];
+                    $avisArray['pseudo'] = $userData['pseudo'];
+                } else {
+                    $avisArray['nom'] = 'Utilisateur';
+                    $avisArray['prenom'] = '';
+                    $avisArray['pseudo'] = 'Anonyme';
+                }
+            } catch (PDOException $e) {
+                // Si erreur MySQL, utiliser des valeurs par défaut
+                $avisArray['nom'] = 'Utilisateur';
+                $avisArray['prenom'] = '';
+                $avisArray['pseudo'] = 'Anonyme';
+            }
+
+            // Récupérer les informations du covoiturage si présent
+            if (isset($avisArray['covoiturage_id'])) {
+                try {
+                    $covQuery = $pdo->prepare("SELECT lieu_depart, lieu_arrivee, date_depart, heure_depart FROM covoiturage WHERE covoiturage_id = :covoiturage_id LIMIT 1");
+                    $covQuery->execute(['covoiturage_id' => $avisArray['covoiturage_id']]);
+                    $covData = $covQuery->fetch(PDO::FETCH_ASSOC);
+
+                    if ($covData) {
+                        $avisArray['covoiturage_lieu_depart'] = $covData['lieu_depart'];
+                        $avisArray['covoiturage_lieu_arrivee'] = $covData['lieu_arrivee'];
+                        $avisArray['covoiturage_date_depart'] = $covData['date_depart'];
+                        $avisArray['covoiturage_heure_depart'] = $covData['heure_depart'];
+                    }
+                } catch (PDOException $e) {
+                    // En cas d'erreur, on continue sans les infos du covoiturage
+                }
+            }
+
+            $avis_list[] = $avisArray;
+        }
+    }
+} catch (Exception $e) {
     // En cas d'erreur, on continue avec une liste vide
     $avis_list = [];
+    error_log("Erreur MongoDB dans index.php : " . $e->getMessage());
 }
 
 // Récupérer les suggestions de trajets
@@ -251,89 +312,68 @@ try {
 <section class="avis">
     <div class="container py-5">
         <h1 class="text-center mb-5">Chaque avis nous donne un peu plus envie</h1>
-        <div id="avisCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                <div class="carousel-item active">
-                    <div class="row justify-content-center g-4">
-                        <div class="col-12 col-md-4 d-flex justify-content-center">
-                            <div class="card p-3 shadow-sm avis-card">
-                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
+        <?php if (!empty($avis_list)): ?>
+            <div id="avisCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <?php foreach ($avis_list as $index => $avis): ?>
+                        <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                            <div class="row justify-content-center g-0">
+                                <div class="col-12 col-md-4 d-flex justify-content-center">
+                                    <div class="card p-3 shadow-sm avis-card">
+                                        <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
+                                            <?php
+                                            $note = isset($avis['note']) ? (int)$avis['note'] : 5;
+                                            for ($i = 1; $i <= 5; $i++):
+                                            ?>
+                                                <?php if ($i <= $note): ?>
+                                                    <i class="bi bi-star-fill"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-star"></i>
+                                                <?php endif; ?>
+                                            <?php endfor; ?>
+                                        </div>
+                                        <h5 class="text-center fw-bold mb-2">
+                                            <?= htmlspecialchars(trim(($avis['prenom'] ?? '') . ' ' . ($avis['nom'] ?? '')) ?: ($avis['pseudo'] ?? 'Utilisateur')) ?>
+                                        </h5>
+                                        <?php if (isset($avis['covoiturage_lieu_depart']) && isset($avis['covoiturage_lieu_arrivee'])): ?>
+                                            <p class="text-center text-muted small mb-2">
+                                                <i class="bi bi-geo-alt me-1"></i>
+                                                <?= htmlspecialchars($avis['covoiturage_lieu_depart'] . ' → ' . $avis['covoiturage_lieu_arrivee']) ?>
+                                            </p>
+                                        <?php endif; ?>
+                                        <p class="text-center"><?= htmlspecialchars($avis['commentaire'] ?? '') ?></p>
+                                    </div>
                                 </div>
-                                <h5 class="text-center fw-bold mb-2">Laura</h5>
-                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
                             </div>
                         </div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
-                <div class="carousel-item">
-                    <div class="row justify-content-center g-4">
-                        <div class="col-12 col-md-4 d-flex justify-content-center">
-                            <div class="card p-3 shadow-sm avis-card">
-                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </div>
-                                <h5 class="text-center fw-bold mb-2">Nancy</h5>
-                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-item">
-                    <div class="row justify-content-center g-4">
-                        <div class="col-12 col-md-4 d-flex justify-content-center">
-                            <div class="card p-3 shadow-sm avis-card">
-                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </div>
-                                <h5 class="text-center fw-bold mb-2">Baptiste</h5>
-                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="carousel-item">
-                    <div class="row justify-content-center g-4">
-                        <div class="col-12 col-md-4 d-flex justify-content-center">
-                            <div class="card p-3 shadow-sm avis-card">
-                                <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                </div>
-                                <h5 class="text-center fw-bold mb-2">David</h5>
-                                <p class="text-center">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus.</p>
-                            </div>
-                        </div>
-                    </div>
+                <?php if (count($avis_list) > 1): ?>
+                    <button class="carousel-control-prev d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="prev" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; left: -80px;">
+                        <span aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-left" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                            </svg>
+                        </span>
+                        <span class="visually-hidden">Précédent</span>
+                    </button>
+                    <button class="carousel-control-next d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="next" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; right: -80px;">
+                        <span aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+                            </svg>
+                        </span>
+                        <span class="visually-hidden">Suivant</span>
+                    </button>
+                <?php endif; ?>
+            </div>
+        <?php else: ?>
+            <div class="row justify-content-center">
+                <div class="col-12 text-center">
+                    <p class="text-muted">Aucun avis disponible pour le moment.</p>
                 </div>
             </div>
-            <button class="carousel-control-prev d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="prev" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; left: -80px;">
-                <span aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-left" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
-                    </svg>
-                </span>
-                <span class="visually-hidden">Précédent</span>
-            </button>
-            <button class="carousel-control-next d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="next" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; right: -80px;">
-                <span aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-right" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
-                    </svg>
-                </span>
-                <span class="visually-hidden">Suivant</span>
-            </button>
-        </div>
+        <?php endif; ?>
 
         <div class="container text-center p-4">
             <div class="row justify-content-center gy-2">

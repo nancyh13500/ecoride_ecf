@@ -1,0 +1,12 @@
+# Configuration Apache pour l'API REST
+RewriteEngine On
+
+# Rediriger /api vers /api/index.php
+RewriteRule ^ index.php [QSA,L]
+
+# Pour les endpoints /api/v1/...
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^v1/(.*)$ v1/$1 [L]
+
+

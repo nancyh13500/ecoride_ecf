@@ -1,0 +1,19 @@
+# Configuration Apache pour l'API REST
+# Permet de router les requêtes vers les bons fichiers PHP
+
+RewriteEngine On
+
+# Rediriger toutes les requêtes vers le fichier correspondant
+# Exemple : /api/v1/avis/123 → /api/v1/avis.php avec l'ID dans l'URI
+
+# Si le fichier existe, l'utiliser directement
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Pour les endpoints avec ID (ex: /api/v1/avis/123)
+RewriteRule ^([^/]+)/([^/]+)$ $1.php [L,QSA]
+
+# Pour les endpoints sans ID (ex: /api/v1/avis)
+RewriteRule ^([^/]+)$ $1.php [L,QSA]
+
+

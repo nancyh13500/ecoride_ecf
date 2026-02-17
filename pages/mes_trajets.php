@@ -162,19 +162,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_id'])) {
     $query = $pdo->prepare("UPDATE covoiturage SET statut = 2 WHERE covoiturage_id = :id AND user_id = :user_id");
     $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
 
-    // CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ
-    // Enregistrer le démarrage dans MongoDB (sans bloquer si erreur)
-    /*
-    try {
-        if (file_exists(__DIR__ . '/../lib/duree_trajet.php')) {
-            require_once __DIR__ . '/../lib/duree_trajet.php';
-            demarrerTrajetMongo($user['user_id'], $trajet_id);
-        }
-    } catch (Exception $e) {
-        // Ne pas bloquer l'exécution en cas d'erreur MongoDB
-        error_log("Erreur MongoDB lors du démarrage: " . $e->getMessage());
-    }
-    */
 
     header("Location: mes_trajets.php");
     exit();
@@ -231,28 +218,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stop_trajet_id'])) {
             $query = $pdo->prepare("UPDATE covoiturage SET statut = 3 WHERE covoiturage_id = :id AND user_id = :user_id");
             $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
 
-            // CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ
-            // Calculer et enregistrer la durée dans MongoDB, puis mettre à jour MySQL
-            /*
-            try {
-                if (file_exists(__DIR__ . '/../lib/duree_trajet.php')) {
-                    require_once __DIR__ . '/../lib/duree_trajet.php';
-                    $dureeResult = arreterTrajetMongo($user['user_id'], $trajet_id);
-                    if ($dureeResult && isset($dureeResult['duration_minutes'])) {
-                        // Mettre à jour la durée dans MySQL si disponible
-                        $updateDuree = $pdo->prepare("UPDATE covoiturage SET duree = :duree WHERE covoiturage_id = :id AND user_id = :user_id");
-                        $updateDuree->execute([
-                            'duree' => $dureeResult['duration_minutes'],
-                            'id' => $trajet_id,
-                            'user_id' => $user['user_id']
-                        ]);
-                    }
-                }
-            } catch (Exception $e) {
-                // Ne pas bloquer l'exécution en cas d'erreur MongoDB
-                error_log("Erreur MongoDB lors de l'arrêt: " . $e->getMessage());
-            }
-            */
 
             // Créditer le chauffeur (total - 2 crédits pour le site)
             if ($credits_chauffeur > 0) {
@@ -314,29 +279,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stop_trajet_id'])) {
         $error_message = "Erreur lors de l'arrêt du trajet : " . $e->getMessage();
     }
 }
-
-// CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ
-// Gérer la mise à jour de la durée
-/*
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_duree_trajet_id'])) {
-    $trajet_id = intval($_POST['update_duree_trajet_id']);
-    $duree_minutes = intval($_POST['duree_minutes']);
-
-    try {
-        // Mise à jour MySQL
-        $query = $pdo->prepare("UPDATE covoiturage SET duree = :duree WHERE covoiturage_id = :id AND user_id = :user_id");
-        $query->execute([
-            'duree' => $duree_minutes,
-            'id' => $trajet_id,
-            'user_id' => $user['user_id']
-        ]);
-        header("Location: mes_trajets.php");
-        exit();
-    } catch (Exception $e) {
-        $error_message = "Erreur lors de la mise à jour de la durée : " . $e->getMessage();
-    }
-}
-*/
 
 require_once __DIR__ . "/../templates/header.php";
 

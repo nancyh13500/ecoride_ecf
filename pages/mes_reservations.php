@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . "/../lib/session.php";
 require_once __DIR__ . "/../lib/pdo.php";
+require_once __DIR__ . "/../vendor/autoload.php";
+
+use Ecoride\Ecf\Service\MailerService;
 
 requireLogin();
 
@@ -22,6 +25,106 @@ foreach ($reservationTables as $tableName) {
 }
 
 $validation_error = '';
+$cancel_error = '';
+$cancel_success = false;
+
+// Traitement de l'annulation de réservation
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_reservation'])) {
+    if (!$reservationSupport) {
+        $cancel_error = "Impossible d'annuler la réservation : module indisponible.";
+    } else {
+        $reservationId = isset($_POST['reservation_id']) ? (int) $_POST['reservation_id'] : 0;
+
+        if ($reservationId <= 0) {
+            $cancel_error = "Réservation invalide.";
+        } else {
+            try {
+                // Démarrer une transaction
+                if (!$pdo->inTransaction()) {
+                    $pdo->beginTransaction();
+                }
+
+                // Récupérer les détails de la réservation avec verrouillage
+                $reservationDetailStmt = $pdo->prepare("
+                    SELECT 
+                        r.*,
+                        c.covoiturage_id,
+                        c.user_id AS chauffeur_id,
+                        c.nb_place,
+                        c.lieu_depart,
+                        c.lieu_arrivee,
+                        c.date_depart,
+                        c.heure_depart
+                    FROM {$reservationSupport} r
+                    JOIN covoiturage c ON c.covoiturage_id = r.covoiturage_id
+                    WHERE r.reservation_id = :id AND r.user_id = :user_id
+                    FOR UPDATE
+                ");
+                $reservationDetailStmt->execute([
+                    ':id' => $reservationId,
+                    ':user_id' => $currentUserId
+                ]);
+                $reservationRow = $reservationDetailStmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$reservationRow) {
+                    throw new Exception("Réservation introuvable ou vous n'êtes pas autorisé à l'annuler.");
+                }
+
+                // Vérifier que la réservation n'est pas déjà confirmée (optionnel, selon les règles métier)
+                $statutReservation = mb_strtolower($reservationRow['statut'] ?? '', 'UTF-8');
+                if ($statutReservation === 'confirmée') {
+                    throw new Exception("Impossible d'annuler une réservation déjà confirmée. Contactez le chauffeur.");
+                }
+
+                // Vérifier que la réservation n'est pas déjà annulée
+                if ($statutReservation === 'annulée') {
+                    throw new Exception("Cette réservation a déjà été annulée.");
+                }
+
+                $nbPlacesReservees = (int)($reservationRow['nb_places_reservees'] ?? 1);
+                $covoiturageId = (int)$reservationRow['covoiturage_id'];
+
+                // Mettre le statut à "annulée" au lieu de supprimer (pour que le chauffeur puisse voir l'annulation)
+                $updateStmt = $pdo->prepare("
+                    UPDATE {$reservationSupport}
+                    SET statut = 'annulée'
+                    WHERE reservation_id = :id AND user_id = :user_id
+                ");
+                $updateStmt->execute([
+                    ':id' => $reservationId,
+                    ':user_id' => $currentUserId
+                ]);
+
+                if ($updateStmt->rowCount() === 0) {
+                    throw new Exception("La réservation n'a pas pu être annulée.");
+                }
+
+                // Remettre les places dans le covoiturage
+                $updateCovoiturage = $pdo->prepare("
+                    UPDATE covoiturage
+                    SET nb_place = nb_place + :nb_places
+                    WHERE covoiturage_id = :covoiturage_id
+                ");
+                $updateCovoiturage->execute([
+                    ':nb_places' => $nbPlacesReservees,
+                    ':covoiturage_id' => $covoiturageId
+                ]);
+
+                // Valider la transaction
+                $pdo->commit();
+
+                header("Location: mes_reservations.php?cancel_success=1");
+                exit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $cancel_error = "Erreur lors de l'annulation : " . $e->getMessage();
+            }
+        }
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'])) {
     if (!$reservationSupport) {
         $validation_error = "Impossible de valider la réservation : module indisponible.";
@@ -32,6 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
             $validation_error = "Réservation invalide.";
         } else {
             try {
+                // Récupérer toutes les infos nécessaires pour les emails
                 $reservationDetailStmt = $pdo->prepare("
                     SELECT 
                         r.*,
@@ -41,13 +145,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
                         c.lieu_arrivee,
                         c.date_depart,
                         c.heure_depart,
-                        u.email AS passager_email,
-                        u.nom AS passager_nom,
-                        u.prenom AS passager_prenom,
-                        u.pseudo AS passager_pseudo
+                        c.prix_personne,
+                        passager.email AS passager_email,
+                        passager.nom AS passager_nom,
+                        passager.prenom AS passager_prenom,
+                        passager.pseudo AS passager_pseudo,
+                        chauffeur.email AS chauffeur_email,
+                        chauffeur.nom AS chauffeur_nom,
+                        chauffeur.prenom AS chauffeur_prenom,
+                        v.modele AS vehicle_modele,
+                        v.immatriculation AS vehicle_immat
                     FROM {$reservationSupport} r
                     JOIN covoiturage c ON c.covoiturage_id = r.covoiturage_id
-                    JOIN user u ON u.user_id = r.user_id
+                    JOIN user passager ON passager.user_id = r.user_id
+                    JOIN user chauffeur ON chauffeur.user_id = c.user_id
+                    LEFT JOIN voiture v ON v.voiture_id = c.voiture_id
                     WHERE r.reservation_id = :id
                     LIMIT 1
                 ");
@@ -57,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
                 if (!$reservationRow || (int) $reservationRow['chauffeur_id'] !== $currentUserId) {
                     $validation_error = "Réservation introuvable ou non autorisée.";
                 } else {
+                    // Mettre à jour le statut
                     $updateStmt = $pdo->prepare("
                         UPDATE {$reservationSupport}
                         SET statut = 'confirmée'
@@ -64,31 +177,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
                     ");
                     $updateStmt->execute([':id' => $reservationId]);
 
-                    // Envoi d'un email de confirmation au passager si une adresse est disponible
-                    if (!empty($reservationRow['passager_email'])) {
-                        $passagerNomComplet = trim(($reservationRow['passager_prenom'] ?? '') . ' ' . ($reservationRow['passager_nom'] ?? ''));
-                        if ($passagerNomComplet === '') {
-                            $passagerNomComplet = $reservationRow['passager_pseudo'] ?? 'passager';
-                        }
-                        $dateDepartMail = '';
-                        if (!empty($reservationRow['date_depart']) && $reservationRow['date_depart'] !== '0000-00-00') {
-                            $dateDepartMail = date('d/m/Y', strtotime($reservationRow['date_depart']));
-                        }
-                        $heureDepartMail = '';
-                        if (!empty($reservationRow['heure_depart']) && $reservationRow['heure_depart'] !== '00:00:00') {
-                            $heureDepartMail = ' à ' . date('H:i', strtotime($reservationRow['heure_depart']));
-                        }
-                        $message = "Bonjour {$passagerNomComplet},\n\n";
-                        $message .= "Votre réservation pour le trajet « {$reservationRow['lieu_depart']} → {$reservationRow['lieu_arrivee']} » a été confirmée par le chauffeur.\n";
-                        if ($dateDepartMail !== '') {
-                            $message .= "Date du trajet : {$dateDepartMail}{$heureDepartMail}.\n";
-                        }
-                        $message .= "\nMerci d'utiliser Ecoride !\n";
-                        $headers = "Content-Type: text/plain; charset=utf-8\r\n";
-                        @mail($reservationRow['passager_email'], "Confirmation de votre réservation", $message, $headers);
+                    // Préparer les données pour les emails
+                    $passagerNomComplet = trim(($reservationRow['passager_prenom'] ?? '') . ' ' . ($reservationRow['passager_nom'] ?? ''));
+                    if ($passagerNomComplet === '') {
+                        $passagerNomComplet = $reservationRow['passager_pseudo'] ?? 'Passager';
                     }
 
-                    header("Location: mes_reservations.php?validation_success=1");
+                    $chauffeurNomComplet = trim(($reservationRow['chauffeur_prenom'] ?? '') . ' ' . ($reservationRow['chauffeur_nom'] ?? ''));
+                    if ($chauffeurNomComplet === '') {
+                        $chauffeurNomComplet = 'Chauffeur';
+                    }
+
+                    $dateDepart = '';
+                    if (!empty($reservationRow['date_depart']) && $reservationRow['date_depart'] !== '0000-00-00') {
+                        $dateDepart = date('d/m/Y', strtotime($reservationRow['date_depart']));
+                    }
+
+                    $heureDepart = '';
+                    if (!empty($reservationRow['heure_depart']) && $reservationRow['heure_depart'] !== '00:00:00') {
+                        $heureDepart = date('H:i', strtotime($reservationRow['heure_depart']));
+                    }
+
+                    $vehicleInfo = 'Non renseigné';
+                    if (!empty($reservationRow['vehicle_modele'])) {
+                        $vehicleInfo = $reservationRow['vehicle_modele'];
+                        if (!empty($reservationRow['vehicle_immat'])) {
+                            $vehicleInfo .= ' (' . $reservationRow['vehicle_immat'] . ')';
+                        }
+                    }
+
+                    $nbPlacesReservees = isset($reservationRow['nb_places_reservees']) ? (int)$reservationRow['nb_places_reservees'] : 1;
+                    $prixTotal = isset($reservationRow['prix_personne']) ? ((float)$reservationRow['prix_personne'] * $nbPlacesReservees) : 0;
+
+                    // Envoyer l'email au passager
+                    $emailPassagerEnvoye = false;
+                    if (!empty($reservationRow['passager_email'])) {
+                        error_log("=== ENVOI EMAIL PASSAGER ===");
+                        error_log("Email passager: " . $reservationRow['passager_email']);
+                        error_log("Nom passager: " . $passagerNomComplet);
+
+                        $mailer = new MailerService();
+                        $emailPassagerEnvoye = $mailer->sendReservationConfirmation([
+                            'passenger_name' => $passagerNomComplet,
+                            'passenger_email' => $reservationRow['passager_email'],
+                            'date_depart' => $dateDepart,
+                            'heure_depart' => $heureDepart,
+                            'lieu_depart' => $reservationRow['lieu_depart'] ?? '',
+                            'lieu_arrivee' => $reservationRow['lieu_arrivee'] ?? '',
+                            'driver_name' => $chauffeurNomComplet,
+                            'vehicle_info' => $vehicleInfo,
+                            'prix' => number_format($prixTotal, 0),
+                            'reservation_id' => $reservationId
+                        ]);
+
+                        error_log("Email passager envoyé: " . ($emailPassagerEnvoye ? 'OUI' : 'NON'));
+                    } else {
+                        error_log("=== PAS D'EMAIL PASSAGER (vide) ===");
+                    }
+
+                    // Envoyer l'email au chauffeur (confirmation pour toi)
+                    $emailChauffeurEnvoye = false;
+                    if (!empty($reservationRow['chauffeur_email'])) {
+                        $mailer = new MailerService();
+                        $emailChauffeurEnvoye = $mailer->sendDriverNotification([
+                            'driver_name' => $chauffeurNomComplet,
+                            'driver_email' => $reservationRow['chauffeur_email'],
+                            'passenger_name' => $passagerNomComplet,
+                            'nb_places' => $nbPlacesReservees,
+                            'date_depart' => $dateDepart,
+                            'heure_depart' => $heureDepart,
+                            'lieu_depart' => $reservationRow['lieu_depart'] ?? '',
+                            'lieu_arrivee' => $reservationRow['lieu_arrivee'] ?? ''
+                        ]);
+                    }
+
+                    // Message de succès adapté selon l'envoi des emails
+                    $messageSucces = 'validation_success=1';
+                    if (!$emailPassagerEnvoye && !empty($reservationRow['passager_email'])) {
+                        $messageSucces .= '&email_warning=1';
+                    }
+
+                    header("Location: mes_reservations.php?{$messageSucces}");
                     exit();
                 }
             } catch (Throwable $e) {
@@ -161,26 +330,34 @@ try {
             WHERE r.covoiturage_id IN ($placeholders)
             ORDER BY r.date_reservation DESC, r.reservation_id DESC
         ";
-        $reservationStmt = $pdo->prepare($reservationSql);
-        $reservationStmt->execute($trajetPublieIds);
+        try {
+            $reservationStmt = $pdo->prepare($reservationSql);
+            $reservationStmt->execute($trajetPublieIds);
 
-        while ($row = $reservationStmt->fetch(PDO::FETCH_ASSOC)) {
-            $trajetId = isset($row['covoiturage_id']) ? (int) $row['covoiturage_id'] : 0;
-            if ($trajetId > 0) {
-                $reservationsParTrajet[$trajetId][] = $row;
-            }
-        }
-
-        foreach ($trajetsPublies as $trajet) {
-            $trajetId = isset($trajet['covoiturage_id']) ? (int) $trajet['covoiturage_id'] : 0;
-            if ($trajetId > 0 && !empty($reservationsParTrajet[$trajetId])) {
-                foreach ($reservationsParTrajet[$trajetId] as $reservation) {
-                    $reservationsChauffeur[] = [
-                        'trajet' => $trajet,
-                        'reservation' => $reservation,
-                    ];
+            while ($row = $reservationStmt->fetch(PDO::FETCH_ASSOC)) {
+                $trajetId = isset($row['covoiturage_id']) ? (int) $row['covoiturage_id'] : 0;
+                if ($trajetId > 0) {
+                    if (!isset($reservationsParTrajet[$trajetId])) {
+                        $reservationsParTrajet[$trajetId] = [];
+                    }
+                    $reservationsParTrajet[$trajetId][] = $row;
                 }
             }
+
+            foreach ($trajetsPublies as $trajet) {
+                $trajetId = isset($trajet['covoiturage_id']) ? (int) $trajet['covoiturage_id'] : 0;
+                if ($trajetId > 0 && !empty($reservationsParTrajet[$trajetId])) {
+                    foreach ($reservationsParTrajet[$trajetId] as $reservation) {
+                        $reservationsChauffeur[] = [
+                            'trajet' => $trajet,
+                            'reservation' => $reservation,
+                        ];
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            // En cas d'erreur, on continue sans bloquer l'affichage
+            error_log("Erreur lors de la récupération des réservations pour le chauffeur: " . $e->getMessage());
         }
     }
 } catch (Throwable $e) {
@@ -249,9 +426,19 @@ require_once __DIR__ . "/../templates/header.php";
                         La réservation a été confirmée avec succès et une notification a été envoyée au passager.
                     </div>
                 <?php endif; ?>
+                <?php if (isset($_GET['cancel_success'])): ?>
+                    <div class="alert alert-success">
+                        La réservation a été annulée avec succès. Les places ont été libérées.
+                    </div>
+                <?php endif; ?>
                 <?php if (!empty($validation_error)): ?>
                     <div class="alert alert-danger">
                         <?= htmlspecialchars($validation_error) ?>
+                    </div>
+                <?php endif; ?>
+                <?php if (!empty($cancel_error)): ?>
+                    <div class="alert alert-danger">
+                        <?= htmlspecialchars($cancel_error) ?>
                     </div>
                 <?php endif; ?>
                 <div class="card mb-4">
@@ -296,9 +483,25 @@ require_once __DIR__ . "/../templates/header.php";
                                                     <p class="mb-1"><strong>Réservé le :</strong> <?= htmlspecialchars($dateReservation) ?></p>
                                                 <?php endif; ?>
                                                 <p class="mb-1"><strong>Statut :</strong> <?= htmlspecialchars($reservationStatut) ?></p>
-                                                <a href="detail_covoiturage.php?id=<?= htmlspecialchars((string)($trajet['covoiturage_id'] ?? '')) ?>" class="btn btn-sm btn-primary mt-2">
-                                                    Voir les détails
-                                                </a>
+                                                <div class="d-flex gap-2 mt-2">
+                                                    <a href="detail_covoiturage.php?id=<?= htmlspecialchars((string)($trajet['covoiturage_id'] ?? '')) ?>" class="btn btn-sm btn-primary">
+                                                        Voir les détails
+                                                    </a>
+                                                    <?php
+                                                    $reservationId = isset($trajet['reservation_id']) ? (int)$trajet['reservation_id'] : 0;
+                                                    $statutReservationMin = mb_strtolower($reservationStatut, 'UTF-8');
+                                                    $peutAnnuler = ($statutReservationMin !== 'confirmée' && $statutReservationMin !== 'annulée' && $reservationId > 0);
+                                                    ?>
+                                                    <?php if ($peutAnnuler): ?>
+                                                        <form method="POST" class="d-inline">
+                                                            <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)$reservationId) ?>">
+                                                            <input type="hidden" name="cancel_reservation" value="1">
+                                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                                Annuler
+                                                            </button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -329,11 +532,16 @@ require_once __DIR__ . "/../templates/header.php";
                                     $statutReservation = $reservation['statut'] ?? '';
                                     $statutReservationMin = $statutReservation !== '' ? mb_strtolower($statutReservation, 'UTF-8') : '';
                                     $reservationConfirmee = $statutReservationMin === 'confirmée';
+                                    $reservationAnnulee = $statutReservationMin === 'annulée';
+                                    // Déterminer le style de la carte selon le statut
+                                    $cardBorderClass = $reservationAnnulee ? 'border-danger' : ($reservationConfirmee ? 'border-primary' : 'border-success');
+                                    $cardHeaderClass = $reservationAnnulee ? 'bg-danger' : ($reservationConfirmee ? 'bg-primary' : 'bg-success');
+                                    $cardHeaderText = $reservationAnnulee ? 'Réservation annulée' : ($reservationConfirmee ? 'Réservation confirmée' : 'Réservation reçue');
                                     ?>
                                     <div class="col-md-6">
-                                        <div class="card h-100 border-success">
-                                            <div class="card-header bg-success text-white">
-                                                Réservation reçue
+                                        <div class="card h-100 <?= htmlspecialchars($cardBorderClass) ?>">
+                                            <div class="card-header <?= htmlspecialchars($cardHeaderClass) ?> text-white">
+                                                <?= htmlspecialchars($cardHeaderText) ?>
                                             </div>
                                             <div class="card-body">
                                                 <p class="mb-1"><strong>Trajet :</strong> <?= htmlspecialchars(($trajet['lieu_depart'] ?? '') . ' → ' . ($trajet['lieu_arrivee'] ?? '')) ?></p>
@@ -350,16 +558,17 @@ require_once __DIR__ . "/../templates/header.php";
                                                 <?php if (!empty($reservationDate)): ?>
                                                     <p class="mb-1"><strong>Réservé le :</strong> <?= htmlspecialchars($reservationDate) ?></p>
                                                 <?php endif; ?>
-                                                <?php if ($reservationConfirmee): ?>
+                                                <?php if ($reservationAnnulee): ?>
+                                                    <span class="badge bg-danger mt-2">Réservation annulée par le passager</span>
+                                                <?php elseif ($reservationConfirmee): ?>
                                                     <span class="badge bg-primary mt-2">Réservation confirmée</span>
                                                 <?php else: ?>
                                                     <form method="POST" class="d-inline">
                                                         <input type="hidden" name="reservation_id" value="<?= htmlspecialchars((string)($reservation['reservation_id'] ?? '')) ?>">
+                                                        <input type="hidden" name="validate_reservation" value="1">
                                                         <button
                                                             type="submit"
-                                                            name="validate_reservation"
-                                                            class="btn btn-sm btn-primary mt-2"
-                                                            onclick="return confirm('Confirmer cette réservation pour le passager sélectionné ?');">
+                                                            class="btn btn-sm btn-primary mt-2">
                                                             Valider la réservation
                                                         </button>
                                                     </form>
@@ -445,8 +654,13 @@ require_once __DIR__ . "/../templates/header.php";
                                                                     if (!empty($reservation['date_reservation']) && $reservation['date_reservation'] !== '0000-00-00 00:00:00') {
                                                                         $reservationDate = date('d/m/Y H:i', strtotime($reservation['date_reservation']));
                                                                     }
+                                                                    $statutReservation = $reservation['statut'] ?? '';
+                                                                    $statutReservationMin = mb_strtolower($statutReservation, 'UTF-8');
+                                                                    $reservationAnnulee = $statutReservationMin === 'annulée';
+                                                                    $rowClass = $reservationAnnulee ? 'table-secondary opacity-75' : '';
+                                                                    $badgeClass = $reservationAnnulee ? 'bg-danger' : ($statutReservationMin === 'confirmée' ? 'bg-success' : 'bg-warning text-dark');
                                                                     ?>
-                                                                    <tr>
+                                                                    <tr class="<?= htmlspecialchars($rowClass) ?>">
                                                                         <td>
                                                                             <?= htmlspecialchars($passagerNom) ?>
                                                                             <?php if (!empty($reservation['passager_email'])): ?>
@@ -457,7 +671,11 @@ require_once __DIR__ . "/../templates/header.php";
                                                                             <?php endif; ?>
                                                                         </td>
                                                                         <td><?= htmlspecialchars((string)($reservation['nb_places_reservees'] ?? '')) ?></td>
-                                                                        <td><?= htmlspecialchars($reservation['statut'] ?? '') ?></td>
+                                                                        <td>
+                                                                            <span class="badge <?= htmlspecialchars($badgeClass) ?>">
+                                                                                <?= htmlspecialchars($statutReservation) ?>
+                                                                            </span>
+                                                                        </td>
                                                                         <td><?= htmlspecialchars($reservationDate) ?></td>
                                                                     </tr>
                                                                 <?php endforeach; ?>
@@ -478,5 +696,7 @@ require_once __DIR__ . "/../templates/header.php";
     </div>
 
 </section>
+
+<script src="/assets/js/ajax-reservations.js"></script>
 
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>

@@ -11,8 +11,9 @@ Ce projet utilise Docker Compose pour créer un environnement de développement 
 
 ### Services inclus :
 
-- **MySQL 8.0** : Base de données sur le port 3306
-- **Apache + PHP 8.2** : Serveur web sur le port 80
+- **MySQL 8.0** : Base de données sur le port 3307 (exposé depuis le conteneur)
+- **Apache + PHP 8.2** : Serveur web sur le port 8000 (exposé depuis le conteneur)
+- **MongoDB 7.0** : Base de données NoSQL sur le port 27017
 - **phpMyAdmin** : Interface d'administration de la base sur le port 8080
 
 ## Démarrage rapide
@@ -38,10 +39,10 @@ docker-compose ps
 
 ## Accès aux services
 
-- **Site web** : http://localhost
+- **Site web** : http://localhost:8000
 - **phpMyAdmin** : http://localhost:8080
   - Utilisateur : `root`
-  - Mot de passe : ``
+  - Mot de passe : `root`
   - Base de données : `ecoride`
 
 ## Commandes utiles
@@ -66,31 +67,31 @@ docker-compose restart
 docker-compose logs
 
 # Logs d'un service spécifique
-docker-compose logs web
-docker-compose logs mysql
+docker-compose logs app
+docker-compose logs db
 ```
 
 ### Base de données
 
 ```bash
 # Se connecter à MySQL
-docker-compose exec mysql mysql -u root -p
+docker-compose exec db mysql -u root -p
 
 # Sauvegarder la base
-docker-compose exec mysql mysqldump -u root -p ecoride > backup.sql
+docker-compose exec db mysqldump -u root -p ecoride > backup.sql
 
 # Restaurer la base
-docker-compose exec -T mysql mysql -u root -p ecoride < backup.sql
+docker-compose exec -T db mysql -u root -p ecoride < backup.sql
 ```
 
 ### Shell
 
 ```bash
 # Accéder au conteneur web
-docker-compose exec web bash
+docker-compose exec app bash
 
 # Accéder au conteneur MySQL
-docker-compose exec mysql bash
+docker-compose exec db bash
 ```
 
 ## Configuration
@@ -114,13 +115,13 @@ Les paramètres de connexion à la base de données sont configurés dans `docke
 
 ### Ports déjà utilisés
 
-Si les ports 80, 3306 ou 8080 sont déjà utilisés, modifiez `docker-compose.yml` :
+Si les ports 8000, 3307, 27017 ou 8080 sont déjà utilisés, modifiez `docker-compose.yml` ou utilisez les variables d'environnement :
 
 ```yaml
 ports:
-  - "8081:80" # Au lieu de "80:80"
-  - "3307:3306" # Au lieu de "3306:3306"
-  - "8081:80" # Au lieu de "8080:80"
+  - "${APP_PORT:-8001}:80" # Pour changer le port de l'application
+  - "${MYSQL_PORT:-3308}:3306" # Pour changer le port MySQL
+  - "${PHPMYADMIN_PORT:-8081}:80" # Pour changer le port phpMyAdmin
 ```
 
 ### Permissions
@@ -128,7 +129,7 @@ ports:
 Si vous avez des problèmes de permissions :
 
 ```bash
-docker-compose exec web chown -R www-data:www-data /var/www/html
+docker-compose exec app chown -R www-data:www-data /var/www/html
 ```
 
 ### Réinitialiser complètement
@@ -149,8 +150,8 @@ docker-compose up -d
 ### Modifier la configuration
 
 1. Modifiez les fichiers dans `docker/`
-2. Reconstruisez l'image : `docker-compose build web`
-3. Redémarrez : `docker-compose restart web`
+2. Reconstruisez l'image : `docker-compose build app`
+3. Redémarrez : `docker-compose restart app`
 
 ### Ajouter des extensions PHP
 
