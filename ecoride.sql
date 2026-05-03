@@ -292,7 +292,482 @@ VALUES (
     );
 
 -- --------------------------------------------------------
--- TABLE COVOITURAGE (dépend de user, voiture)
+-- TABLE VILLE
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `ville`;
+
+CREATE TABLE IF NOT EXISTS `ville` (
+    `ville_id` INT NOT NULL AUTO_INCREMENT,
+    `nom` VARCHAR(100) COLLATE utf8mb4_general_ci NOT NULL,
+    `code_postal` VARCHAR(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `code_insee` VARCHAR(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `latitude` DECIMAL(10, 7) DEFAULT NULL,
+    `longitude` DECIMAL(10, 7) DEFAULT NULL,
+    PRIMARY KEY (`ville_id`),
+    INDEX `idx_nom` (`nom`),
+    INDEX `idx_code_postal` (`code_postal`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+
+INSERT INTO
+    `ville` (
+        `nom`,
+        `code_postal`,
+        `code_insee`,
+        `latitude`,
+        `longitude`
+    )
+VALUES (
+        'Aix-en-Provence',
+        '13100',
+        '13001',
+        43.5297000,
+        5.4474000
+    ),
+    (
+        'Ajaccio',
+        '20000',
+        '2A004',
+        41.9192000,
+        8.7386000
+    ),
+    (
+        'Amiens',
+        '80000',
+        '80021',
+        49.8941000,
+        2.2957000
+    ),
+    (
+        'Angers',
+        '49000',
+        '49007',
+        47.4784000,
+        -0.5632000
+    ),
+    (
+        'Annecy',
+        '74000',
+        '74010',
+        45.8992000,
+        6.1294000
+    ),
+    (
+        'Antibes',
+        '06600',
+        '06004',
+        43.5808000,
+        7.1239000
+    ),
+    (
+        'Argenteuil',
+        '95100',
+        '95018',
+        48.9474000,
+        2.2482000
+    ),
+    (
+        'Arles',
+        '13200',
+        '13004',
+        43.6766000,
+        4.6280000
+    ),
+    (
+        'Avignon',
+        '84000',
+        '84007',
+        43.9493000,
+        4.8055000
+    ),
+    (
+        'Besançon',
+        '25000',
+        '25056',
+        47.2380000,
+        6.0243000
+    ),
+    (
+        'Béziers',
+        '34500',
+        '34032',
+        43.3441000,
+        3.2196000
+    ),
+    (
+        'Bordeaux',
+        '33000',
+        '33063',
+        44.8378000,
+        -0.5792000
+    ),
+    (
+        'Boulogne-Billancourt',
+        '92100',
+        '92012',
+        48.8350000,
+        2.2412000
+    ),
+    (
+        'Bourges',
+        '18000',
+        '18033',
+        47.0810000,
+        2.3988000
+    ),
+    (
+        'Brest',
+        '29200',
+        '29019',
+        48.3905000,
+        -4.4860000
+    ),
+    (
+        'Caen',
+        '14000',
+        '14118',
+        49.1829000,
+        -0.3707000
+    ),
+    (
+        'Calais',
+        '62100',
+        '62193',
+        50.9513000,
+        1.8587000
+    ),
+    (
+        'Cannes',
+        '06400',
+        '06029',
+        43.5528000,
+        7.0174000
+    ),
+    (
+        'Chambéry',
+        '73000',
+        '73065',
+        45.5646000,
+        5.9178000
+    ),
+    (
+        'Cherbourg-en-Cotentin',
+        '50100',
+        '50129',
+        49.6386000,
+        -1.6164000
+    ),
+    (
+        'Clermont-Ferrand',
+        '63000',
+        '63113',
+        45.7772000,
+        3.0870000
+    ),
+    (
+        'Colmar',
+        '68000',
+        '68066',
+        48.0794000,
+        7.3585000
+    ),
+    (
+        'Créteil',
+        '94000',
+        '94028',
+        48.7904000,
+        2.4554000
+    ),
+    (
+        'Dijon',
+        '21000',
+        '21231',
+        47.3220000,
+        5.0415000
+    ),
+    (
+        'Dunkerque',
+        '59140',
+        '59183',
+        51.0344000,
+        2.3768000
+    ),
+    (
+        'Évry-Courcouronnes',
+        '91000',
+        '91228',
+        48.6331000,
+        2.4310000
+    ),
+    (
+        'Grenoble',
+        '38000',
+        '38185',
+        45.1885000,
+        5.7245000
+    ),
+    (
+        'La Rochelle',
+        '17000',
+        '17300',
+        46.1591000,
+        -1.1520000
+    ),
+    (
+        'Le Havre',
+        '76600',
+        '76351',
+        49.4944000,
+        0.1079000
+    ),
+    (
+        'Le Mans',
+        '72000',
+        '72181',
+        48.0061000,
+        0.1996000
+    ),
+    (
+        'Lille',
+        '59000',
+        '59350',
+        50.6292000,
+        3.0573000
+    ),
+    (
+        'Limoges',
+        '87000',
+        '87085',
+        45.8336000,
+        1.2611000
+    ),
+    (
+        'Lorient',
+        '56100',
+        '56121',
+        47.7482000,
+        -3.3702000
+    ),
+    (
+        'Lyon',
+        '69000',
+        '69123',
+        45.7640000,
+        4.8357000
+    ),
+    (
+        'Marseille',
+        '13000',
+        '13055',
+        43.2965000,
+        5.3698000
+    ),
+    (
+        'Martigues',
+        '13500',
+        '13056',
+        43.4053000,
+        5.0479000
+    ),
+    (
+        'Metz',
+        '57000',
+        '57463',
+        49.1193000,
+        6.1757000
+    ),
+    (
+        'Montpellier',
+        '34000',
+        '34172',
+        43.6108000,
+        3.8767000
+    ),
+    (
+        'Montreuil',
+        '93100',
+        '93048',
+        48.8638000,
+        2.4485000
+    ),
+    (
+        'Mulhouse',
+        '68100',
+        '68224',
+        47.7508000,
+        7.3359000
+    ),
+    (
+        'Nancy',
+        '54000',
+        '54395',
+        48.6921000,
+        6.1844000
+    ),
+    (
+        'Nantes',
+        '44000',
+        '44109',
+        47.2184000,
+        -1.5536000
+    ),
+    (
+        'Nice',
+        '06000',
+        '06088',
+        43.7102000,
+        7.2620000
+    ),
+    (
+        'Nîmes',
+        '30000',
+        '30189',
+        43.8367000,
+        4.3601000
+    ),
+    (
+        'Orléans',
+        '45000',
+        '45234',
+        47.9029000,
+        1.9039000
+    ),
+    (
+        'Paris',
+        '75000',
+        '75056',
+        48.8566000,
+        2.3522000
+    ),
+    (
+        'Pau',
+        '64000',
+        '64445',
+        43.2951000,
+        -0.3708000
+    ),
+    (
+        'Perpignan',
+        '66000',
+        '66136',
+        42.6886000,
+        2.8949000
+    ),
+    (
+        'Poitiers',
+        '86000',
+        '86194',
+        46.5802000,
+        0.3404000
+    ),
+    (
+        'Reims',
+        '51100',
+        '51454',
+        49.2583000,
+        4.0317000
+    ),
+    (
+        'Rennes',
+        '35000',
+        '35238',
+        48.1173000,
+        -1.6778000
+    ),
+    (
+        'Roubaix',
+        '59100',
+        '59512',
+        50.6927000,
+        3.1746000
+    ),
+    (
+        'Rouen',
+        '76000',
+        '76540',
+        49.4432000,
+        1.0993000
+    ),
+    (
+        'Saint-Denis',
+        '93200',
+        '93066',
+        48.9362000,
+        2.3574000
+    ),
+    (
+        'Saint-Étienne',
+        '42000',
+        '42218',
+        45.4397000,
+        4.3872000
+    ),
+    (
+        'Saint-Nazaire',
+        '44600',
+        '44184',
+        47.2735000,
+        -2.2138000
+    ),
+    (
+        'Strasbourg',
+        '67000',
+        '67482',
+        48.5734000,
+        7.7521000
+    ),
+    (
+        'Toulon',
+        '83000',
+        '83137',
+        43.1242000,
+        5.9280000
+    ),
+    (
+        'Toulouse',
+        '31000',
+        '31555',
+        43.6047000,
+        1.4442000
+    ),
+    (
+        'Tours',
+        '37000',
+        '37261',
+        47.3941000,
+        0.6848000
+    ),
+    (
+        'Troyes',
+        '10000',
+        '10387',
+        48.2973000,
+        4.0744000
+    ),
+    (
+        'Valence',
+        '26000',
+        '26362',
+        44.9334000,
+        4.8924000
+    ),
+    (
+        'Versailles',
+        '78000',
+        '78646',
+        48.8014000,
+        2.1301000
+    ),
+    (
+        'Villeurbanne',
+        '69100',
+        '69266',
+        45.7665000,
+        4.8795000
+    );
+
+-- --------------------------------------------------------
+-- TABLE COVOITURAGE (dépend de user, voiture, ville)
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `covoiturage`;
@@ -302,9 +777,13 @@ CREATE TABLE IF NOT EXISTS `covoiturage` (
     `date_depart` date NOT NULL,
     `heure_depart` time NOT NULL,
     `lieu_depart` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+    `ville_depart_id` INT DEFAULT NULL,
     `date_arrivee` date NOT NULL,
     `heure_arrivee` time NOT NULL,
     `lieu_arrivee` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+    `ville_arrivee_id` INT DEFAULT NULL,
+    `distance_km` DECIMAL(8, 2) DEFAULT NULL COMMENT 'Distance totale en km (calculée via OSRM)',
+    `co2_economise_kg` DECIMAL(8, 2) DEFAULT NULL COMMENT 'CO2 économisé par passager vs voiture solo',
     `statut` tinyint(1) DEFAULT NULL,
     `nb_place` int NOT NULL,
     `prix_personne` float NOT NULL,
@@ -314,8 +793,12 @@ CREATE TABLE IF NOT EXISTS `covoiturage` (
     PRIMARY KEY (`covoiturage_id`),
     KEY `covoiturage_ibfk_1` (`user_id`),
     KEY `covoiturage_ibfk_2` (`voiture_id`),
+    KEY `idx_ville_depart` (`ville_depart_id`),
+    KEY `idx_ville_arrivee` (`ville_arrivee_id`),
     CONSTRAINT `covoiturage_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT `covoiturage_ibfk_2` FOREIGN KEY (`voiture_id`) REFERENCES `voiture` (`voiture_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+    CONSTRAINT `covoiturage_ibfk_2` FOREIGN KEY (`voiture_id`) REFERENCES `voiture` (`voiture_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `covoiturage_ibfk_3` FOREIGN KEY (`ville_depart_id`) REFERENCES `ville` (`ville_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `covoiturage_ibfk_4` FOREIGN KEY (`ville_arrivee_id`) REFERENCES `ville` (`ville_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 12 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
 INSERT INTO
@@ -382,7 +865,28 @@ VALUES (
     );
 
 -- --------------------------------------------------------
--- TABLE RESERVATIONS (dépend de user, covoiturage)
+-- TABLE ETAPE (dépend de covoiturage, ville)
+-- --------------------------------------------------------
+
+DROP TABLE IF EXISTS `etape`;
+
+CREATE TABLE IF NOT EXISTS `etape` (
+    `etape_id` INT NOT NULL AUTO_INCREMENT,
+    `covoiturage_id` INT NOT NULL,
+    `ville_id` INT NOT NULL,
+    `ordre` INT NOT NULL COMMENT '1 = départ, n = arrivée. Unique par covoiturage.',
+    `heure_prevue` TIME DEFAULT NULL,
+    `date_prevue` DATE DEFAULT NULL,
+    `prix_segment` FLOAT DEFAULT NULL COMMENT 'Prix entre cette étape et la suivante (optionnel)',
+    PRIMARY KEY (`etape_id`),
+    UNIQUE KEY `uniq_covoiturage_ordre` (`covoiturage_id`, `ordre`),
+    KEY `idx_ville` (`ville_id`),
+    CONSTRAINT `etape_ibfk_1` FOREIGN KEY (`covoiturage_id`) REFERENCES `covoiturage` (`covoiturage_id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+    CONSTRAINT `etape_ibfk_2` FOREIGN KEY (`ville_id`) REFERENCES `ville` (`ville_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- TABLE RESERVATIONS (dépend de user, covoiturage, etape)
 -- --------------------------------------------------------
 
 DROP TABLE IF EXISTS `reservations`;
@@ -391,6 +895,8 @@ CREATE TABLE IF NOT EXISTS `reservations` (
     `reservation_id` int NOT NULL AUTO_INCREMENT,
     `user_id` int NOT NULL,
     `covoiturage_id` int NOT NULL,
+    `etape_montee_id` INT DEFAULT NULL,
+    `etape_descente_id` INT DEFAULT NULL,
     `date_reservation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `nb_places_reservees` int NOT NULL DEFAULT 1,
     `prix_total` float NOT NULL,
@@ -398,8 +904,12 @@ CREATE TABLE IF NOT EXISTS `reservations` (
     PRIMARY KEY (`reservation_id`),
     KEY `reservations_ibfk_1` (`user_id`),
     KEY `reservations_ibfk_2` (`covoiturage_id`),
+    KEY `idx_etape_montee` (`etape_montee_id`),
+    KEY `idx_etape_descente` (`etape_descente_id`),
     CONSTRAINT `reservations_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-    CONSTRAINT `reservations_ibfk_2` FOREIGN KEY (`covoiturage_id`) REFERENCES `covoiturage` (`covoiturage_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+    CONSTRAINT `reservations_ibfk_2` FOREIGN KEY (`covoiturage_id`) REFERENCES `covoiturage` (`covoiturage_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `reservations_ibfk_3` FOREIGN KEY (`etape_montee_id`) REFERENCES `etape` (`etape_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+    CONSTRAINT `reservations_ibfk_4` FOREIGN KEY (`etape_descente_id`) REFERENCES `etape` (`etape_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
 -- --------------------------------------------------------
