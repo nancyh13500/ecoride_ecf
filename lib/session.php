@@ -51,7 +51,7 @@ function validateCSRFToken(string $token): bool
 @param string
 @return void */
 
-function verufyCSRFToken(string $tokenName = 'csrf_token'): void
+function verifyCSRFToken(string $tokenName = 'csrf_token'): void
 {
     $token = $_POST[$tokenName] ?? $_GET[$tokenName] ?? '';
 
@@ -68,6 +68,6 @@ function verufyCSRFToken(string $tokenName = 'csrf_token'): void
 
 function csrfField(string $tokenName = 'csrf_token'): void
 {
-    $token = gerenrateCSRFToken();
+    $token = generateCSRFToken();
     echo '<input type="hidden" name="' . $tokenName . '" value="' . $token . '">';
 }

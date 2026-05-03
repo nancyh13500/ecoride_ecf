@@ -1,21 +1,20 @@
 <?php
 require_once __DIR__ . "/../vendor/autoload.php";
-require_once __DIR__ . "/../templates/header.php";
+require_once __DIR__ . "/../lib/session.php"; // ← ajout session
 
 use Ecoride\Ecf\Service\MailerService;
 
-// Traitement du formulaire
 $messageSuccess = '';
 $messageError = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Récupération et nettoyage des données
+    verifyCSRFToken(); // vérification CSRF
+
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $subject = trim($_POST['subject'] ?? '');
     $message = trim($_POST['message'] ?? '');
 
-    // Validation
     $errors = [];
 
     if (empty($name)) {
@@ -36,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "Le message est obligatoire";
     }
 
-    // Si pas d'erreurs, envoyer l'email
     if (empty($errors)) {
         $mailer = new MailerService();
         $success = $mailer->sendContactEmail([
@@ -48,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($success) {
             $messageSuccess = "Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.";
-            // Réinitialiser les champs
             $name = $email = $subject = $message = '';
         } else {
             $messageError = "Une erreur est survenue lors de l'envoi. Veuillez réessayer.";
@@ -57,6 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $messageError = implode('<br>', $errors);
     }
 }
+
+require_once __DIR__ . "/../templates/header.php";
 ?>
 
 <section class="hero px-4 py-5">
@@ -84,6 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form action="" method="POST">
+            <?php csrfField(); ?> <!-- ← ajout token CSRF -->
+
             <div class="mb-4 row d-flex justify-content-center">
                 <div class="col-md-4">
                     <input type="text"

@@ -18,8 +18,7 @@ $error_message = '';
 $covoiturages = [];
 try {
     $currentUserId = (int)$user['user_id'];
-    
-    // Récupérer les covoiturages où l'utilisateur est conducteur (trajets terminés)
+
     $stmt = $pdo->prepare("
         SELECT c.covoiturage_id, c.lieu_depart, c.lieu_arrivee, c.date_depart, c.heure_depart
         FROM covoiturage c
@@ -30,8 +29,7 @@ try {
     ");
     $stmt->execute([':user_id' => $currentUserId]);
     $covoituragesConducteur = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Récupérer les covoiturages où l'utilisateur est passager (via réservations)
+
     $reservationSupport = null;
     $reservationTables = ['reservations', 'reservation'];
     foreach ($reservationTables as $tableName) {
@@ -43,7 +41,7 @@ try {
             continue;
         }
     }
-    
+
     $covoituragesPassager = [];
     if ($reservationSupport) {
         $stmt = $pdo->prepare("
@@ -58,8 +56,7 @@ try {
         $stmt->execute([':user_id' => $currentUserId]);
         $covoituragesPassager = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    // Fusionner et dédupliquer les covoiturages
+
     $covoituragesIds = [];
     foreach ($covoituragesConducteur as $cov) {
         $id = (int)$cov['covoiturage_id'];
@@ -81,13 +78,14 @@ try {
 
 // Traitement du formulaire d'avis
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
+    verifyCSRFToken(); // vérification CSRF
+
     $note = intval($_POST['note']);
     $commentaire = trim($_POST['commentaire']);
-    $covoiturage_id = isset($_POST['covoiturage_id']) && $_POST['covoiturage_id'] !== '' 
-        ? intval($_POST['covoiturage_id']) 
+    $covoiturage_id = isset($_POST['covoiturage_id']) && $_POST['covoiturage_id'] !== ''
+        ? intval($_POST['covoiturage_id'])
         : null;
 
-    // Validation des données
     if ($note < 1 || $note > 5) {
         $error_message = "La note doit être comprise entre 1 et 5.";
     } elseif (empty($commentaire) || strlen($commentaire) < 10) {
@@ -95,7 +93,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
     } elseif (strlen($commentaire) > 250) {
         $error_message = "Le commentaire ne doit pas dépasser 250 caractères (actuellement " . strlen($commentaire) . " caractères).";
     } else {
-        // Si un covoiturage est sélectionné, vérifier qu'il appartient bien à l'utilisateur
         if ($covoiturage_id !== null) {
             $covoiturageValide = false;
             foreach ($covoiturages as $cov) {
@@ -108,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
                 $error_message = "Le covoiturage sélectionné n'est pas valide.";
             }
         }
-        
+
         if (empty($error_message)) {
             try {
                 $avisCollection = getAvisCollection();
@@ -117,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
                     throw new Exception("MongoDB n'est pas disponible. Veuillez contacter l'administrateur.");
                 }
 
-                // Créer un nouvel avis dans MongoDB
                 $avisDocument = [
                     'user_id' => (int)$user['user_id'],
                     'note' => $note,
@@ -126,8 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
                     'created_at' => new MongoDB\BSON\UTCDateTime(),
                     'updated_at' => new MongoDB\BSON\UTCDateTime()
                 ];
-                
-                // Ajouter le covoiturage_id si sélectionné
+
                 if ($covoiturage_id !== null) {
                     $avisDocument['covoiturage_id'] = $covoiturage_id;
                 }
@@ -135,7 +130,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
                 $result = $avisCollection->insertOne($avisDocument);
 
                 if ($result->getInsertedCount() > 0) {
-                    // Rediriger vers la page avis avec un message de succès
                     $_SESSION['success_message'] = "Votre avis a été publié avec succès ! Il sera visible après validation par un employé.";
                     header("Location: /pages/avis.php");
                     exit();
@@ -149,7 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
     }
 }
 
-// Le formulaire est toujours vide pour permettre de déposer un nouvel avis
 $user_avis = null;
 
 require_once __DIR__ . "/../templates/header.php";
@@ -190,7 +183,8 @@ require_once __DIR__ . "/../templates/header.php";
                         <?php endif; ?>
 
                         <form method="POST" action="deposer_avis.php" id="avisForm">
-                            <!-- Nouveau champ pour sélectionner un covoiturage -->
+                            <?php csrfField(); ?> <!-- ← ajout token CSRF -->
+
                             <div class="mb-4">
                                 <label for="covoiturage_id" class="form-label fw-bold">Covoiturage concerné (optionnel) :</label>
                                 <select class="form-select" id="covoiturage_id" name="covoiturage_id">
@@ -229,9 +223,7 @@ require_once __DIR__ . "/../templates/header.php";
                                 <div class="d-flex align-items-center justify-content-between">
                                     <small class="text-avis mb-0">Cliquez sur les étoiles pour donner votre note</small>
                                     <div class="rating-stars">
-                                        <?php
-                                        for ($i = 5; $i >= 1; $i--):
-                                        ?>
+                                        <?php for ($i = 5; $i >= 1; $i--): ?>
                                             <input type="radio" name="note" value="<?= $i ?>" id="star<?= $i ?>" required>
                                             <label for="star<?= $i ?>" class="star-label">
                                                 <i class="bi bi-star text-warning"></i>

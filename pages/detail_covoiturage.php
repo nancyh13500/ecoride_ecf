@@ -26,11 +26,11 @@ if ($covoiturage_id <= 0) {
 
 // Traitement de la réservation (nécessite une connexion)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserver'])) {
-    // Vérifier que l'utilisateur est connecté pour réserver
     if (!$isConnected || !$user) {
         header("Location: /login.php?redirect=detail_covoiturage.php&id=" . $covoiturage_id);
         exit();
     }
+    verifyCSRFToken(); // vérification CSRF
 
     if (empty($error_message)) {
         try {
@@ -55,57 +55,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserver'])) {
                 throw new Exception("Vous ne pouvez pas réserver votre propre covoiturage.");
             }
 
-        if ((int)$covoiturageRow['statut'] !== 1) {
-            throw new Exception("Ce covoiturage n'est plus disponible.");
-        }
+            if ((int)$covoiturageRow['statut'] !== 1) {
+                throw new Exception("Ce covoiturage n'est plus disponible.");
+            }
 
-        if ((int)$covoiturageRow['nb_place'] <= 0) {
-            throw new Exception("Plus de places disponibles pour ce covoiturage.");
-        }
+            if ((int)$covoiturageRow['nb_place'] <= 0) {
+                throw new Exception("Plus de places disponibles pour ce covoiturage.");
+            }
 
-        $checkReservation = $pdo->prepare("
+            $checkReservation = $pdo->prepare("
             SELECT reservation_id
             FROM reservations
             WHERE user_id = :user_id AND covoiturage_id = :covoiturage_id AND statut != 'annulée'
             LIMIT 1
         ");
-        $checkReservation->execute([
-            'user_id' => $user['user_id'],
-            'covoiturage_id' => $covoiturage_id,
-        ]);
+            $checkReservation->execute([
+                'user_id' => $user['user_id'],
+                'covoiturage_id' => $covoiturage_id,
+            ]);
 
-        if ($checkReservation->fetch()) {
-            throw new Exception("Vous avez déjà réservé une place pour ce covoiturage.");
-        }
+            if ($checkReservation->fetch()) {
+                throw new Exception("Vous avez déjà réservé une place pour ce covoiturage.");
+            }
 
-        $nb_places_reservees = 1;
-        $prix_total = (float)$covoiturageRow['prix_personne'] * $nb_places_reservees;
+            $nb_places_reservees = 1;
+            $prix_total = (float)$covoiturageRow['prix_personne'] * $nb_places_reservees;
 
-        $insertReservation = $pdo->prepare("
+            $insertReservation = $pdo->prepare("
             INSERT INTO reservations (user_id, covoiturage_id, nb_places_reservees, prix_total, statut)
             VALUES (:user_id, :covoiturage_id, :nb_places_reservees, :prix_total, 'En attente')
         ");
-        $insertReservation->execute([
-            'user_id' => $user['user_id'],
-            'covoiturage_id' => $covoiturage_id,
-            'nb_places_reservees' => $nb_places_reservees,
-            'prix_total' => $prix_total,
-        ]);
+            $insertReservation->execute([
+                'user_id' => $user['user_id'],
+                'covoiturage_id' => $covoiturage_id,
+                'nb_places_reservees' => $nb_places_reservees,
+                'prix_total' => $prix_total,
+            ]);
 
-        $updateCovoiturage = $pdo->prepare("
+            $updateCovoiturage = $pdo->prepare("
             UPDATE covoiturage
             SET nb_place = nb_place - :nb_places
             WHERE covoiturage_id = :covoiturage_id AND nb_place >= :nb_places_check
         ");
-        $updateCovoiturage->execute([
-            'nb_places' => $nb_places_reservees,
-            'nb_places_check' => $nb_places_reservees,
-            'covoiturage_id' => $covoiturage_id,
-        ]);
+            $updateCovoiturage->execute([
+                'nb_places' => $nb_places_reservees,
+                'nb_places_check' => $nb_places_reservees,
+                'covoiturage_id' => $covoiturage_id,
+            ]);
 
-        if ($updateCovoiturage->rowCount() === 0) {
-            throw new Exception("La réservation n'a pas pu être confirmée. Veuillez réessayer.");
-        }
+            if ($updateCovoiturage->rowCount() === 0) {
+                throw new Exception("La réservation n'a pas pu être confirmée. Veuillez réessayer.");
+            }
 
             $pdo->commit();
 
@@ -403,6 +403,7 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                 <!-- Utilisateur connecté -->
                                 <?php if ($peutReserver): ?>
                                     <form method="POST" action="" class="d-inline">
+                                        <?php csrfField(); ?> <!-- ← ajout token CSRF -->
                                         <input type="hidden" name="covoiturage_id" value="<?= htmlspecialchars((string) $covoiturage_id) ?>">
                                         <button type="submit" name="reserver" class="btn btn-reserver btn-primary btn-lg" onclick="return confirm('Êtes-vous sûr de vouloir réserver une place pour ce covoiturage ?');">
                                             <i class="bi bi-check-circle me-2"></i>Réserver une place
