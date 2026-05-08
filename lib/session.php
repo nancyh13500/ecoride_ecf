@@ -1,12 +1,18 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    ob_start();
-    session_set_cookie_params([
-        'lifetime' => 3600,
-        'path' => '/',
-        'httponly' => true
-    ]);
-    session_start();
+    if (!headers_sent()) {
+        session_set_cookie_params([
+            'lifetime' => 3600,
+            'path' => '/',
+            'httponly' => true
+        ]);
+        session_start();
+    } else {
+        // Evite les warnings "headers already sent" qui cassent le rendu HTML.
+        if (!isset($_SESSION) || !is_array($_SESSION)) {
+            $_SESSION = [];
+        }
+    }
 }
 
 function isUserConnected(): bool

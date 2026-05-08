@@ -143,32 +143,6 @@ try {
     ");
     $query_suggestion->execute();
     $covoiturages_suggestion = $query_suggestion->fetchAll(PDO::FETCH_ASSOC);
-
-    // Récupérer les Etape(s) programmée(s) des trajets suggérés
-    $covoiturage_ids = array_values(array_filter(array_map(static function ($c) {
-        return (int)($c['covoiturage_id'] ?? 0);
-    }, $covoiturages_suggestion)));
-
-    if (!empty($covoiturage_ids)) {
-        $placeholders = implode(',', array_fill(0, count($covoiturage_ids), '?'));
-        $query_etapes = $pdo->prepare("
-            SELECT e.covoiturage_id, v.nom
-            FROM etape e
-            JOIN ville v ON v.ville_id = e.ville_id
-            WHERE e.covoiturage_id IN ($placeholders)
-            ORDER BY e.covoiturage_id ASC, e.ordre ASC
-        ");
-        $query_etapes->execute($covoiturage_ids);
-        $etapes = $query_etapes->fetchAll(PDO::FETCH_ASSOC);
-
-        foreach ($etapes as $etape) {
-            $cid = (int)$etape['covoiturage_id'];
-            if (!isset($etapes_by_covoiturage[$cid])) {
-                $etapes_by_covoiturage[$cid] = [];
-            }
-            $etapes_by_covoiturage[$cid][] = $etape['nom'];
-        }
-    }
 } catch (PDOException $e) {
     $covoiturages_suggestion = [];
     $etapes_by_covoiturage = [];
@@ -179,7 +153,7 @@ try {
 <!--section search -->
 <section class="hero">
     <div class="background-img"></div>
-    <div class="content px-4 py-3 my-3 text-center">
+    <div class="content px-4 py-5 my-5 text-center">
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
         <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
@@ -299,10 +273,12 @@ try {
                                     return $nom_normalise !== '' && $nom_normalise !== $depart_nom && $nom_normalise !== $arrivee_nom;
                                 }));
                                 ?>
-                                <p class="mb-2 small">
-                                    Etape(s) :
-                                    <?= !empty($etapes_intermediaires) ? htmlspecialchars(implode(' → ', $etapes_intermediaires)) : 'Direct' ?>
-                                </p>
+                                <?php if (!empty($etapes_intermediaires)): ?>
+                                    <p class="mb-2 small text-muted">
+                                        Etape(s) :
+                                        <?= htmlspecialchars(implode(' → ', $etapes_intermediaires)) ?>
+                                    </p>
+                                <?php endif; ?>
                                 <p class="mb-2">
                                     <span class="badge <?= $badge_class ?>">
                                         <i class="bi bi-people me-1"></i>

@@ -1,9 +1,8 @@
 <?php
-require_once __DIR__ . "/../templates/header.php";
-require_once __DIR__ . "/../lib/pdo.php";
 require_once __DIR__ . "/../lib/session.php";
+require_once __DIR__ . "/../lib/pdo.php";
 
-// GÃ©rer le dÃ©marrage du trajet depuis cette page
+// Gérer le démarrage du trajet depuis cette page
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_from_hero'])) {
     if (isUserConnected()) {
         $user = $_SESSION['user'];
@@ -15,28 +14,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_from_her
             header("Location: mes_trajets.php?started=1");
             exit();
         } catch (PDOException $e) {
-            $error_message = "Erreur lors du dÃ©marrage du trajet : " . $e->getMessage();
+            $error_message = "Erreur lors du démarrage du trajet : " . $e->getMessage();
         }
     }
 }
 
-// RÃ©cupÃ©rer les villes disponibles depuis la base de donnÃ©es
+// Récupérer les villes disponibles depuis la base de données
 $villes_depart = [];
 $villes_arrivee = [];
 $villes_etape = [];
 
 try {
-    // RÃ©cupÃ©rer les villes de dÃ©part
+    // Récupérer les villes de départ
     $query_depart = $pdo->prepare("SELECT DISTINCT lieu_depart FROM covoiturage WHERE statut = 1 ORDER BY lieu_depart ASC");
     $query_depart->execute();
     $villes_depart = $query_depart->fetchAll(PDO::FETCH_COLUMN);
 
-    // RÃ©cupÃ©rer les villes d'arrivÃ©e
+    // Récupérer les villes d'arrivée
     $query_arrivee = $pdo->prepare("SELECT DISTINCT lieu_arrivee FROM covoiturage WHERE statut = 1 ORDER BY lieu_arrivee ASC");
     $query_arrivee->execute();
     $villes_arrivee = $query_arrivee->fetchAll(PDO::FETCH_COLUMN);
 
-    // RÃ©cupÃ©rer les villes d'Ã©tape depuis la table ville
+    // Récupérer les villes d'étape depuis la table ville
     $query_etape = $pdo->prepare("SELECT DISTINCT nom FROM ville ORDER BY nom ASC");
     $query_etape->execute();
     $villes_etape = $query_etape->fetchAll(PDO::FETCH_COLUMN);
@@ -54,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
     $date = $_POST['date'] ?? '';
     $etape = $_POST['etape'] ?? '';
 
-    // Redirection vers la mÃªme page avec les paramÃ¨tres de recherche
+    // Redirection vers la même page avec les paramètres de recherche
     $params = http_build_query([
         'depart' => $depart,
         'arrivee' => $arrivee,
@@ -66,13 +65,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
     exit();
 }
 
-// RÃ©cupÃ©rer les paramÃ¨tres de recherche depuis l'URL
+// Récupérer les paramètres de recherche depuis l'URL
 $search_depart = $_GET['depart'] ?? '';
 $search_arrivee = $_GET['arrivee'] ?? '';
 $search_date = $_GET['date'] ?? '';
 $search_etape = $_GET['etape'] ?? '';
 
-// Rechercher les covoiturages selon les critÃ¨res de recherche
+// Rechercher les covoiturages selon les critères de recherche
 $covoiturages_recherche = [];
 $has_search_criteria = !empty($search_depart) && !empty($search_arrivee);
 
@@ -90,7 +89,7 @@ if ($has_search_criteria) {
             AND c.date_depart >= CURDATE()
         ";
 
-        // Filtre optionnel sur une ville d'Ã©tape (dÃ©part/arrivÃ©e compris via table etape)
+        // Filtre optionnel sur une ville d'étape (départ/arrivée compris via table etape)
         if (!empty($search_etape)) {
             $query_sql .= "
                 AND EXISTS (
@@ -103,7 +102,7 @@ if ($has_search_criteria) {
             ";
         }
 
-        // Ajouter la condition de date si spÃ©cifiÃ©e
+        // Ajouter la condition de date si spécifiée
         if (!empty($search_date)) {
             $query_sql .= " AND c.date_depart = :date_search";
         }
@@ -129,7 +128,7 @@ if ($has_search_criteria) {
     }
 }
 
-// RÃ©cupÃ©rer un covoiturage disponible pour l'affichage dans la hero (pour tous les utilisateurs)
+// Récupérer un covoiturage disponible pour l'affichage dans la hero (pour tous les utilisateurs)
 $covoiturage_hero = null;
 try {
     $query_hero = $pdo->prepare("
@@ -149,18 +148,18 @@ try {
     $covoiturage_hero = null;
 }
 
-// RÃ©cupÃ©rer les trajets en attente pour la section suggestion
+// Récupérer les trajets en attente pour la section suggestion
 $covoiturages_suggestion = [];
 $debug_suggestion = [];
 $etapes_by_covoiturage = [];
 
 try {
-    // Debug: VÃ©rifier tous les statuts disponibles
+    // Debug: Vérifier tous les statuts disponibles
     $debug_query = $pdo->prepare("SELECT statut, COUNT(*) as count FROM covoiturage GROUP BY statut");
     $debug_query->execute();
     $debug_suggestion = $debug_query->fetchAll(PDO::FETCH_ASSOC);
 
-    // RequÃªte principale pour les suggestions
+    // Requête principale pour les suggestions
     $query_suggestion = $pdo->prepare("
         SELECT c.*, u.nom, u.prenom, v.modele, m.libelle AS marque_libelle
         FROM covoiturage c
@@ -174,7 +173,7 @@ try {
     $query_suggestion->execute();
     $covoiturages_suggestion = $query_suggestion->fetchAll(PDO::FETCH_ASSOC);
 
-    // Si pas de trajets en attente, rÃ©cupÃ©rer des trajets disponibles pour test
+    // Si pas de trajets en attente, récupérer des trajets disponibles pour test
     if (empty($covoiturages_suggestion)) {
         $query_test = $pdo->prepare("
             SELECT c.*, u.nom, u.prenom, v.modele, m.libelle AS marque_libelle
@@ -195,7 +194,7 @@ try {
     $debug_suggestion = [];
 }
 
-// RÃ©cupÃ©rer les Ã©tapes programmÃ©es pour les trajets affichÃ©s (rÃ©sultats + suggestions)
+// Récupérer les étapes programmées pour les trajets affichés (résultats + suggestions)
 try {
     $covoiturage_ids = [];
     foreach ($covoiturages_recherche as $trajet) {
@@ -234,12 +233,14 @@ try {
     $etapes_by_covoiturage = [];
 }
 
+require_once __DIR__ . "/../templates/header.php";
+
 ?>
 
-<!-- Hero Section -->
+<!--section search -->
 <section class="hero">
     <div class="background-img"></div>
-    <div class="content px-4 py-3 my-3 text-center">
+    <div class="content px-4 py-5 my-5 text-center">
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
         <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
@@ -248,7 +249,7 @@ try {
                     <div class="search-field col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-primary"></i></span>
-                            <input type="text" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" list="villes-depart" value="<?= htmlspecialchars($search_depart) ?>" required>
+                            <input type="text" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" list="villes-depart" required>
                             <datalist id="villes-depart">
                                 <?php foreach ($villes_depart as $ville): ?>
                                     <option value="<?= htmlspecialchars($ville) ?>">
@@ -259,7 +260,7 @@ try {
                     <div class="search-field col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
-                            <input type="text" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" list="villes-arrivee" value="<?= htmlspecialchars($search_arrivee) ?>" required>
+                            <input type="text" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" list="villes-arrivee" required>
                             <datalist id="villes-arrivee">
                                 <?php foreach ($villes_arrivee as $ville): ?>
                                     <option value="<?= htmlspecialchars($ville) ?>">
@@ -270,7 +271,7 @@ try {
                     <div class="search-field col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar text-primary"></i></span>
-                            <input type="date" name="date" class="form-control border-start-0 text-center" value="<?= htmlspecialchars($search_date) ?>">
+                            <input type="date" name="date" class="form-control border-start-0 text-center">
                         </div>
                     </div>
                 </div>
@@ -281,18 +282,19 @@ try {
         </div>
     </div>
 </section>
+<!--end section search -->
 
 <!-- Results Section -->
 
 <div class="result-header text-center mb-5">
     <div class="bg-dark text-white p-4">
         <?php if (!empty($search_depart) && !empty($search_arrivee)): ?>
-            <h2>RÃ©sultats pour : <?= htmlspecialchars($search_depart) ?> â†’ <?= htmlspecialchars($search_arrivee) ?></h2>
+            <h2>Résultats pour : <?= htmlspecialchars($search_depart) ?> → <?= htmlspecialchars($search_arrivee) ?></h2>
             <?php if (!empty($search_date)): ?>
                 <p class="mb-0">Date : <?= date('d/m/Y', strtotime($search_date)) ?></p>
             <?php endif; ?>
         <?php else: ?>
-            <h2>DÃ©couvrez les trajets disponibles</h2>
+            <h2>Découvrez les trajets disponibles</h2>
         <?php endif; ?>
     </div>
 </div>
@@ -303,30 +305,30 @@ try {
         <div class="col-md-2 text-center">
             <div class="form-check d-flex flex-column justify-content-center align-items-center">
                 <label class="form-check-label-eco mb-2" for="ecoTrip">
-                    Voyage Ã©cologique
+                    Voyage écologique
                 </label>
                 <input class="form-check-input mt-3 border-dark align-items-end" type="checkbox" id="ecoTrip">
             </div>
         </div>
 
         <div class="col-md-2 text-center">
-            <label class="form-label credit-min">CrÃ©dit minimum (C)</label>
-            <input type="number" class="form-control filter-price" placeholder="CrÃ©dit min">
+            <label class="form-label credit-min">Crédit minimum (C)</label>
+            <input type="number" class="form-control filter-price" placeholder="Crédit min">
         </div>
-        <!-- CALCUL DU TEMPS DE COVOITURAGE - DÃ‰SACTIVÃ‰ -->
+        <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
         <!--
         <div class="col-md-2 text-center">
-            <label class="form-label price-max">DurÃ©e maximum</label>
-            <input type="number" class="form-control filter-duration" placeholder="DurÃ©e max">
+            <label class="form-label price-max">Durée maximum</label>
+            <input type="number" class="form-control filter-duration" placeholder="Durée max">
         </div>
         -->
         <div class="col-md-3 text-center">
             <label class="form-label note">Note minimale</label>
             <select class="form-select">
                 <option selected>Toutes les notes</option>
-                <option value="5">5 Ã©toiles</option>
-                <option value="4">4 Ã©toiles et plus</option>
-                <option value="3">3 Ã©toiles et plus</option>
+                <option value="5">5 étoiles</option>
+                <option value="4">4 étoiles et plus</option>
+                <option value="3">3 étoiles et plus</option>
             </select>
         </div>
         <div class="col-md-3 d-flex justify-content-center align-items-end">
@@ -337,27 +339,27 @@ try {
 
 <section id="results" class="results bg-light py-5">
     <div class="container">
-        <!-- Section des rÃ©sultats de recherche -->
+        <!-- Section des résultats de recherche -->
         <?php if ($has_search_criteria): ?>
             <div class="search-results-section mb-5">
                 <h3 class="text-center mb-4">
                     <i class="bi bi-check2-square text-success me-2"></i></i>
-                    RÃ©sultat(s) trouvÃ©(s) :
+                    Résultat(s) trouvé(s) :
                 </h3>
                 <?php if (!empty($covoiturages_recherche)): ?>
                     <div class="row">
                         <?php foreach ($covoiturages_recherche as $covoiturage): ?>
-                            <div class="col-lg-6 col-md-6 mb-4">
+                            <div class="col-lg-4 col-md-6 mb-4">
                                 <div class="card h-100">
                                     <div class="card-header bg-dark text-white text-center border-light">
                                         <h6 class="mb-0"><i class="bi bi-car-front me-2"></i>Trajet disponible</h6>
                                     </div>
                                     <div class="card-body p-3">
                                         <h6 class="text-primary mb-2"><i class="bi bi-geo-alt-fill me-1"></i>Trajet</h6>
-                                        <p class="mb-2"><strong><?= htmlspecialchars($covoiturage['lieu_depart']) ?></strong> â†’ <strong><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></strong></p>
+                                        <p class="mb-2"><strong><?= htmlspecialchars($covoiturage['lieu_depart']) ?></strong> → <strong><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></strong></p>
 
-                                        <h6 class="text-primary mb-2"><i class="bi bi-calendar-event me-1"></i>DÃ©part</h6>
-                                        <p class="mb-2"><?= date('d/m/Y', strtotime($covoiturage['date_depart'])) ?> Ã  <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?></p>
+                                        <h6 class="text-primary mb-2"><i class="bi bi-calendar-event me-1"></i>Départ</h6>
+                                        <p class="mb-2"><?= date('d/m/Y', strtotime($covoiturage['date_depart'])) ?> à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?></p>
 
                                         <h6 class="text-primary mb-2"><i class="bi bi-person-circle me-1"></i>Conducteur</h6>
                                         <p class="mb-2"><?= htmlspecialchars($covoiturage['prenom'] . ' ' . $covoiturage['nom']) ?></p>
@@ -372,8 +374,8 @@ try {
                                         }));
                                         ?>
                                         <?php if (!empty($etapes_intermediaires)): ?>
-                                            <h6 class="text-primary mb-2"><i class="bi bi-signpost-2 me-1"></i>Etape(s) programmÃ©e(s)</h6>
-                                            <p class="mb-2 small text-muted"><?= htmlspecialchars(implode(' â†’ ', $etapes_intermediaires)) ?></p>
+                                            <h6 class="text-primary mb-2"><i class="bi bi-signpost-2 me-1"></i>Etape(s) programmée(s)</h6>
+                                            <p class="mb-2 small text-muted"><?= htmlspecialchars(implode(' → ', $etapes_intermediaires)) ?></p>
                                         <?php endif; ?>
 
                                         <div class="row mt-3 text-center">
@@ -391,19 +393,19 @@ try {
                                                 <?php if ($nb_places == 1): ?>
                                                     <div class="text-center mb-1">
                                                         <small class="text-danger fw-bold">
-                                                            <i class="bi bi-exclamation-triangle me-1"></i>DerniÃ¨re place !!!
+                                                            <i class="bi bi-exclamation-triangle me-1"></i>Dernière place !!!
                                                         </small>
                                                     </div>
                                                 <?php endif; ?>
                                             </div>
                                             <div class="col-6">
-                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 0) ?> crÃ©dits</span>
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="card-footer text-center">
                                         <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm">
-                                            <i class="bi bi-eye me-1"></i>Voir le dÃ©tail
+                                            <i class="bi bi-eye me-1"></i>Voir le détail
                                         </a>
                                     </div>
                                 </div>
@@ -413,8 +415,8 @@ try {
                 <?php else: ?>
                     <div class="alert bg-dark text-white text-center" role="alert">
                         <i class="bi bi-info-circle me-2"></i>
-                        <strong>Aucun trajet trouvÃ©</strong><br>
-                        Aucun covoiturage ne correspond Ã  votre recherche pour le trajet <strong><?= htmlspecialchars($search_depart) ?> â†’ <?= htmlspecialchars($search_arrivee) ?></strong>
+                        <strong>Aucun trajet trouvé</strong><br>
+                        Aucun covoiturage ne correspond à votre recherche pour le trajet <strong><?= htmlspecialchars($search_depart) ?> → <?= htmlspecialchars($search_arrivee) ?></strong>
                         <?php if (!empty($search_date)): ?>
                             le <?= date('d/m/Y', strtotime($search_date)) ?>
                         <?php endif; ?>
@@ -434,7 +436,7 @@ try {
                         </h3>
                         <p class="text-center text-muted mb-4">
                             <?php
-                            // VÃ©rifier si on a des vrais trajets en attente ou des trajets de test
+                            // Vérifier si on a des vrais trajets en attente ou des trajets de test
                             $has_real_pending = false;
                             foreach ($covoiturages_suggestion as $covoiturage) {
                                 if ($covoiturage['statut'] == 2) {
@@ -443,9 +445,9 @@ try {
                                 }
                             }
                             if ($has_real_pending) {
-                                echo "DÃ©couvrez ces trajets en attente qui pourraient vous intÃ©resser";
+                                echo "Découvrez ces trajets en attente qui pourraient vous intéresser";
                             } else {
-                                echo "DÃ©couvrez ces trajets disponibles qui pourraient vous intÃ©resser";
+                                echo "Découvrez ces trajets disponibles qui pourraient vous intéresser";
                             }
                             ?>
                         </p>
@@ -454,7 +456,7 @@ try {
 
                 <div class="row">
                     <?php foreach ($covoiturages_suggestion as $covoiturage): ?>
-                        <div class="col-lg-6 col-md-6 mb-4">
+                        <div class="col-lg-4 col-md-6 mb-4">
                             <div class="card h-100 suggestion-card border-light">
                                 <div class="card-header bg-dark text-white text-center">
                                     <h6 class="mb-0">
@@ -471,15 +473,15 @@ try {
                                     </h6>
                                     <p class="mb-2">
                                         <strong><?= htmlspecialchars($covoiturage['lieu_depart']) ?></strong>
-                                        â†’ <strong><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></strong>
+                                        → <strong><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></strong>
                                     </p>
 
                                     <h6 class="text-primary mb-2">
-                                        <i class="bi bi-calendar-event me-1"></i>DÃ©part
+                                        <i class="bi bi-calendar-event me-1"></i>Départ
                                     </h6>
                                     <p class="mb-2">
                                         <?= date('d/m/Y', strtotime($covoiturage['date_depart'])) ?>
-                                        Ã  <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?>
+                                        à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?>
                                     </p>
 
                                     <h6 class="text-primary mb-2">
@@ -500,16 +502,16 @@ try {
                                     ?>
                                     <?php if (!empty($etapes_intermediaires)): ?>
                                         <h6 class="text-primary mb-2">
-                                            <i class="bi bi-signpost-2 me-1"></i>Etape(s) programmÃ©e(s)
+                                            <i class="bi bi-signpost-2 me-1"></i>Etape(s) programmée(s)
                                         </h6>
                                         <p class="mb-2 small text-muted">
-                                            <?= htmlspecialchars(implode(' â†’ ', $etapes_intermediaires)) ?>
+                                            <?= htmlspecialchars(implode(' → ', $etapes_intermediaires)) ?>
                                         </p>
                                     <?php endif; ?>
 
                                     <?php if (!empty($covoiturage['modele']) && !empty($covoiturage['marque_libelle'])): ?>
                                         <h6 class="text-primary mb-2">
-                                            <i class="bi bi-car-front me-1"></i>VÃ©hicule
+                                            <i class="bi bi-car-front me-1"></i>Véhicule
                                         </h6>
                                         <p class="mb-2">
                                             <?= htmlspecialchars($covoiturage['marque_libelle'] . ' ' . $covoiturage['modele']) ?>
@@ -530,7 +532,7 @@ try {
                                             <?php if ($nb_places == 1): ?>
                                                 <div class="text-center mb-1">
                                                     <small class="text-danger fw-bold">
-                                                        <i class="bi bi-exclamation-triangle me-1"></i>DerniÃ¨re place !!!
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>Dernière place !!!
                                                     </small>
                                                 </div>
                                             <?php endif; ?>
@@ -542,12 +544,12 @@ try {
                                         <div class="col-6">
                                             <span class="badge bg-warning text-dark">
                                                 <i class="bi bi-coin me-1"></i>
-                                                <?= number_format($covoiturage['prix_personne'], 0) ?> crÃ©dits
+                                                <?= number_format($covoiturage['prix_personne'], 0) ?> crédits
                                             </span>
                                         </div>
                                     </div>
 
-                                    <!-- CALCUL DU TEMPS DE COVOITURAGE - DÃ‰SACTIVÃ‰ -->
+                                    <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
                                     <!--
                                     <?php if (!empty($covoiturage['duree'])): ?>
                                         <div class="text-center mt-2">
@@ -561,7 +563,7 @@ try {
                                 </div>
                                 <div class="card-footer text-center">
                                     <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm">
-                                        <i class="bi bi-eye me-1"></i>Voir le dÃ©tail
+                                        <i class="bi bi-eye me-1"></i>Voir le détail
                                     </a>
                                 </div>
                             </div>
@@ -581,4 +583,3 @@ try {
 
 <?php require_once __DIR__ . "/../templates/footer.php";
 ?>
-
