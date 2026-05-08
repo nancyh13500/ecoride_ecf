@@ -3,7 +3,6 @@ require_once __DIR__ . "/vendor/autoload.php";
 require_once __DIR__ . "/lib/session.php";
 require_once __DIR__ . "/lib/pdo.php";
 require_once __DIR__ . "/lib/mongodb.php";
-require_once __DIR__ . "/templates/header.php";
 
 // Récupérer les villes disponibles depuis la base de données
 $villes_depart = [];
@@ -25,22 +24,7 @@ try {
     $villes_arrivee = [];
 }
 
-// Traitement de la recherche
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
-    $depart = $_POST['depart'] ?? '';
-    $arrivee = $_POST['arrivee'] ?? '';
-    $date = $_POST['date'] ?? '';
-
-    // Redirection vers trajets.php avec les paramètres de recherche
-    $params = http_build_query([
-        'depart' => $depart,
-        'arrivee' => $arrivee,
-        'date' => $date
-    ]);
-
-    header("Location: /pages/trajets.php?$params");
-    exit();
-}
+require_once __DIR__ . "/templates/header.php";
 
 // Récupérer tous les avis validés depuis MongoDB
 $avis_list = [];
@@ -157,7 +141,7 @@ try {
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
         <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
-            <form method="POST" action="">
+            <form method="GET" action="/pages/trajets.php">
                 <div class="search-bar row">
                     <div class="search-field col-md-4">
                         <div class="input-group">
@@ -189,7 +173,7 @@ try {
                     </div>
                 </div>
                 <div class="d-flex justify-content-center mt-3">
-                    <button type="submit" name="search_trajet" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
+                    <button type="submit" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
                 </div>
 
             </form>
