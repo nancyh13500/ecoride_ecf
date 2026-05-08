@@ -126,7 +126,7 @@ $etapes_intermediaires = [];
 
 try {
     $query = $pdo->prepare("
-        SELECT c.*, 
+        SELECT c.*,
                u.nom, u.prenom, u.email, u.telephone, u.pseudo,
                v.modele, v.immatriculation, v.couleur, v.energie,
                m.libelle AS marque_libelle,
@@ -217,266 +217,264 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
 ?>
 
 <section class="hero w-100 px-4 py-5">
-    <div class="container">
-        <div class="row d-flex justify-content-center">
-            <div class="col-lg-10 col-xl-9">
-                <!-- Bouton retour -->
-                <div class="mb-4">
-                    <a href="trajets.php" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left me-2"></i>Retour aux trajets
-                    </a>
+    <div class="w-100">
+        <div class="mx-auto" style="max-width: 1200px;">
+            <!-- Bouton retour -->
+            <div class="mb-4">
+                <a href="trajets.php" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Retour aux trajets
+                </a>
+            </div>
+
+            <!-- Carte principale -->
+            <div class="card rounded-3 shadow-sm border-0 w-100">
+                <div class="card-header bg-dark text-white text-center py-3 mx-auto w-50 rounded mt-3 mb-3">
+                    <h2 class="mb-0 fs-4">
+                        <i class="bi bi-car-front me-2"></i>Détails du covoiturage
+                    </h2>
                 </div>
+                <div class="card-body p-2 p-md-3">
 
-                <!-- Carte principale -->
-                <div class="card rounded-3 shadow-lg">
-                    <div class="card-header bg-dark text-white text-center py-4">
-                        <h2 class="mb-0">
-                            <i class="bi bi-car-front me-2"></i>Détails du covoiturage
-                        </h2>
-                    </div>
-                    <div class="card-body p-4 p-md-5">
-
-                        <?php if (!empty($error_message)): ?>
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <i class="bi bi-exclamation-triangle me-2"></i><?= htmlspecialchars($error_message) ?>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-                            </div>
-                        <?php endif; ?>
-
-                        <!-- Section Trajet -->
-                        <div class="mb-5">
-                            <h3 class="text-primary mb-4">
-                                <i class="bi bi-geo-alt-fill me-2"></i>Informations du trajet
-                            </h3>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Ville de départ</h6>
-                                    <p class="fs-5 fw-bold"><?= htmlspecialchars($covoiturage['lieu_depart']) ?></p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Ville d'arrivée</h6>
-                                    <p class="fs-5 fw-bold"><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></p>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted mb-2"><i class="bi bi-calendar-event me-1"></i>Date et heure de départ</h6>
-                                    <p class="fs-5">
-                                        <?= date('d/m/Y', strtotime($covoiturage['date_depart'])) ?>
-                                        à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?>
-                                    </p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted mb-2"><i class="bi bi-calendar-check me-1"></i>Date et heure d'arrivée</h6>
-                                    <p class="fs-5">
-                                        <?= date('d/m/Y', strtotime($covoiturage['date_arrivee'])) ?>
-                                        à <?= date('H:i', strtotime($covoiturage['heure_arrivee'])) ?>
-                                    </p>
-                                </div>
-                            </div>
-                            <?php if (!empty($etapes_intermediaires)): ?>
-                                <div class="row">
-                                    <div class="col-12 mb-3">
-                                        <h6 class="text-muted mb-2"><i class="bi bi-signpost-2 me-1"></i>Etape(s)</h6>
-                                        <p class="fs-5 mb-0"><?= htmlspecialchars(implode(' → ', $etapes_intermediaires)) ?></p>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                            <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
-                            <!--
-                            <?php if (!empty($covoiturage['duree'])): ?>
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <h6 class="text-muted mb-2"><i class="bi bi-stopwatch me-1"></i>Durée estimée</h6>
-                                        <p class="fs-5"><?= $covoiturage['duree'] ?> minutes</p>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                            -->
+                    <?php if (!empty($error_message)): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i><?= htmlspecialchars($error_message) ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                         </div>
+                    <?php endif; ?>
 
-                        <hr class="my-4">
-
-                        <!-- Section Conducteur -->
-                        <div class="mb-5">
-                            <h3 class="text-primary mb-4">
-                                <i class="bi bi-person-circle me-2"></i>Informations du conducteur
-                            </h3>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted mb-2">Nom complet</h6>
-                                    <p class="fs-5"><?= htmlspecialchars(trim($covoiturage['prenom'] . ' ' . $covoiturage['nom'])) ?></p>
+                    <div class="row g-3 mb-3 justify-content-center">
+                        <div class="col-12 col-xl-5">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h3 class="text-primary h5 mb-3">
+                                        <i class="bi bi-geo-alt-fill me-2"></i>Informations du trajet
+                                    </h3>
+                                    <div class="row">
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <h6 class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Ville de départ</h6>
+                                            <p class="fs-5 fw-bold"><?= htmlspecialchars($covoiturage['lieu_depart']) ?></p>
+                                        </div>
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <h6 class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Ville d'arrivée</h6>
+                                            <p class="fs-5 fw-bold"><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></p>
+                                        </div>
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <h6 class="text-muted mb-2"><i class="bi bi-calendar-event me-1"></i>Date départ</h6>
+                                            <p class="fs-5 mb-0"><?= date('d/m/Y', strtotime($covoiturage['date_depart'])) ?></p>
+                                            <small class="text-muted">à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?></small>
+                                        </div>
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <h6 class="text-muted mb-2"><i class="bi bi-calendar-check me-1"></i>Date arrivée</h6>
+                                            <p class="fs-5 mb-0"><?= date('d/m/Y', strtotime($covoiturage['date_arrivee'])) ?></p>
+                                            <small class="text-muted">à <?= date('H:i', strtotime($covoiturage['heure_arrivee'])) ?></small>
+                                        </div>
+                                        <div class="col-12 mb-1">
+                                            <h6 class="text-muted mb-2"><i class="bi bi-signpost-2 me-1"></i>Étape(s) intermédiaire(s)</h6>
+                                            <?php if (!empty($etapes_intermediaires)): ?>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <?php foreach ($etapes_intermediaires as $etape): ?>
+                                                        <span class="fs-5 fw-bold text-dark"><?= htmlspecialchars($etape) ?></span>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php else: ?>
+                                                <p class="mb-0 text-muted">Trajet direct, sans étape intermédiaire.</p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
                                 </div>
-                                <?php if (!empty($covoiturage['pseudo'])): ?>
-                                    <div class="col-md-6 mb-3">
-                                        <h6 class="text-muted mb-2">Pseudo</h6>
-                                        <p class="fs-5"><?= htmlspecialchars($covoiturage['pseudo']) ?></p>
-                                    </div>
-                                <?php endif; ?>
-                                <?php if (!empty($covoiturage['email'])): ?>
-                                    <div class="col-md-6 mb-3">
-                                        <h6 class="text-muted mb-2"><i class="bi bi-envelope me-1"></i>Email</h6>
-                                        <p class="fs-5"><?= htmlspecialchars($covoiturage['email']) ?></p>
-                                    </div>
-                                <?php endif; ?>
-                                <?php if (!empty($covoiturage['telephone'])): ?>
-                                    <div class="col-md-6 mb-3">
-                                        <h6 class="text-muted mb-2"><i class="bi bi-telephone me-1"></i>Téléphone</h6>
-                                        <p class="fs-5"><?= htmlspecialchars($covoiturage['telephone']) ?></p>
-                                    </div>
-                                <?php endif; ?>
                             </div>
                         </div>
 
-                        <hr class="my-4">
-
-                        <!-- Section Véhicule -->
-                        <?php if (!empty($covoiturage['modele']) || !empty($covoiturage['marque_libelle'])): ?>
-                            <div class="mb-5">
-                                <h3 class="text-primary mb-4">
-                                    <i class="bi bi-car-front me-2"></i>Informations du véhicule
-                                </h3>
-                                <div class="row">
-                                    <?php if (!empty($covoiturage['marque_libelle']) && !empty($covoiturage['modele'])): ?>
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted mb-2">Véhicule</h6>
-                                            <p class="fs-5"><?= htmlspecialchars($covoiturage['marque_libelle'] . ' ' . $covoiturage['modele']) ?></p>
+                        <div class="col-12 col-xl-5">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h3 class="text-primary h5 mb-3">
+                                        <i class="bi bi-person-circle me-2"></i>Informations du conducteur
+                                    </h3>
+                                    <div class="row">
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <h6 class="text-muted mb-2">Nom complet</h6>
+                                            <p class="fs-5"><?= htmlspecialchars(trim($covoiturage['prenom'] . ' ' . $covoiturage['nom'])) ?></p>
                                         </div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($covoiturage['immatriculation'])): ?>
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted mb-2">Immatriculation</h6>
-                                            <p class="fs-5"><?= htmlspecialchars($covoiturage['immatriculation']) ?></p>
-                                        </div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($covoiturage['couleur'])): ?>
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted mb-2">Couleur</h6>
-                                            <p class="fs-5"><?= htmlspecialchars($covoiturage['couleur']) ?></p>
-                                        </div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($covoiturage['energie_libelle'])): ?>
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted mb-2">Énergie</h6>
-                                            <p class="fs-5"><?= htmlspecialchars($covoiturage['energie_libelle']) ?></p>
-                                        </div>
-                                    <?php elseif (!empty($covoiturage['energie'])): ?>
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted mb-2">Énergie</h6>
-                                            <p class="fs-5"><?= htmlspecialchars($covoiturage['energie']) ?></p>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                            <hr class="my-4">
-                        <?php endif; ?>
-
-                        <!-- Section Places et Prix -->
-                        <div class="mb-5">
-                            <h3 class="text-primary mb-4">
-                                <i class="bi bi-info-circle me-2"></i>Informations pratiques
-                            </h3>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted mb-2"><i class="bi bi-people me-1"></i>Places disponibles</h6>
-                                    <p class="fs-5">
-                                        <span class="badge <?= $badge_class ?> fs-6">
-                                            <?= $nb_places ?> place<?= $nb_places > 1 ? 's' : '' ?>
-                                        </span>
-                                        <?php if ($nb_places == 1): ?>
-                                            <small class="text-danger fw-bold d-block mt-2">
-                                                <i class="bi bi-exclamation-triangle me-1"></i>Dernière place disponible !
-                                            </small>
+                                        <?php if (!empty($covoiturage['pseudo'])): ?>
+                                            <div class="col-md-6 col-lg-6 mb-3">
+                                                <h6 class="text-muted mb-2">Pseudo</h6>
+                                                <p class="fs-5"><?= htmlspecialchars($covoiturage['pseudo']) ?></p>
+                                            </div>
                                         <?php endif; ?>
-                                    </p>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted mb-2"><i class="bi bi-coin me-1"></i>Crédits par personne</h6>
-                                    <p class="fs-5 fw-bold text-success"><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</p>
-                                </div>
-                            </div>
-                            <?php
-                            $statut_libelle = '';
-                            $statut_class = '';
-                            switch ($covoiturage['statut']) {
-                                case 1:
-                                    $statut_libelle = 'Disponible';
-                                    $statut_class = 'bg-success';
-                                    break;
-                                case 2:
-                                    $statut_libelle = 'En attente';
-                                    $statut_class = 'bg-warning text-dark';
-                                    break;
-                                case 3:
-                                    $statut_libelle = 'Terminé';
-                                    $statut_class = 'bg-secondary';
-                                    break;
-                                default:
-                                    $statut_libelle = 'Inconnu';
-                                    $statut_class = 'bg-dark';
-                            }
-                            ?>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <h6 class="text-muted mb-2">Statut</h6>
-                                    <p class="fs-5">
-                                        <span class="badge <?= $statut_class ?>"><?= $statut_libelle ?></span>
-                                    </p>
+                                        <?php if (!empty($covoiturage['email'])): ?>
+                                            <div class="col-md-6 col-lg-6 mb-3">
+                                                <h6 class="text-muted mb-2"><i class="bi bi-envelope me-1"></i>Email</h6>
+                                                <p class="fs-5"><?= htmlspecialchars($covoiturage['email']) ?></p>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (!empty($covoiturage['telephone'])): ?>
+                                            <div class="col-md-6 col-lg-6 mb-3">
+                                                <h6 class="text-muted mb-2"><i class="bi bi-telephone me-1"></i>Téléphone</h6>
+                                                <p class="fs-5"><?= htmlspecialchars($covoiturage['telephone']) ?></p>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Boutons d'action -->
-                        <div class="text-center mt-5">
-                            <a href="<?= $isConnected ? 'trajets.php' : '/index.php' ?>" class="btn btn-secondary btn-lg me-3">
-                                <i class="bi bi-arrow-left me-2"></i>Retour
-                            </a>
-                            <?php if ($isConnected && $user): ?>
-                                <!-- Utilisateur connecté -->
-                                <?php if ($peutReserver): ?>
-                                    <form method="POST" action="" class="d-inline">
-                                        <?php csrfField(); ?> <!-- ← ajout token CSRF -->
-                                        <input type="hidden" name="covoiturage_id" value="<?= htmlspecialchars((string) $covoiturage_id) ?>">
-                                        <button type="submit" name="reserver" class="btn btn-reserver btn-primary btn-lg" onclick="return confirm('Êtes-vous sûr de vouloir réserver une place pour ce covoiturage ?');">
-                                            <i class="bi bi-check-circle me-2"></i>Réserver une place
-                                        </button>
-                                    </form>
-                                <?php elseif ($dejaReserve): ?>
-                                    <button class="btn btn-success btn-lg" disabled>
-                                        <i class="bi bi-check-circle me-2"></i>Déjà réservé
-                                    </button>
-                                <?php elseif ($estMonCovoiturage): ?>
-                                    <button class="btn btn-outline-secondary btn-lg" disabled>
-                                        <i class="bi bi-info-circle me-2"></i>Votre covoiturage
-                                    </button>
-                                <?php elseif ((int)$covoiturage['statut'] !== 1): ?>
-                                    <button class="btn btn-outline-secondary btn-lg" disabled>
-                                        <i class="bi bi-slash-circle me-2"></i>Non disponible
-                                    </button>
-                                <?php else: ?>
-                                    <button class="btn btn-outline-secondary btn-lg" disabled>
-                                        <i class="bi bi-dash-circle me-2"></i>Complet
-                                    </button>
-                                <?php endif; ?>
-                            <?php else: ?>
-                                <!-- Utilisateur non connecté -->
-                                <?php if ($peutAfficherBoutonReserver): ?>
-                                    <a href="/login.php?redirect=detail_covoiturage.php&id=<?= $covoiturage_id ?>" class="btn btn-primary btn-lg">
-                                        <i class="bi bi-person-plus me-2"></i>Réserver une place
-                                    </a>
-                                <?php elseif ((int)$covoiturage['statut'] !== 1): ?>
-                                    <button class="btn btn-outline-secondary btn-lg" disabled>
-                                        <i class="bi bi-slash-circle me-2"></i>Non disponible
-                                    </button>
-                                <?php else: ?>
-                                    <button class="btn btn-outline-secondary btn-lg" disabled>
-                                        <i class="bi bi-dash-circle me-2"></i>Complet
-                                    </button>
-                                <?php endif; ?>
-                            <?php endif; ?>
-                        </div>
-
                     </div>
+
+                    <div class="row g-3 mb-3 justify-content-center">
+                        <div class="col-12 col-xl-5">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h3 class="text-primary h5 mb-3">
+                                        <i class="bi bi-car-front me-2"></i>Informations du véhicule
+                                    </h3>
+                                    <?php if (!empty($covoiturage['modele']) || !empty($covoiturage['marque_libelle'])): ?>
+                                        <div class="row">
+                                            <?php if (!empty($covoiturage['marque_libelle']) && !empty($covoiturage['modele'])): ?>
+                                                <div class="col-md-6 col-lg-6 mb-3">
+                                                    <h6 class="text-muted mb-2">Véhicule</h6>
+                                                    <p class="fs-5"><?= htmlspecialchars($covoiturage['marque_libelle'] . ' ' . $covoiturage['modele']) ?></p>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($covoiturage['immatriculation'])): ?>
+                                                <div class="col-md-6 col-lg-6 mb-3">
+                                                    <h6 class="text-muted mb-2">Immatriculation</h6>
+                                                    <p class="fs-5"><?= htmlspecialchars($covoiturage['immatriculation']) ?></p>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($covoiturage['couleur'])): ?>
+                                                <div class="col-md-6 col-lg-6 mb-3">
+                                                    <h6 class="text-muted mb-2">Couleur</h6>
+                                                    <p class="fs-5"><?= htmlspecialchars($covoiturage['couleur']) ?></p>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($covoiturage['energie_libelle'])): ?>
+                                                <div class="col-md-6 col-lg-6 mb-3">
+                                                    <h6 class="text-muted mb-2">Énergie</h6>
+                                                    <p class="fs-5"><?= htmlspecialchars($covoiturage['energie_libelle']) ?></p>
+                                                </div>
+                                            <?php elseif (!empty($covoiturage['energie'])): ?>
+                                                <div class="col-md-6 col-lg-6 mb-3">
+                                                    <h6 class="text-muted mb-2">Énergie</h6>
+                                                    <p class="fs-5"><?= htmlspecialchars($covoiturage['energie']) ?></p>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <p class="text-muted mb-0">Informations véhicule non renseignées.</p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-xl-5">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h3 class="text-primary h5 mb-3">
+                                        <i class="bi bi-info-circle me-2"></i>Informations pratiques
+                                    </h3>
+                                    <div class="row">
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <h6 class="text-muted mb-2"><i class="bi bi-people me-1"></i>Places disponibles</h6>
+                                            <p class="fs-5">
+                                                <span class="badge <?= $badge_class ?> fs-6">
+                                                    <?= $nb_places ?> place<?= $nb_places > 1 ? 's' : '' ?>
+                                                </span>
+                                                <?php if ($nb_places == 1): ?>
+                                                    <small class="text-danger fw-bold d-block mt-2">
+                                                        <i class="bi bi-exclamation-triangle me-1"></i>Dernière place disponible !
+                                                    </small>
+                                                <?php endif; ?>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <h6 class="text-muted mb-2"><i class="bi bi-coin me-1"></i>Crédits par personne</h6>
+                                            <p class="fs-5 fw-bold text-success"><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</p>
+                                        </div>
+                                    </div>
+                                    <?php
+                                    $statut_libelle = '';
+                                    $statut_class = '';
+                                    switch ($covoiturage['statut']) {
+                                        case 1:
+                                            $statut_libelle = 'Disponible';
+                                            $statut_class = 'bg-success';
+                                            break;
+                                        case 2:
+                                            $statut_libelle = 'En attente';
+                                            $statut_class = 'bg-warning text-dark';
+                                            break;
+                                        case 3:
+                                            $statut_libelle = 'Terminé';
+                                            $statut_class = 'bg-secondary';
+                                            break;
+                                        default:
+                                            $statut_libelle = 'Inconnu';
+                                            $statut_class = 'bg-dark';
+                                    }
+                                    ?>
+                                    <div class="row">
+                                        <div class="col-md-6 col-lg-6 mb-3">
+                                            <h6 class="text-muted mb-2">Statut</h6>
+                                            <p class="fs-5">
+                                                <span class="badge <?= $statut_class ?>"><?= $statut_libelle ?></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="text-center mt-4">
+                        <a href="<?= $isConnected ? 'trajets.php' : '/index.php' ?>" class="btn btn-secondary me-3">
+                            <i class="bi bi-arrow-left me-2"></i>Retour
+                        </a>
+                        <?php if ($isConnected && $user): ?>
+                            <!-- Utilisateur connecté -->
+                            <?php if ($peutReserver): ?>
+                                <form method="POST" action="" class="d-inline">
+                                    <?php csrfField(); ?> <!-- ← ajout token CSRF -->
+                                    <input type="hidden" name="covoiturage_id" value="<?= htmlspecialchars((string) $covoiturage_id) ?>">
+                                    <button type="submit" name="reserver" class="btn btn-reserver btn-primary" onclick="return confirm('Êtes-vous sûr de vouloir réserver une place pour ce covoiturage ?');">
+                                        <i class="bi bi-check-circle me-2"></i>Réserver une place
+                                    </button>
+                                </form>
+                            <?php elseif ($dejaReserve): ?>
+                                <button class="btn btn-success" disabled>
+                                    <i class="bi bi-check-circle me-2"></i>Déjà réservé
+                                </button>
+                            <?php elseif ($estMonCovoiturage): ?>
+                                <button class="btn btn-outline-secondary" disabled>
+                                    <i class="bi bi-info-circle me-2"></i>Votre covoiturage
+                                </button>
+                            <?php elseif ((int)$covoiturage['statut'] !== 1): ?>
+                                <button class="btn btn-outline-secondary" disabled>
+                                    <i class="bi bi-slash-circle me-2"></i>Non disponible
+                                </button>
+                            <?php else: ?>
+                                <button class="btn btn-outline-secondary" disabled>
+                                    <i class="bi bi-dash-circle me-2"></i>Complet
+                                </button>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <!-- Utilisateur non connecté -->
+                            <?php if ($peutAfficherBoutonReserver): ?>
+                                <a href="/login.php?redirect=detail_covoiturage.php&id=<?= $covoiturage_id ?>" class="btn btn-primary">
+                                    <i class="bi bi-person-plus me-2"></i>Réserver une place
+                                </a>
+                            <?php elseif ((int)$covoiturage['statut'] !== 1): ?>
+                                <button class="btn btn-outline-secondary" disabled>
+                                    <i class="bi bi-slash-circle me-2"></i>Non disponible
+                                </button>
+                            <?php else: ?>
+                                <button class="btn btn-outline-secondary" disabled>
+                                    <i class="bi bi-dash-circle me-2"></i>Complet
+                                </button>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+
                 </div>
             </div>
         </div>
