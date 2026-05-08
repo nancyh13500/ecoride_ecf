@@ -122,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserver'])) {
 
 // Récupérer les détails du covoiturage
 $covoiturage = null;
+$etapes_intermediaires = [];
 
 try {
     $query = $pdo->prepare("
@@ -145,6 +146,29 @@ try {
     }
 } catch (PDOException $e) {
     $error_message = "Erreur lors de la récupération des détails : " . $e->getMessage();
+}
+
+// Récupérer les Etape(s) du covoiturage
+try {
+    $query_etapes = $pdo->prepare("
+        SELECT v.nom
+        FROM etape e
+        JOIN ville v ON v.ville_id = e.ville_id
+        WHERE e.covoiturage_id = :id
+        ORDER BY e.ordre ASC
+    ");
+    $query_etapes->execute(['id' => $covoiturage_id]);
+    $etapes_trajet = $query_etapes->fetchAll(PDO::FETCH_COLUMN);
+
+    // Garder uniquement les Etape(s) intermédiaire(s)
+    $depart_nom = strtolower(trim((string)($covoiturage['lieu_depart'] ?? '')));
+    $arrivee_nom = strtolower(trim((string)($covoiturage['lieu_arrivee'] ?? '')));
+    $etapes_intermediaires = array_values(array_filter($etapes_trajet, static function ($nom) use ($depart_nom, $arrivee_nom) {
+        $nom_normalise = strtolower(trim((string)$nom));
+        return $nom_normalise !== '' && $nom_normalise !== $depart_nom && $nom_normalise !== $arrivee_nom;
+    }));
+} catch (PDOException $e) {
+    $etapes_intermediaires = [];
 }
 
 // Si covoiturage introuvable, rediriger
@@ -250,6 +274,14 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                     </p>
                                 </div>
                             </div>
+                            <?php if (!empty($etapes_intermediaires)): ?>
+                                <div class="row">
+                                    <div class="col-12 mb-3">
+                                        <h6 class="text-muted mb-2"><i class="bi bi-signpost-2 me-1"></i>Etape(s)</h6>
+                                        <p class="fs-5 mb-0"><?= htmlspecialchars(implode(' → ', $etapes_intermediaires)) ?></p>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
                             <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
                             <!--
                             <?php if (!empty($covoiturage['duree'])): ?>

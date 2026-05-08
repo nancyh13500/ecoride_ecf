@@ -23,11 +23,66 @@ $query_trajets = $pdo->prepare("
 ");
 $query_trajets->execute(['user_id' => $user['user_id']]);
 $trajets = $query_trajets->fetchAll(PDO::FETCH_ASSOC);
+$etapes_by_covoiturage = [];
+$etapes_details_by_covoiturage = [];
+
+// Récupérer les étapes associées aux trajets affichés
+try {
+    $trajet_ids = array_map(static function ($t) {
+        return (int)($t['covoiturage_id'] ?? 0);
+    }, $trajets);
+    $trajet_ids = array_values(array_filter($trajet_ids));
+
+    if (!empty($trajet_ids)) {
+        $placeholders = implode(',', array_fill(0, count($trajet_ids), '?'));
+        $query_etapes = $pdo->prepare("
+            SELECT e.covoiturage_id, e.ordre, e.ville_id, e.heure_prevue, v.nom
+            FROM etape e
+            JOIN ville v ON v.ville_id = e.ville_id
+            WHERE e.covoiturage_id IN ($placeholders)
+            ORDER BY e.covoiturage_id ASC, e.ordre ASC
+        ");
+        $query_etapes->execute($trajet_ids);
+        $etapes = $query_etapes->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($etapes as $etape) {
+            $cid = (int)$etape['covoiturage_id'];
+            if (!isset($etapes_by_covoiturage[$cid])) {
+                $etapes_by_covoiturage[$cid] = [];
+            }
+            $etapes_by_covoiturage[$cid][] = $etape['nom'];
+
+            if (!isset($etapes_details_by_covoiturage[$cid])) {
+                $etapes_details_by_covoiturage[$cid] = [];
+            }
+            $etapes_details_by_covoiturage[$cid][] = [
+                'ville_id' => (int)$etape['ville_id'],
+                'heure' => !empty($etape['heure_prevue']) ? substr((string)$etape['heure_prevue'], 0, 5) : '',
+            ];
+        }
+    }
+} catch (PDOException $e) {
+    $etapes_by_covoiturage = [];
+    $etapes_details_by_covoiturage = [];
+}
 
 // Récupérer les voitures de l'utilisateur pour le formulaire d'ajout
 $query_voitures = $pdo->prepare("SELECT voiture_id, modele, immatriculation FROM voiture WHERE user_id = :user_id ORDER BY modele");
 $query_voitures->execute(['user_id' => $user['user_id']]);
 $voitures = $query_voitures->fetchAll(PDO::FETCH_ASSOC);
+
+// Récupérer les villes pour les Etape(s) intermédiaire(s)
+try {
+    $query_villes = $pdo->prepare("SELECT ville_id, nom, code_postal FROM ville ORDER BY nom");
+    $query_villes->execute();
+    $villes = $query_villes->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $villes = [];
+}
+$villeIdsByNom = [];
+foreach ($villes as $ville) {
+    $villeIdsByNom[strtolower((string)$ville['nom'])] = (int)$ville['ville_id'];
+}
 
 // Gérer la modification d'un trajet
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_trajet'])) {
@@ -38,10 +93,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_trajet'])) {
     } else {
         $date_depart = $_POST['date_depart'] ?? null;
         $heure_depart = $_POST['heure_depart'] ?? null;
-        $lieu_depart = $_POST['lieu_depart'] ?? null;
+        $ville_depart_id = (int)($_POST['ville_depart_id'] ?? 0);
         $date_arrivee = $_POST['date_arrivee'] ?? null;
         $heure_arrivee = $_POST['heure_arrivee'] ?? null;
-        $lieu_arrivee = $_POST['lieu_arrivee'] ?? null;
+        $ville_arrivee_id = (int)($_POST['ville_arrivee_id'] ?? 0);
         $nb_place = $_POST['nb_place'] ?? null;
         $prix_personne = $_POST['prix_personne'] ?? null;
         $voiture_id = $_POST['voiture_id'] ?? null;
@@ -61,14 +116,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_trajet'])) {
             if (!$checkStmt->fetchColumn()) {
                 $error_message = "Trajet introuvable ou non autorisé.";
             } else {
+                $pdo->beginTransaction();
+
+                $villeStmt = $pdo->prepare("SELECT nom FROM ville WHERE ville_id = :id");
+                $villeStmt->execute(['id' => $ville_depart_id]);
+                $lieu_depart = (string)($villeStmt->fetchColumn() ?: '');
+
+                $villeStmt->execute(['id' => $ville_arrivee_id]);
+                $lieu_arrivee = (string)($villeStmt->fetchColumn() ?: '');
+
                 $updateStmt = $pdo->prepare("
                     UPDATE covoiturage
                     SET date_depart = :date_depart,
                         heure_depart = :heure_depart,
                         lieu_depart = :lieu_depart,
+                        ville_depart_id = :ville_depart_id,
                         date_arrivee = :date_arrivee,
                         heure_arrivee = :heure_arrivee,
                         lieu_arrivee = :lieu_arrivee,
+                        ville_arrivee_id = :ville_arrivee_id,
                         nb_place = :nb_place,
                         prix_personne = :prix_personne,
                         voiture_id = :voiture_id
@@ -78,9 +144,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_trajet'])) {
                     'date_depart' => $date_depart,
                     'heure_depart' => $heure_depart,
                     'lieu_depart' => $lieu_depart,
+                    'ville_depart_id' => $ville_depart_id ?: null,
                     'date_arrivee' => $date_arrivee,
                     'heure_arrivee' => $heure_arrivee,
                     'lieu_arrivee' => $lieu_arrivee,
+                    'ville_arrivee_id' => $ville_arrivee_id ?: null,
                     'nb_place' => $nb_place,
                     'prix_personne' => $prix_personne,
                     'voiture_id' => $voiture_id ?: null,
@@ -88,10 +156,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_trajet'])) {
                     'user_id' => $user['user_id'],
                 ]);
 
+                // Réécrire les Etape(s) du trajet : départ -> intermédiaire(s) -> arrivée
+                $deleteEtape = $pdo->prepare("DELETE FROM etape WHERE covoiturage_id = :covoiturage_id");
+                $deleteEtape->execute(['covoiturage_id' => $trajet_id]);
+
+                $insertEtape = $pdo->prepare("
+                    INSERT INTO etape (covoiturage_id, ville_id, ordre, heure_prevue, date_prevue)
+                    VALUES (:covoiturage_id, :ville_id, :ordre, :heure_prevue, :date_prevue)
+                ");
+
+                $ordre = 1;
+                $insertEtape->execute([
+                    'covoiturage_id' => $trajet_id,
+                    'ville_id' => $ville_depart_id,
+                    'ordre' => $ordre,
+                    'heure_prevue' => $heure_depart,
+                    'date_prevue' => $date_depart,
+                ]);
+                $ordre++;
+
+                $edit_etapes_ville_ids = isset($_POST['edit_etapes_ville_id']) ? $_POST['edit_etapes_ville_id'] : [];
+                $edit_etapes_heures = isset($_POST['edit_etapes_heure']) ? $_POST['edit_etapes_heure'] : [];
+
+                foreach ($edit_etapes_ville_ids as $i => $etape_ville_id) {
+                    $etape_ville_id = (int)$etape_ville_id;
+                    if ($etape_ville_id <= 0 || $etape_ville_id === $ville_depart_id || $etape_ville_id === $ville_arrivee_id) {
+                        continue;
+                    }
+
+                    $heure_etape = isset($edit_etapes_heures[$i]) ? trim((string)$edit_etapes_heures[$i]) : null;
+                    if ($heure_etape === '') {
+                        $heure_etape = null;
+                    } elseif (preg_match('/^\d{2}:\d{2}$/', $heure_etape)) {
+                        $heure_etape .= ':00';
+                    } elseif (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $heure_etape)) {
+                        $heure_etape = null;
+                    }
+
+                    $insertEtape->execute([
+                        'covoiturage_id' => $trajet_id,
+                        'ville_id' => $etape_ville_id,
+                        'ordre' => $ordre,
+                        'heure_prevue' => $heure_etape,
+                        'date_prevue' => $date_depart,
+                    ]);
+                    $ordre++;
+                }
+
+                $insertEtape->execute([
+                    'covoiturage_id' => $trajet_id,
+                    'ville_id' => $ville_arrivee_id,
+                    'ordre' => $ordre,
+                    'heure_prevue' => $heure_arrivee,
+                    'date_prevue' => $date_arrivee,
+                ]);
+
+                $pdo->commit();
+
                 header("Location: mes_trajets.php?edit_success=1");
                 exit();
             }
         } catch (PDOException $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             $error_message = "Erreur lors de la modification du trajet : " . $e->getMessage();
         }
     }
@@ -101,35 +229,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_trajet'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_trajet'])) {
     $date_depart = $_POST['date_depart'];
     $heure_depart = $_POST['heure_depart'];
-    $lieu_depart = $_POST['lieu_depart'];
+    $ville_depart_id = (int)($_POST['ville_depart_id'] ?? 0);
     $date_arrivee = $_POST['date_arrivee'];
     $heure_arrivee = $_POST['heure_arrivee'];
-    $lieu_arrivee = $_POST['lieu_arrivee'];
+    $ville_arrivee_id = (int)($_POST['ville_arrivee_id'] ?? 0);
     $nb_place = $_POST['nb_place'];
     $prix_personne = $_POST['prix_personne'];
     $voiture_id = $_POST['voiture_id'];
 
     try {
+        $pdo->beginTransaction();
+
+        $villeStmt = $pdo->prepare("SELECT nom FROM ville WHERE ville_id = :id");
+        $villeStmt->execute(['id' => $ville_depart_id]);
+        $lieu_depart = (string)($villeStmt->fetchColumn() ?: '');
+
+        $villeStmt->execute(['id' => $ville_arrivee_id]);
+        $lieu_arrivee = (string)($villeStmt->fetchColumn() ?: '');
+
         $query = $pdo->prepare("
-            INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, date_arrivee, heure_arrivee, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id, statut)
-            VALUES (:date_depart, :heure_depart, :lieu_depart, :date_arrivee, :heure_arrivee, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id, 1)
+            INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, ville_depart_id, date_arrivee, heure_arrivee, lieu_arrivee, ville_arrivee_id, nb_place, prix_personne, user_id, voiture_id, statut)
+            VALUES (:date_depart, :heure_depart, :lieu_depart, :ville_depart_id, :date_arrivee, :heure_arrivee, :lieu_arrivee, :ville_arrivee_id, :nb_place, :prix_personne, :user_id, :voiture_id, 1)
         ");
         $query->execute([
             'date_depart' => $date_depart,
             'heure_depart' => $heure_depart,
             'lieu_depart' => $lieu_depart,
+            'ville_depart_id' => $ville_depart_id ?: null,
             'date_arrivee' => $date_arrivee,
             'heure_arrivee' => $heure_arrivee,
             'lieu_arrivee' => $lieu_arrivee,
+            'ville_arrivee_id' => $ville_arrivee_id ?: null,
             'nb_place' => $nb_place,
             'prix_personne' => $prix_personne,
             'user_id' => $user['user_id'],
             'voiture_id' => $voiture_id,
         ]);
+
+        $covoiturage_id = (int)$pdo->lastInsertId();
+
+        // Ajouter les Etape(s) intermédiaire(s) si renseignée(s)
+        $etapes_ville_ids = isset($_POST['etapes_ville_id']) ? $_POST['etapes_ville_id'] : [];
+        $etapes_heures = isset($_POST['etapes_heure']) ? $_POST['etapes_heure'] : [];
+
+        if (!empty($etapes_ville_ids)) {
+            // Détecter l'ordre de départ/arrivée existant pour ne pas casser l'unicité (covoiturage_id, ordre)
+            $ordreStmt = $pdo->prepare("SELECT COALESCE(MAX(ordre), 0) FROM etape WHERE covoiturage_id = :covoiturage_id");
+            $ordreStmt->execute(['covoiturage_id' => $covoiturage_id]);
+            $ordre = ((int)$ordreStmt->fetchColumn()) + 1;
+
+            $insertEtape = $pdo->prepare("
+                INSERT INTO etape (covoiturage_id, ville_id, ordre, heure_prevue, date_prevue)
+                VALUES (:covoiturage_id, :ville_id, :ordre, :heure_prevue, :date_prevue)
+            ");
+
+            foreach ($etapes_ville_ids as $i => $villeId) {
+                $villeId = (int)$villeId;
+                if ($villeId <= 0) {
+                    continue;
+                }
+
+                $heureEtape = isset($etapes_heures[$i]) ? trim((string)$etapes_heures[$i]) : null;
+                if ($heureEtape === '') {
+                    $heureEtape = null;
+                } elseif (preg_match('/^\d{2}:\d{2}$/', $heureEtape)) {
+                    $heureEtape .= ':00';
+                } elseif (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $heureEtape)) {
+                    $heureEtape = null;
+                }
+
+                $insertEtape->execute([
+                    'covoiturage_id' => $covoiturage_id,
+                    'ville_id' => $villeId,
+                    'ordre' => $ordre,
+                    'heure_prevue' => $heureEtape,
+                    'date_prevue' => $date_depart,
+                ]);
+                $ordre++;
+            }
+        }
+
+        $pdo->commit();
+
         // Les crédits seront versés au chauffeur et au site uniquement à la fin du trajet
         header("Location: mes_trajets.php?success=1");
         exit();
     } catch (PDOException $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         $error_message = "Erreur lors de l'ajout du trajet : " . $e->getMessage();
     }
 }
@@ -373,13 +561,14 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                         <?php else: ?>
                             <form method="POST" action="mes_trajets.php">
                                 <div class="table-responsive">
-                                    <table class="table table-striped text-center">
+                                    <table class="table table-striped table-sm align-middle text-center">
                                         <thead>
                                             <tr>
                                                 <th></th>
                                                 <th>Date</th>
                                                 <th>Départ</th>
                                                 <th>Arrivée</th>
+                                                <th>Etape(s)</th>
                                                 <th>Crédits</th>
                                                 <th>Voiture</th>
                                                 <!-- <th>Durée</th> --> <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
@@ -405,10 +594,10 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                                                             class="form-check-input ms-2 border-dark trajet-checkbox"
                                                             data-date-depart="<?= htmlspecialchars($dateDepartValue, ENT_QUOTES) ?>"
                                                             data-heure-depart="<?= htmlspecialchars($heureDepartValue, ENT_QUOTES) ?>"
-                                                            data-lieu-depart="<?= htmlspecialchars($trajet['lieu_depart'], ENT_QUOTES) ?>"
+                                                            data-ville-depart-id="<?= htmlspecialchars($trajet['ville_depart_id'] ?: ($villeIdsByNom[strtolower((string)$trajet['lieu_depart'])] ?? ''), ENT_QUOTES) ?>"
                                                             data-date-arrivee="<?= htmlspecialchars($dateArriveeValue, ENT_QUOTES) ?>"
                                                             data-heure-arrivee="<?= htmlspecialchars($heureArriveeValue, ENT_QUOTES) ?>"
-                                                            data-lieu-arrivee="<?= htmlspecialchars($trajet['lieu_arrivee'], ENT_QUOTES) ?>"
+                                                            data-ville-arrivee-id="<?= htmlspecialchars($trajet['ville_arrivee_id'] ?: ($villeIdsByNom[strtolower((string)$trajet['lieu_arrivee'])] ?? ''), ENT_QUOTES) ?>"
                                                             data-nb-place="<?= htmlspecialchars($trajet['nb_place'], ENT_QUOTES) ?>"
                                                             data-prix-personne="<?= htmlspecialchars($trajet['prix_personne'], ENT_QUOTES) ?>"
                                                             data-voiture-id="<?= htmlspecialchars($trajet['voiture_id'], ENT_QUOTES) ?>">
@@ -416,6 +605,24 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                                                     <td><?= htmlspecialchars(date("d/m/Y", strtotime($trajet['date_depart']))) ?></td>
                                                     <td><?= htmlspecialchars($trajet['lieu_depart']) ?></td>
                                                     <td><?= htmlspecialchars($trajet['lieu_arrivee']) ?></td>
+                                                    <td>
+                                                        <?php
+                                                        $etapes_trajet = $etapes_by_covoiturage[(int)$trajet['covoiturage_id']] ?? [];
+                                                        // Afficher les Etape(s) réellement intermédiaire(s).
+                                                        // Si seules des Etape(s) intermédiaire(s) sont stockée(s), elles doivent quand même s'afficher.
+                                                        $depart_nom = strtolower(trim((string)$trajet['lieu_depart']));
+                                                        $arrivee_nom = strtolower(trim((string)$trajet['lieu_arrivee']));
+                                                        $etapes_intermediaires = array_values(array_filter($etapes_trajet, static function ($nom) use ($depart_nom, $arrivee_nom) {
+                                                            $nom_normalise = strtolower(trim((string)$nom));
+                                                            return $nom_normalise !== '' && $nom_normalise !== $depart_nom && $nom_normalise !== $arrivee_nom;
+                                                        }));
+                                                        ?>
+                                                        <?php if (!empty($etapes_intermediaires)): ?>
+                                                            <small class="text-muted"><?= htmlspecialchars(implode(' → ', $etapes_intermediaires)) ?></small>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">Direct</span>
+                                                        <?php endif; ?>
+                                                    </td>
                                                     <td><?= htmlspecialchars($trajet['prix_personne']) ?></td>
                                                     <td><?= htmlspecialchars($trajet['modele']) ?> (<?= htmlspecialchars($trajet['immatriculation']) ?>)</td>
                                                     <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
@@ -480,12 +687,38 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label for="lieu_depart" class="form-label">Lieu de départ</label>
-                                        <input type="text" class="form-control" id="lieu_depart" name="lieu_depart" required>
+                                        <label for="ville_depart_id" class="form-label">Ville de départ</label>
+                                        <select class="form-select" id="ville_depart_id" name="ville_depart_id" required>
+                                            <option value="">Sélectionnez une ville</option>
+                                            <?php foreach ($villes as $ville): ?>
+                                                <option value="<?= (int)$ville['ville_id'] ?>">
+                                                    <?= htmlspecialchars($ville['nom']) ?> (<?= htmlspecialchars($ville['code_postal']) ?>)
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="lieu_arrivee" class="form-label">Lieu d'arrivée</label>
-                                        <input type="text" class="form-control" id="lieu_arrivee" name="lieu_arrivee" required>
+                                        <label for="ville_arrivee_id" class="form-label">Ville d'arrivée</label>
+                                        <select class="form-select" id="ville_arrivee_id" name="ville_arrivee_id" required>
+                                            <option value="">Sélectionnez une ville</option>
+                                            <?php foreach ($villes as $ville): ?>
+                                                <option value="<?= (int)$ville['ville_id'] ?>">
+                                                    <?= htmlspecialchars($ville['nom']) ?> (<?= htmlspecialchars($ville['code_postal']) ?>)
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <p class="form-label fw-semibold d-block mb-2">
+                                            Etape(s) intermédiaire(s)
+                                            <small class="text-muted fw-normal">(facultatif)</small>
+                                        </p>
+                                        <div id="etapes-container-mes-trajets"></div>
+                                        <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addEtapeMesTrajet()">
+                                            + Ajouter une étape
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -558,12 +791,26 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="edit_lieu_depart" class="form-label">Lieu de départ</label>
-                            <input type="text" class="form-control" id="edit_lieu_depart" name="lieu_depart" required>
+                            <label for="edit_ville_depart_id" class="form-label">Ville de départ</label>
+                            <select class="form-select" id="edit_ville_depart_id" name="ville_depart_id" required>
+                                <option value="">Sélectionnez une ville</option>
+                                <?php foreach ($villes as $ville): ?>
+                                    <option value="<?= (int)$ville['ville_id'] ?>">
+                                        <?= htmlspecialchars($ville['nom']) ?> (<?= htmlspecialchars($ville['code_postal']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="col-md-6">
-                            <label for="edit_lieu_arrivee" class="form-label">Lieu d'arrivée</label>
-                            <input type="text" class="form-control" id="edit_lieu_arrivee" name="lieu_arrivee" required>
+                            <label for="edit_ville_arrivee_id" class="form-label">Ville d'arrivée</label>
+                            <select class="form-select" id="edit_ville_arrivee_id" name="ville_arrivee_id" required>
+                                <option value="">Sélectionnez une ville</option>
+                                <?php foreach ($villes as $ville): ?>
+                                    <option value="<?= (int)$ville['ville_id'] ?>">
+                                        <?= htmlspecialchars($ville['nom']) ?> (<?= htmlspecialchars($ville['code_postal']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -574,6 +821,18 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                         <div class="col-md-6">
                             <label for="edit_heure_arrivee" class="form-label">Heure d'arrivée</label>
                             <input type="time" class="form-control" id="edit_heure_arrivee" name="heure_arrivee" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <p class="form-label fw-semibold d-block mb-2">
+                                Étape(s) intermédiaire(s)
+                                <small class="text-muted fw-normal">(facultatif)</small>
+                            </p>
+                            <div id="edit-etapes-container"></div>
+                            <button type="button" class="btn btn-secondary btn-sm mt-2" onclick="addEtapeMesTrajetEdit()">
+                                + Ajouter une étape
+                            </button>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -613,6 +872,7 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
     document.addEventListener('DOMContentLoaded', function() {
         var editModal = document.getElementById('editTrajetModal');
         var editTrigger = document.getElementById('openEditTrajet');
+        var etapesParTrajet = <?= json_encode($etapes_details_by_covoiturage, JSON_UNESCAPED_UNICODE); ?>;
 
         if (!editModal || !editTrigger) {
             return;
@@ -643,10 +903,10 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
             setValue('#edit_trajet_id', checkbox.value);
             setValue('#edit_date_depart', checkbox.getAttribute('data-date-depart'));
             setValue('#edit_heure_depart', checkbox.getAttribute('data-heure-depart'));
-            setValue('#edit_lieu_depart', checkbox.getAttribute('data-lieu-depart'));
+            setValue('#edit_ville_depart_id', checkbox.getAttribute('data-ville-depart-id'));
             setValue('#edit_date_arrivee', checkbox.getAttribute('data-date-arrivee'));
             setValue('#edit_heure_arrivee', checkbox.getAttribute('data-heure-arrivee'));
-            setValue('#edit_lieu_arrivee', checkbox.getAttribute('data-lieu-arrivee'));
+            setValue('#edit_ville_arrivee_id', checkbox.getAttribute('data-ville-arrivee-id'));
             setValue('#edit_nb_place', checkbox.getAttribute('data-nb-place'));
             setValue('#edit_prix_personne', checkbox.getAttribute('data-prix-personne'));
 
@@ -656,9 +916,102 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                 voitureSelect.value = voitureId;
             }
 
+            // Préremplir les Etape(s) intermédiaire(s) dans la modale de modification
+            var container = form.querySelector('#edit-etapes-container');
+            if (container) {
+                container.innerHTML = '';
+                var trajetId = parseInt(checkbox.value || '0', 10);
+                var villeDepartId = parseInt(checkbox.getAttribute('data-ville-depart-id') || '0', 10);
+                var villeArriveeId = parseInt(checkbox.getAttribute('data-ville-arrivee-id') || '0', 10);
+                var etapes = etapesParTrajet[trajetId] || [];
+
+                etapes.forEach(function(etape) {
+                    var villeId = parseInt(etape.ville_id || '0', 10);
+                    if (villeId === 0 || villeId === villeDepartId || villeId === villeArriveeId) {
+                        return;
+                    }
+                    addEtapeMesTrajetEdit(villeId, etape.heure || '');
+                });
+            }
+
             var modalInstance = bootstrap.Modal.getOrCreateInstance(editModal);
             modalInstance.show();
         });
     });
+
+    const villesDataMesTrajets = <?= json_encode(array_map(function ($v) {
+                                        return ['id' => (int)$v['ville_id'], 'nom' => $v['nom'], 'cp' => $v['code_postal']];
+                                    }, $villes), JSON_UNESCAPED_UNICODE); ?>;
+
+    function buildVilleOptionsMesTrajets() {
+        return villesDataMesTrajets.map(v =>
+            `<option value="${v.id}">${v.nom} (${v.cp})</option>`
+        ).join('');
+    }
+
+    function addEtapeMesTrajet() {
+        const container = document.getElementById('etapes-container-mes-trajets');
+        if (!container) {
+            return;
+        }
+
+        const div = document.createElement('div');
+        div.className = 'row mb-2 align-items-center etape-row';
+        div.innerHTML = `
+            <div class="col-md-5 mb-2">
+                <select name="etapes_ville_id[]" class="form-select">
+                    <option value="">Ville de l'étape</option>
+                    ${buildVilleOptionsMesTrajets()}
+                </select>
+            </div>
+            <div class="col-md-4 mb-2">
+                <input type="time" name="etapes_heure[]" class="form-control" placeholder="Heure de passage">
+            </div>
+            <div class="col-md-3 mb-2">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                        onclick="this.closest('.etape-row').remove()">
+                    Supprimer
+                </button>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    function addEtapeMesTrajetEdit(selectedVilleId = '', selectedHeure = '') {
+        const container = document.getElementById('edit-etapes-container');
+        if (!container) {
+            return;
+        }
+
+        const div = document.createElement('div');
+        div.className = 'row mb-2 align-items-center etape-row';
+        div.innerHTML = `
+            <div class="col-md-5 mb-2">
+                <select name="edit_etapes_ville_id[]" class="form-select">
+                    <option value="">Ville de l'étape</option>
+                    ${buildVilleOptionsMesTrajets()}
+                </select>
+            </div>
+            <div class="col-md-4 mb-2">
+                <input type="time" name="edit_etapes_heure[]" class="form-control" placeholder="Heure de passage">
+            </div>
+            <div class="col-md-3 mb-2">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                        onclick="this.closest('.etape-row').remove()">
+                    Supprimer
+                </button>
+            </div>
+        `;
+        container.appendChild(div);
+
+        const select = div.querySelector('select[name="edit_etapes_ville_id[]"]');
+        const input = div.querySelector('input[name="edit_etapes_heure[]"]');
+        if (select && selectedVilleId !== '') {
+            select.value = String(selectedVilleId);
+        }
+        if (input && selectedHeure !== '') {
+            input.value = selectedHeure;
+        }
+    }
 </script>
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>

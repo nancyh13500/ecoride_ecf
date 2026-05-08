@@ -121,6 +121,7 @@ try {
 
 // Récupérer les suggestions de trajets
 $covoiturages_suggestion = [];
+$etapes_by_covoiturage = [];
 try {
     $query_suggestion = $pdo->prepare("
         SELECT c.covoiturage_id,
@@ -142,8 +143,35 @@ try {
     ");
     $query_suggestion->execute();
     $covoiturages_suggestion = $query_suggestion->fetchAll(PDO::FETCH_ASSOC);
+
+    // Récupérer les Etape(s) programmée(s) des trajets suggérés
+    $covoiturage_ids = array_values(array_filter(array_map(static function ($c) {
+        return (int)($c['covoiturage_id'] ?? 0);
+    }, $covoiturages_suggestion)));
+
+    if (!empty($covoiturage_ids)) {
+        $placeholders = implode(',', array_fill(0, count($covoiturage_ids), '?'));
+        $query_etapes = $pdo->prepare("
+            SELECT e.covoiturage_id, v.nom
+            FROM etape e
+            JOIN ville v ON v.ville_id = e.ville_id
+            WHERE e.covoiturage_id IN ($placeholders)
+            ORDER BY e.covoiturage_id ASC, e.ordre ASC
+        ");
+        $query_etapes->execute($covoiturage_ids);
+        $etapes = $query_etapes->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($etapes as $etape) {
+            $cid = (int)$etape['covoiturage_id'];
+            if (!isset($etapes_by_covoiturage[$cid])) {
+                $etapes_by_covoiturage[$cid] = [];
+            }
+            $etapes_by_covoiturage[$cid][] = $etape['nom'];
+        }
+    }
 } catch (PDOException $e) {
     $covoiturages_suggestion = [];
+    $etapes_by_covoiturage = [];
 }
 
 ?>
@@ -151,7 +179,7 @@ try {
 <!--section search -->
 <section class="hero">
     <div class="background-img"></div>
-    <div class="content px-4 py-5 my-5 text-center">
+    <div class="content px-4 py-3 my-3 text-center">
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
         <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
@@ -189,6 +217,7 @@ try {
                 <div class="d-flex justify-content-center mt-3">
                     <button type="submit" name="search_trajet" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
                 </div>
+
             </form>
         </div>
     </div>
@@ -239,27 +268,40 @@ try {
                     }
                     $prix_personne = isset($covoiturage['prix_personne']) ? number_format((float) $covoiturage['prix_personne'], 0, ',', ' ') : null;
                     ?>
-                    <div class="col-md-4 my-2">
+                    <div class="col-lg-4 col-md-6 my-2">
                         <div class="card h-100">
                             <div class="card-header bg-secondary">
                                 <p class="text-trajet mt-3 text-white">Trajet</p>
                             </div>
-                            <div class="card-body">
-                                <img src="/assets/img/profil.jpg" class="user_profile mb-3" alt="user_profile">
-                                <p class="card-text">
+                            <div class="card-body p-3">
+                                <img src="/assets/img/profil.jpg" class="user_profile mb-2" alt="user_profile">
+                                <p class="card-text mb-2 small">
                                     <strong><?= htmlspecialchars($covoiturage['lieu_depart']) ?></strong>
                                     → <strong><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></strong>
                                 </p>
-                                <p>
+                                <p class="mb-2 small">
                                     Date de départ :
                                     <?= !empty($covoiturage['date_depart']) ? date('d/m/Y', strtotime($covoiturage['date_depart'])) : 'À définir' ?>
                                     <?php if (!empty($covoiturage['heure_depart'])): ?>
                                         à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?>
                                     <?php endif; ?>
                                 </p>
-                                <p>
+                                <p class="mb-2 small">
                                     Conducteur :
                                     <?= htmlspecialchars(trim(($covoiturage['prenom'] ?? '') . ' ' . ($covoiturage['nom'] ?? ''))) ?: 'Non renseigné' ?>
+                                </p>
+                                <?php
+                                $etapes_trajet = $etapes_by_covoiturage[(int)($covoiturage['covoiturage_id'] ?? 0)] ?? [];
+                                $depart_nom = strtolower(trim((string)($covoiturage['lieu_depart'] ?? '')));
+                                $arrivee_nom = strtolower(trim((string)($covoiturage['lieu_arrivee'] ?? '')));
+                                $etapes_intermediaires = array_values(array_filter($etapes_trajet, static function ($nom) use ($depart_nom, $arrivee_nom) {
+                                    $nom_normalise = strtolower(trim((string)$nom));
+                                    return $nom_normalise !== '' && $nom_normalise !== $depart_nom && $nom_normalise !== $arrivee_nom;
+                                }));
+                                ?>
+                                <p class="mb-2 small">
+                                    Etape(s) :
+                                    <?= !empty($etapes_intermediaires) ? htmlspecialchars(implode(' → ', $etapes_intermediaires)) : 'Direct' ?>
                                 </p>
                                 <p class="mb-2">
                                     <span class="badge <?= $badge_class ?>">
@@ -267,12 +309,12 @@ try {
                                         <?= $nb_places ?> place<?= $nb_places > 1 ? 's' : '' ?>
                                     </span>
                                 </p>
-                                <p>
+                                <p class="mb-0 small">
                                     Tarif :
                                     <?= $prix_personne !== null ? $prix_personne . ' crédits' : 'Non renseigné' ?>
                                 </p>
                             </div>
-                            <div class="card-footer bg-transparent border-0">
+                            <div class="card-footer bg-transparent border-0 mt-2 mb-2">
                                 <a href="<?= htmlspecialchars($trajet_url) ?>" class="btn btn_card btn-primary">Voir le trajet</a>
                             </div>
                         </div>

@@ -1,4 +1,4 @@
--- phpMyAdmin SQL Dump
+﻿-- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
@@ -272,6 +272,7 @@ VALUES (
         3,
         '500S',
         'XX-500-ZZ',
+        'Essence',
         '',
         'Grise',
         '2024-12-07',
@@ -283,6 +284,8 @@ VALUES (
         4,
         'Ateca',
         'FV-652-PD',
+        'Diesel',
+        '',
         '',
         'Grise',
         '2024-06-04',

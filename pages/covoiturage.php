@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
             ]);
             $covoiturage_id = $pdo->lastInsertId();
 
-            // Insertion des étapes : ordre 1 = départ, intermédiaires, dernier = arrivée
+            // Insertion des Etape(s) : ordre 1 = départ, intermédiaire(s), dernier = arrivée
             $stmt_etape = $pdo->prepare("
                 INSERT INTO etape (covoiturage_id, ville_id, ordre, heure_prevue, date_prevue)
                 VALUES (:covoiturage_id, :ville_id, :ordre, :heure_prevue, :date_prevue)
@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
             ]);
             $ordre++;
 
-            // Étapes intermédiaires (facultatives)
+            // Etape(s) intermédiaire(s) (facultative(s))
             $etapes_ville_ids = isset($_POST['etapes_ville_id']) ? $_POST['etapes_ville_id'] : [];
             $etapes_heures    = isset($_POST['etapes_heure'])    ? $_POST['etapes_heure']    : [];
 
@@ -207,7 +207,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
             $pdo->commit();
             header("Location: mes_trajets.php?success=1");
             exit();
-
         } catch (PDOException $e) {
             $pdo->rollBack();
             $error_message = "Erreur lors de la création du covoiturage : " . $e->getMessage();
@@ -284,15 +283,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
                                 </div>
                             </div>
 
-                            <!-- Étapes intermédiaires facultatives -->
+                            <!-- Etape(s) intermédiaire(s) facultative(s) -->
                             <div class="row mb-3">
                                 <div class="col-12">
                                     <h6 class="mb-2 fw-semibold">
-                                        Étapes intermédiaires
+                                        Etape(s) intermédiaire(s)
                                         <small class="text-muted fw-normal">(facultatif — ex : prise en charge en chemin)</small>
                                     </h6>
                                     <div id="etapes-container"></div>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="addEtape()">
+                                    <button type="button" class="btn btn-primary btn-sm mt-2" onclick="addEtape()">
                                         + Ajouter une étape
                                     </button>
                                 </div>
@@ -408,22 +407,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
 </section>
 
 <script>
-const villesData = <?php echo json_encode(array_map(function($v) {
-    return ['id' => (int)$v['ville_id'], 'nom' => $v['nom'], 'cp' => $v['code_postal']];
-}, $villes), JSON_UNESCAPED_UNICODE); ?>;
+    const villesData = <?php echo json_encode(array_map(function ($v) {
+                            return ['id' => (int)$v['ville_id'], 'nom' => $v['nom'], 'cp' => $v['code_postal']];
+                        }, $villes), JSON_UNESCAPED_UNICODE); ?>;
 
-function buildVilleOptions() {
-    return villesData.map(v =>
-        `<option value="${v.id}">${v.nom} (${v.cp})</option>`
-    ).join('');
-}
+    function buildVilleOptions() {
+        return villesData.map(v =>
+            `<option value="${v.id}">${v.nom} (${v.cp})</option>`
+        ).join('');
+    }
 
-function addEtape() {
-    const container = document.getElementById('etapes-container');
-    const index = container.children.length;
-    const div = document.createElement('div');
-    div.className = 'row mb-2 align-items-center etape-row';
-    div.innerHTML = `
+    function addEtape() {
+        const container = document.getElementById('etapes-container');
+        const index = container.children.length;
+        const div = document.createElement('div');
+        div.className = 'row mb-2 align-items-center etape-row';
+        div.innerHTML = `
         <div class="col-md-5 mb-2">
             <select name="etapes_ville_id[]" class="form-select bg-light" required>
                 <option value="">Ville de l'étape</option>
@@ -440,8 +439,8 @@ function addEtape() {
             </button>
         </div>
     `;
-    container.appendChild(div);
-}
+        container.appendChild(div);
+    }
 </script>
 
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>
