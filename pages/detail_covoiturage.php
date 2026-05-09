@@ -130,12 +130,16 @@ try {
                u.nom, u.prenom, u.email, u.telephone, u.pseudo,
                v.modele, v.immatriculation, v.couleur, v.energie,
                m.libelle AS marque_libelle,
-               e.libelle AS energie_libelle
+               en.libelle AS energie_libelle,
+               vd.latitude AS map_lat_depart, vd.longitude AS map_lon_depart,
+               va.latitude AS map_lat_arrivee, va.longitude AS map_lon_arrivee
         FROM covoiturage c
         LEFT JOIN user u ON c.user_id = u.user_id
         LEFT JOIN voiture v ON c.voiture_id = v.voiture_id
         LEFT JOIN marque m ON v.marque_id = m.marque_id
-        LEFT JOIN energie e ON v.energie_id = e.energie_id
+        LEFT JOIN energie en ON v.energie_id = en.energie_id
+        LEFT JOIN ville vd ON vd.ville_id = c.ville_depart_id
+        LEFT JOIN ville va ON va.ville_id = c.ville_arrivee_id
         WHERE c.covoiturage_id = :id
     ");
     $query->execute(['id' => $covoiturage_id]);
@@ -175,6 +179,87 @@ try {
 if (!$covoiturage) {
     header("Location: trajets.php?error=notfound");
     exit();
+}
+
+// Points GPS pour la carte du trajet (étapes en ordre, sinon départ → arrivée)
+$map_points = [];
+$lookupVilleCoords = static function (PDO $pdoConn, string $nom): ?array {
+    $nom = trim($nom);
+    if ($nom === '') {
+        return null;
+    }
+    try {
+        $st = $pdoConn->prepare("
+            SELECT latitude, longitude
+            FROM ville
+            WHERE LOWER(TRIM(nom)) = LOWER(:nom)
+              AND latitude IS NOT NULL AND longitude IS NOT NULL
+            LIMIT 1
+        ");
+        $st->execute(['nom' => $nom]);
+        $row = $st->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return null;
+        }
+        return [(float) $row['latitude'], (float) $row['longitude']];
+    } catch (PDOException $e) {
+        return null;
+    }
+};
+
+try {
+    $qEtapesMap = $pdo->prepare("
+        SELECT v.nom, v.latitude, v.longitude
+        FROM etape e
+        JOIN ville v ON v.ville_id = e.ville_id
+        WHERE e.covoiturage_id = :id
+          AND v.latitude IS NOT NULL AND v.longitude IS NOT NULL
+        ORDER BY e.ordre ASC
+    ");
+    $qEtapesMap->execute(['id' => $covoiturage_id]);
+    while ($row = $qEtapesMap->fetch(PDO::FETCH_ASSOC)) {
+        $map_points[] = [
+            'lat' => (float) $row['latitude'],
+            'lng' => (float) $row['longitude'],
+            'label' => (string) $row['nom'],
+        ];
+    }
+} catch (PDOException $e) {
+    $map_points = [];
+}
+
+if (count($map_points) < 2) {
+    $map_points = [];
+    $ld = isset($covoiturage['map_lat_depart'], $covoiturage['map_lon_depart'])
+        && $covoiturage['map_lat_depart'] !== null && $covoiturage['map_lon_depart'] !== null
+        ? [(float) $covoiturage['map_lat_depart'], (float) $covoiturage['map_lon_depart']]
+        : $lookupVilleCoords($pdo, (string) ($covoiturage['lieu_depart'] ?? ''));
+    $la = isset($covoiturage['map_lat_arrivee'], $covoiturage['map_lon_arrivee'])
+        && $covoiturage['map_lat_arrivee'] !== null && $covoiturage['map_lon_arrivee'] !== null
+        ? [(float) $covoiturage['map_lat_arrivee'], (float) $covoiturage['map_lon_arrivee']]
+        : $lookupVilleCoords($pdo, (string) ($covoiturage['lieu_arrivee'] ?? ''));
+
+    if ($ld !== null) {
+        $map_points[] = [
+            'lat' => $ld[0],
+            'lng' => $ld[1],
+            'label' => (string) ($covoiturage['lieu_depart'] ?? 'Départ'),
+        ];
+    }
+    if ($la !== null) {
+        $map_points[] = [
+            'lat' => $la[0],
+            'lng' => $la[1],
+            'label' => (string) ($covoiturage['lieu_arrivee'] ?? 'Arrivée'),
+        ];
+    }
+}
+
+$map_show = count($map_points) >= 2;
+$map_points_json = json_encode($map_points, JSON_UNESCAPED_UNICODE);
+if ($map_points_json === false) {
+    $map_points_json = '[]';
+    $map_show = false;
 }
 
 // Calculer les badges pour les places
@@ -315,6 +400,28 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                             </div>
                                         <?php endif; ?>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3 justify-content-center">
+                        <div class="col-12">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h3 class="text-primary h5 mb-3">
+                                        <i class="bi bi-map me-2"></i>Carte du trajet
+                                    </h3>
+                                    <?php if ($map_show): ?>
+                                        <div id="map-trajet" class="rounded border" style="height: 380px; min-height: 260px; z-index: 1;"></div>
+                                        <p class="text-muted small mt-2 mb-0">
+                                            Aperçu du parcours entre les villes enregistrées (ligne reliant les points&nbsp;; ce n’est pas un calcul d’itinéraire routier).
+                                        </p>
+                                    <?php else: ?>
+                                        <p class="text-muted mb-0">
+                                            La carte ne peut pas s’afficher : coordonnées GPS introuvables pour ce trajet dans la base des villes.
+                                        </p>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -480,6 +587,43 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
         </div>
     </div>
 </section>
+
+<?php if ($map_show): ?>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function () {
+    var pts = <?= $map_points_json ?>;
+    var el = document.getElementById('map-trajet');
+    if (!el || !pts || pts.length < 2 || typeof L === 'undefined') {
+        return;
+    }
+    var latlngs = pts.map(function (p) {
+        return [p.lat, p.lng];
+    });
+    var map = L.map(el, { scrollWheelZoom: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    var bounds = L.latLngBounds(latlngs);
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
+    if (sw.lat === ne.lat && sw.lng === ne.lng) {
+        map.setView(latlngs[0], 11);
+    } else {
+        map.fitBounds(bounds, { padding: [48, 48] });
+    }
+
+    L.polyline(latlngs, { color: '#0d6efd', weight: 4, opacity: 0.9 }).addTo(map);
+    pts.forEach(function (p, i) {
+        var title = p.label || ('Point ' + (i + 1));
+        L.marker([p.lat, p.lng]).addTo(map).bindPopup(title);
+    });
+})();
+</script>
+<?php endif; ?>
 
 <?php require_once __DIR__ . "/../templates/footer.php";
 ?>

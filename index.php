@@ -274,8 +274,10 @@ try {
                                     <?= $prix_personne !== null ? $prix_personne . ' crédits' : 'Non renseigné' ?>
                                 </p>
                             </div>
-                            <div class="card-footer bg-transparent border-0 mt-2 mb-2">
-                                <a href="<?= htmlspecialchars($trajet_url) ?>" class="btn btn_card btn-primary">Voir le trajet</a>
+                            <div class="card-footer text-center">
+                                <a href="<?= htmlspecialchars($trajet_url) ?>" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>Voir le détail
+                                </a>
                             </div>
                         </div>
                     </div>
