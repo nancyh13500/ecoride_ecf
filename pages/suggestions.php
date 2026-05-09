@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . "/../templates/header.php";
 require_once __DIR__ . "/../lib/pdo.php";
-require_once __DIR__ . "/../lib/session.php";
 
 // Récupérer tous les trajets disponibles
 $covoiturages_suggestion = [];
@@ -89,13 +88,9 @@ try {
                                     </div>
                                 </div>
                                 <div class="card-footer text-center">
-                                    <?php if (isUserConnected()): ?>
-                                        <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2">
-                                            <i class="bi bi-eye me-1"></i>Voir détails
-                                        </a>
-                                    <?php else: ?>
-                                        <a href="../login.php" class="btn btn-secondary btn-sm">Se connecter</a>
-                                    <?php endif; ?>
+                                    <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm">
+                                        <i class="bi bi-eye me-1"></i>Voir le détail
+                                    </a>
                                 </div>
                             </div>
                         </div>
