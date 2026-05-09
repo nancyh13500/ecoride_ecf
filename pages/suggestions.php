@@ -33,16 +33,13 @@ try {
 ?>
 
 
-<!-- Results Section -->
-<div class="result-header text-center" style="margin-top: 100px;">
-    <div class="bg-dark text-white p-5">
-        <h2>Trajets disponibles</h2>
+<!-- En-tête et liste dans une même section pour éviter toute bande entre les deux blocs -->
+<section id="results" class="results bg-light" style="margin-top: 100px;">
+    <div class="bg-dark text-white p-5 text-center shadow-sm">
+        <h2 class="mb-2">Trajets disponibles</h2>
         <p class="mb-0"><?= $total_suggestions ?> trajet<?= $total_suggestions > 1 ? 's' : '' ?> trouvé<?= $total_suggestions > 1 ? 's' : '' ?></p>
     </div>
-</div>
-
-<section id="results" class="results bg-light py-5">
-    <div class="container">
+    <div class="container py-5">
         <?php if (!empty($covoiturages_suggestion)): ?>
             <div class="suggestions-section">
                 <div class="row">
