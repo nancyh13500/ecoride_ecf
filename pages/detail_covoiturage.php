@@ -24,6 +24,20 @@ if ($covoiturage_id <= 0) {
     exit();
 }
 
+// Reprise de la recherche trajets.php (passée en query depuis les liens « Voir le détail »)
+$trajets_retour_keys = ['depart', 'arrivee', 'date', 'etape', 'credit_min', 'note_min'];
+$trajets_retour_q = [];
+foreach ($trajets_retour_keys as $rk) {
+    if (!isset($_GET[$rk]) || $_GET[$rk] === '') {
+        continue;
+    }
+    $trajets_retour_q[$rk] = (string)$_GET[$rk];
+}
+$href_retour_trajets = 'trajets.php';
+if ($trajets_retour_q !== []) {
+    $href_retour_trajets .= '?' . http_build_query($trajets_retour_q);
+}
+
 // Traitement de la réservation (nécessite une connexion)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserver'])) {
     if (!$isConnected || !$user) {
@@ -534,7 +548,7 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
 
                     <!-- Boutons d'action -->
                     <div class="text-center mt-4">
-                        <a href="<?= $isConnected ? 'trajets.php' : '/index.php' ?>" class="btn btn-secondary me-3">
+                        <a href="<?= htmlspecialchars($href_retour_trajets, ENT_QUOTES, 'UTF-8') ?>" class="btn btn-secondary me-3">
                             <i class="bi bi-arrow-left me-2"></i>Retour
                         </a>
                         <?php if ($isConnected && $user): ?>
@@ -589,40 +603,48 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
 </section>
 
 <?php if ($map_show): ?>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script>
-(function () {
-    var pts = <?= $map_points_json ?>;
-    var el = document.getElementById('map-trajet');
-    if (!el || !pts || pts.length < 2 || typeof L === 'undefined') {
-        return;
-    }
-    var latlngs = pts.map(function (p) {
-        return [p.lat, p.lng];
-    });
-    var map = L.map(el, { scrollWheelZoom: false });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+        (function() {
+            var pts = <?= $map_points_json ?>;
+            var el = document.getElementById('map-trajet');
+            if (!el || !pts || pts.length < 2 || typeof L === 'undefined') {
+                return;
+            }
+            var latlngs = pts.map(function(p) {
+                return [p.lat, p.lng];
+            });
+            var map = L.map(el, {
+                scrollWheelZoom: false
+            });
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
 
-    var bounds = L.latLngBounds(latlngs);
-    var sw = bounds.getSouthWest();
-    var ne = bounds.getNorthEast();
-    if (sw.lat === ne.lat && sw.lng === ne.lng) {
-        map.setView(latlngs[0], 11);
-    } else {
-        map.fitBounds(bounds, { padding: [48, 48] });
-    }
+            var bounds = L.latLngBounds(latlngs);
+            var sw = bounds.getSouthWest();
+            var ne = bounds.getNorthEast();
+            if (sw.lat === ne.lat && sw.lng === ne.lng) {
+                map.setView(latlngs[0], 11);
+            } else {
+                map.fitBounds(bounds, {
+                    padding: [48, 48]
+                });
+            }
 
-    L.polyline(latlngs, { color: '#0d6efd', weight: 4, opacity: 0.9 }).addTo(map);
-    pts.forEach(function (p, i) {
-        var title = p.label || ('Point ' + (i + 1));
-        L.marker([p.lat, p.lng]).addTo(map).bindPopup(title);
-    });
-})();
-</script>
+            L.polyline(latlngs, {
+                color: '#0d6efd',
+                weight: 4,
+                opacity: 0.9
+            }).addTo(map);
+            pts.forEach(function(p, i) {
+                var title = p.label || ('Point ' + (i + 1));
+                L.marker([p.lat, p.lng]).addTo(map).bindPopup(title);
+            });
+        })();
+    </script>
 <?php endif; ?>
 
 <?php require_once __DIR__ . "/../templates/footer.php";

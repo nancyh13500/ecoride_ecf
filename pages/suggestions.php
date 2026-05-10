@@ -35,9 +35,11 @@ try {
 
 <!-- En-tête et liste dans une même section pour éviter toute bande entre les deux blocs -->
 <section id="results" class="results bg-light" style="margin-top: 100px;">
-    <div class="bg-dark text-white p-5 text-center shadow-sm">
-        <h2 class="mb-2">Trajets disponibles</h2>
-        <p class="mb-0"><?= $total_suggestions ?> trajet<?= $total_suggestions > 1 ? 's' : '' ?> trouvé<?= $total_suggestions > 1 ? 's' : '' ?></p>
+    <div class="container pt-5">
+        <div class="bg-dark text-white p-4 text-center rounded-3">
+            <h2 class="mb-2">Trajets disponibles</h2>
+            <p class="mb-0"><?= $total_suggestions ?> trajet<?= $total_suggestions > 1 ? 's' : '' ?> trouvé<?= $total_suggestions > 1 ? 's' : '' ?></p>
+        </div>
     </div>
     <div class="container py-5">
         <?php if (!empty($covoiturages_suggestion)): ?>

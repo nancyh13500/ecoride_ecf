@@ -132,6 +132,39 @@ try {
     $etapes_by_covoiturage = [];
 }
 
+try {
+    if (!empty($covoiturages_suggestion)) {
+        $covoiturage_ids = [];
+        foreach ($covoiturages_suggestion as $trajet) {
+            if (!empty($trajet['covoiturage_id'])) {
+                $covoiturage_ids[] = (int) $trajet['covoiturage_id'];
+            }
+        }
+        $covoiturage_ids = array_values(array_unique($covoiturage_ids));
+        if (!empty($covoiturage_ids)) {
+            $placeholders = implode(',', array_fill(0, count($covoiturage_ids), '?'));
+            $query_etapes = $pdo->prepare("
+                SELECT e.covoiturage_id, e.ordre, v.nom
+                FROM etape e
+                JOIN ville v ON v.ville_id = e.ville_id
+                WHERE e.covoiturage_id IN ($placeholders)
+                ORDER BY e.covoiturage_id ASC, e.ordre ASC
+            ");
+            $query_etapes->execute($covoiturage_ids);
+            $etapes = $query_etapes->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($etapes as $etape) {
+                $cid = (int) $etape['covoiturage_id'];
+                if (!isset($etapes_by_covoiturage[$cid])) {
+                    $etapes_by_covoiturage[$cid] = [];
+                }
+                $etapes_by_covoiturage[$cid][] = $etape['nom'];
+            }
+        }
+    }
+} catch (PDOException $e) {
+    $etapes_by_covoiturage = [];
+}
+
 ?>
 
 <!--section search -->
@@ -258,7 +291,7 @@ try {
                                 }));
                                 ?>
                                 <?php if (!empty($etapes_intermediaires)): ?>
-                                    <p class="mb-2 small text-muted">
+                                    <p class="mb-2 small">
                                         Etape(s) :
                                         <?= htmlspecialchars(implode(' → ', $etapes_intermediaires)) ?>
                                     </p>
