@@ -261,7 +261,7 @@ try {
                     ?>
                     <div class="col-lg-4 col-md-6 my-2">
                         <div class="card h-100">
-                            <div class="card-header bg-secondary">
+                            <div class="card-header bg-dark">
                                 <p class="text-trajet mt-3 text-white">Trajet</p>
                             </div>
                             <div class="card-body p-3">

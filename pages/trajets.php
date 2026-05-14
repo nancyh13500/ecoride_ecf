@@ -526,7 +526,7 @@ require_once __DIR__ . "/../templates/header.php";
                         foreach ($covoiturages_recherche as $covoiturage) {
                             $col_class = 'col search-result-card';
                             $card_extra_class = '';
-                            require __DIR__ . '/partials/carte_trajet_resultat.php';
+                            require __DIR__ . '/carte_trajet_resultat.php';
                         }
                         ?>
                     </div>
@@ -579,7 +579,7 @@ require_once __DIR__ . "/../templates/header.php";
                         foreach ($covoiturages_filtres as $covoiturage) {
                             $col_class = 'col filter-result-card';
                             $card_extra_class = 'filter-results';
-                            require __DIR__ . '/partials/carte_trajet_resultat.php';
+                            require __DIR__ . '/carte_trajet_resultat.php';
                         }
                         ?>
                     </div>

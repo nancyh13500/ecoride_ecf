@@ -360,12 +360,12 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                         <div class="col-md-6 col-lg-6 mb-3">
                                             <h6 class="text-muted mb-2"><i class="bi bi-calendar-event me-1"></i>Date départ</h6>
                                             <p class="fs-5 mb-0"><?= date('d/m/Y', strtotime($covoiturage['date_depart'])) ?></p>
-                                            <small class="text-muted">à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?></small>
+                                            <small class="fs-5">à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?></small>
                                         </div>
                                         <div class="col-md-6 col-lg-6 mb-3">
                                             <h6 class="text-muted mb-2"><i class="bi bi-calendar-check me-1"></i>Date arrivée</h6>
                                             <p class="fs-5 mb-0"><?= date('d/m/Y', strtotime($covoiturage['date_arrivee'])) ?></p>
-                                            <small class="text-muted">à <?= date('H:i', strtotime($covoiturage['heure_arrivee'])) ?></small>
+                                            <small class="fs-5">à <?= date('H:i', strtotime($covoiturage['heure_arrivee'])) ?></small>
                                         </div>
                                         <div class="col-12 mb-1">
                                             <h6 class="text-muted mb-2"><i class="bi bi-signpost-2 me-1"></i>Étape(s) intermédiaire(s)</h6>
@@ -509,7 +509,7 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                         </div>
                                         <div class="col-md-6 col-lg-6 mb-3">
                                             <h6 class="text-muted mb-2"><i class="bi bi-coin me-1"></i>Crédits par personne</h6>
-                                            <p class="fs-5 fw-bold text-success"><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</p>
+                                            <p class="fs-5 fw-bold text-dark"><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</p>
                                         </div>
                                     </div>
                                     <?php
