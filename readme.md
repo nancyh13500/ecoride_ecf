@@ -120,33 +120,37 @@ cd ecoride_ecf
 
 ```
 ecoride_ecf/
-├── assets/                 # Ressources statiques
-│   ├── css/               # Feuilles de style
-│   ├── js/                # Scripts JavaScript
-│   ├── img/               # Images du site
-│   └── logo/              # Logos de l'application
-├── Documentation/         # Diagrammes et documentation
-├── lib/                   # Bibliothèques PHP
-│   ├── pdo.php           # Connexion à la base de données
-│   ├── session.php       # Gestion des sessions
-│   ├── user.php          # Fonctions utilisateur
-│   └── update_user.php   # Mise à jour du profil
-├── pages/                 # Pages de l'application
-│   ├── user_count.php    # Gestion du compte utilisateur
-│   ├── mes_trajets.php   # Gestion des trajets
-│   ├── mes_voitures.php  # Gestion des voitures
-│   ├── mes_reservations.php # Réservations
-│   ├── covoiturage.php   # Recherche de trajets
-│   ├── contact.php       # Page de contact
-│   └── mentions_legales.php # Mentions légales
-├── templates/             # Templates réutilisables
-│   ├── header.php        # En-tête du site
-│   └── footer.php        # Pied de page
-├── index.php             # Page d'accueil
-├── login.php             # Page de connexion
-├── logout.php            # Déconnexion
-├── ecoride.sql           # Structure de la base de données
-└── README.md             # Ce fichier
+├── src/			            	    # Partie orientée objet (POO)
+│   ├── Core/		              	# Classes techniques
+│   │   ├── Database.php	    	# Singleton PDO
+│   │   └── Session.php			    # Session + CSRF
+│   ├── Models/		        	    # Classes métier / modèles
+│   │   └── User.php			      # Modèle utilisateur
+│   ├── Service/			          # Classes de services
+│   │   └── MailerService.php		# Envois d'emails (PHPMailer)
+│   └── Controller/			        # Contrôleurs (en cours)
+├── lib/				                # Couche back-end procédurale historique
+│   ├── config.php		        	# Config BDD + chargement .env
+│   ├── pdo.php		            	# Connexion PDO
+│   ├── mongodb.php		        	# Connexion MongoDB
+│   ├── session.php		        	# Helpers session
+│   └── user.php		          	# Fonctions utilisateur
+├── pages/			              	# Vues + contrôleurs des pages
+├── api			                  	# API REST (api/v1/)
+├── templates/		            	# Header / Footer partagés
+├── assets/			              	# CSS, JS, images
+├── docker/			              	# Dockerfile + config Apache & PHP
+│   ├── php/Dockerfile
+│   ├── php/php.ini
+│   ├── php/init-db.sh
+│   └── apache/000-default.conf
+├── test/				# Tests PHPUnit
+│   └── Unit/                   # Tests unitaires (UserTest, SessionTest)
+├── ecoride.sql                 # Schéma + jeu de données initial
+├── docker-compose.yml          # Orchestration Docker
+├── composer.json               # Dépendances + autoload PSR-4
+└── phpunit.xml                 # Configuration des tests
+└── README.md                   # Ce fichier
 ```
 
 ## 🗄️ Structure de la base de données
@@ -210,7 +214,6 @@ $password = 'votre_mot_de_passe';
 Avec Docker, les paramètres sont déjà configurés dans `docker-compose.yml` :
 
 - **MySQL** :
-
   - Host : `db` (dans Docker) ou `localhost:3307` (depuis l'extérieur)
   - Base de données : `ecoride`
   - Utilisateur : `ecoride_user` / Mot de passe : `ecoride_pass`
@@ -272,12 +275,10 @@ Pour toute question ou problème :
 ### Se connecter
 
 - Administrateur :
-
   - mail : jose@mail.com
   - password : jose1234
 
 - Employé :
-
   - mail : employe1@mail.com
   - password : password123
 
