@@ -1,12 +1,18 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
-    ob_start();
-    session_set_cookie_params([
-        'lifetime' => 3600,
-        'path' => '/',
-        'httponly' => true
-    ]);
-    session_start();
+    if (!headers_sent()) {
+        session_set_cookie_params([
+            'lifetime' => 3600,
+            'path' => '/',
+            'httponly' => true
+        ]);
+        session_start();
+    } else {
+        // Evite les warnings "headers already sent" qui cassent le rendu HTML.
+        if (!isset($_SESSION) || !is_array($_SESSION)) {
+            $_SESSION = [];
+        }
+    }
 }
 
 function isUserConnected(): bool
@@ -51,7 +57,7 @@ function validateCSRFToken(string $token): bool
 @param string
 @return void */
 
-function verufyCSRFToken(string $tokenName = 'csrf_token'): void
+function verifyCSRFToken(string $tokenName = 'csrf_token'): void
 {
     $token = $_POST[$tokenName] ?? $_GET[$tokenName] ?? '';
 
@@ -68,6 +74,6 @@ function verufyCSRFToken(string $tokenName = 'csrf_token'): void
 
 function csrfField(string $tokenName = 'csrf_token'): void
 {
-    $token = gerenrateCSRFToken();
+    $token = generateCSRFToken();
     echo '<input type="hidden" name="' . $tokenName . '" value="' . $token . '">';
 }

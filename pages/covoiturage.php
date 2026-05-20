@@ -42,6 +42,15 @@ $query_voitures = $pdo->prepare("SELECT voiture_id, modele, immatriculation FROM
 $query_voitures->execute(['user_id' => $user['user_id']]);
 $voitures = $query_voitures->fetchAll(PDO::FETCH_ASSOC);
 
+// Récupérer toutes les villes pour les selects
+try {
+    $stmt_villes = $pdo->prepare("SELECT ville_id, nom, code_postal FROM ville ORDER BY nom");
+    $stmt_villes->execute();
+    $villes = $stmt_villes->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $villes = [];
+}
+
 // Traitement du formulaire d'ajout de voiture
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_voiture'])) {
     $modele = $_POST['modele'];
@@ -84,15 +93,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_voiture'])) {
 
 // Traitement du formulaire de covoiturage
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
-    $date_depart = isset($_POST['date_depart']) ? $_POST['date_depart'] : '';
-    $heure_depart_input = isset($_POST['heure_depart']) ? $_POST['heure_depart'] : '';
-    $lieu_depart = isset($_POST['lieu_depart']) ? $_POST['lieu_depart'] : '';
-    $lieu_arrivee = isset($_POST['lieu_arrivee']) ? $_POST['lieu_arrivee'] : '';
-    $nb_place = isset($_POST['nb_place']) ? $_POST['nb_place'] : '';
-    $prix_personne = isset($_POST['prix_personne']) ? $_POST['prix_personne'] : '';
-    $voiture_id = isset($_POST['voiture_id']) ? $_POST['voiture_id'] : '';
+    $date_depart       = isset($_POST['date_depart'])      ? $_POST['date_depart']      : '';
+    $heure_depart_input = isset($_POST['heure_depart'])    ? $_POST['heure_depart']     : '';
+    $ville_depart_id   = isset($_POST['ville_depart_id'])  ? (int)$_POST['ville_depart_id']  : 0;
+    $ville_arrivee_id  = isset($_POST['ville_arrivee_id']) ? (int)$_POST['ville_arrivee_id'] : 0;
+    $nb_place          = isset($_POST['nb_place'])         ? $_POST['nb_place']         : '';
+    $prix_personne     = isset($_POST['prix_personne'])    ? $_POST['prix_personne']    : '';
+    $voiture_id        = isset($_POST['voiture_id'])       ? $_POST['voiture_id']       : '';
 
-    $date_depart_obj = DateTime::createFromFormat('Y-m-d', $date_depart);
+    $date_depart_obj   = DateTime::createFromFormat('Y-m-d', $date_depart);
     $date_depart_valide = $date_depart_obj && $date_depart_obj->format('Y-m-d') === $date_depart;
     $heure_depart = $heure_depart_input;
     if (preg_match('/^\d{2}:\d{2}$/', $heure_depart)) {
@@ -101,36 +110,109 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
         $heure_depart = '';
     }
 
-    if ($date_depart_valide && $heure_depart !== '') {
-        // Colonnes obligatoires : même date/heure pour l'arrivée par défaut
+    if ($date_depart_valide && $heure_depart !== '' && $ville_depart_id > 0 && $ville_arrivee_id > 0) {
+        // Récupérer les noms de ville pour les colonnes lieu_depart / lieu_arrivee
+        $stmt_vd = $pdo->prepare("SELECT nom FROM ville WHERE ville_id = :id");
+        $stmt_vd->execute(['id' => $ville_depart_id]);
+        $lieu_depart = $stmt_vd->fetchColumn() ?: '';
+
+        $stmt_va = $pdo->prepare("SELECT nom FROM ville WHERE ville_id = :id");
+        $stmt_va->execute(['id' => $ville_arrivee_id]);
+        $lieu_arrivee = $stmt_va->fetchColumn() ?: '';
+
         $date_arrivee = $date_depart;
         $heure_arrivee = $heure_depart;
 
         try {
+            $pdo->beginTransaction();
+
             $query = $pdo->prepare("
-                INSERT INTO covoiturage (date_depart, heure_depart, lieu_depart, date_arrivee, heure_arrivee, lieu_arrivee, nb_place, prix_personne, user_id, voiture_id, statut)
-                VALUES (:date_depart, :heure_depart, :lieu_depart, :date_arrivee, :heure_arrivee, :lieu_arrivee, :nb_place, :prix_personne, :user_id, :voiture_id, 1)
+                INSERT INTO covoiturage
+                    (date_depart, heure_depart, lieu_depart, ville_depart_id,
+                     date_arrivee, heure_arrivee, lieu_arrivee, ville_arrivee_id,
+                     nb_place, prix_personne, user_id, voiture_id, statut)
+                VALUES
+                    (:date_depart, :heure_depart, :lieu_depart, :ville_depart_id,
+                     :date_arrivee, :heure_arrivee, :lieu_arrivee, :ville_arrivee_id,
+                     :nb_place, :prix_personne, :user_id, :voiture_id, 1)
             ");
             $query->execute([
-                'date_depart' => $date_depart,
-                'heure_depart' => $heure_depart,
-                'lieu_depart' => $lieu_depart,
-                'date_arrivee' => $date_arrivee,
-                'heure_arrivee' => $heure_arrivee,
-                'lieu_arrivee' => $lieu_arrivee,
-                'nb_place' => $nb_place,
-                'prix_personne' => $prix_personne,
-                'user_id' => $user['user_id'],
-                'voiture_id' => $voiture_id,
+                'date_depart'      => $date_depart,
+                'heure_depart'     => $heure_depart,
+                'lieu_depart'      => $lieu_depart,
+                'ville_depart_id'  => $ville_depart_id,
+                'date_arrivee'     => $date_arrivee,
+                'heure_arrivee'    => $heure_arrivee,
+                'lieu_arrivee'     => $lieu_arrivee,
+                'ville_arrivee_id' => $ville_arrivee_id,
+                'nb_place'         => $nb_place,
+                'prix_personne'    => $prix_personne,
+                'user_id'          => $user['user_id'],
+                'voiture_id'       => $voiture_id,
             ]);
-            // Les crédits seront versés au chauffeur et au site uniquement à la fin du trajet
+            $covoiturage_id = $pdo->lastInsertId();
+
+            // Insertion des Etape(s) : ordre 1 = départ, intermédiaire(s), dernier = arrivée
+            $stmt_etape = $pdo->prepare("
+                INSERT INTO etape (covoiturage_id, ville_id, ordre, heure_prevue, date_prevue)
+                VALUES (:covoiturage_id, :ville_id, :ordre, :heure_prevue, :date_prevue)
+            ");
+
+            $ordre = 1;
+
+            // Étape départ
+            $stmt_etape->execute([
+                'covoiturage_id' => $covoiturage_id,
+                'ville_id'       => $ville_depart_id,
+                'ordre'          => $ordre,
+                'heure_prevue'   => $heure_depart,
+                'date_prevue'    => $date_depart,
+            ]);
+            $ordre++;
+
+            // Etape(s) intermédiaire(s) (facultative(s))
+            $etapes_ville_ids = isset($_POST['etapes_ville_id']) ? $_POST['etapes_ville_id'] : [];
+            $etapes_heures    = isset($_POST['etapes_heure'])    ? $_POST['etapes_heure']    : [];
+
+            foreach ($etapes_ville_ids as $i => $etape_ville_id) {
+                $etape_ville_id = (int)$etape_ville_id;
+                if ($etape_ville_id <= 0) continue;
+
+                $heure_etape = isset($etapes_heures[$i]) ? trim($etapes_heures[$i]) : null;
+                if ($heure_etape && preg_match('/^\d{2}:\d{2}$/', $heure_etape)) {
+                    $heure_etape .= ':00';
+                } elseif (!preg_match('/^\d{2}:\d{2}:\d{2}$/', $heure_etape ?? '')) {
+                    $heure_etape = null;
+                }
+
+                $stmt_etape->execute([
+                    'covoiturage_id' => $covoiturage_id,
+                    'ville_id'       => $etape_ville_id,
+                    'ordre'          => $ordre,
+                    'heure_prevue'   => $heure_etape,
+                    'date_prevue'    => $date_depart,
+                ]);
+                $ordre++;
+            }
+
+            // Étape arrivée
+            $stmt_etape->execute([
+                'covoiturage_id' => $covoiturage_id,
+                'ville_id'       => $ville_arrivee_id,
+                'ordre'          => $ordre,
+                'heure_prevue'   => null,
+                'date_prevue'    => $date_arrivee,
+            ]);
+
+            $pdo->commit();
             header("Location: mes_trajets.php?success=1");
             exit();
         } catch (PDOException $e) {
+            $pdo->rollBack();
             $error_message = "Erreur lors de la création du covoiturage : " . $e->getMessage();
         }
     } else {
-        $error_message = "Veuillez entrer une date (format AAAA-MM-JJ) et une heure valides.";
+        $error_message = "Veuillez remplir tous les champs obligatoires (date, heure, ville de départ et d'arrivée).";
     }
 }
 ?>
@@ -178,12 +260,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
 
                             <div class="row">
                                 <div class="col-md-6 mb-4">
-                                    <label class="form-label city_depart" for="lieu_depart">Ville de départ</label>
-                                    <input type="text" id="lieu_depart" name="lieu_depart" class="form-control bg-light" required>
+                                    <label class="form-label city_depart" for="ville_depart_id">Ville de départ</label>
+                                    <select id="ville_depart_id" name="ville_depart_id" class="form-select bg-light" required>
+                                        <option value="">Sélectionnez une ville</option>
+                                        <?php foreach ($villes as $ville): ?>
+                                            <option value="<?php echo $ville['ville_id']; ?>">
+                                                <?php echo htmlspecialchars($ville['nom']); ?> (<?php echo htmlspecialchars($ville['code_postal']); ?>)
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                                 <div class="col-md-6 mb-4">
-                                    <label class="form-label city_arrivee" for="lieu_arrivee">Ville d'arrivée</label>
-                                    <input type="text" id="lieu_arrivee" name="lieu_arrivee" class="form-control bg-light" required>
+                                    <label class="form-label city_arrivee" for="ville_arrivee_id">Ville d'arrivée</label>
+                                    <select id="ville_arrivee_id" name="ville_arrivee_id" class="form-select bg-light" required>
+                                        <option value="">Sélectionnez une ville</option>
+                                        <?php foreach ($villes as $ville): ?>
+                                            <option value="<?php echo $ville['ville_id']; ?>">
+                                                <?php echo htmlspecialchars($ville['nom']); ?> (<?php echo htmlspecialchars($ville['code_postal']); ?>)
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Etape(s) intermédiaire(s) facultative(s) -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h6 class="mb-2 fw-semibold">
+                                        Etape(s) intermédiaire(s)
+                                        <small class="text-muted fw-normal">(facultatif — ex : prise en charge en chemin)</small>
+                                    </h6>
+                                    <div id="etapes-container"></div>
+                                    <button type="button" class="btn btn-primary btn-sm mt-2" onclick="addEtape()">
+                                        + Ajouter une étape
+                                    </button>
                                 </div>
                             </div>
 
@@ -295,5 +405,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
     </div>
 
 </section>
+
+<script>
+    const villesData = <?php echo json_encode(array_map(function ($v) {
+                            return ['id' => (int)$v['ville_id'], 'nom' => $v['nom'], 'cp' => $v['code_postal']];
+                        }, $villes), JSON_UNESCAPED_UNICODE); ?>;
+
+    function buildVilleOptions() {
+        return villesData.map(v =>
+            `<option value="${v.id}">${v.nom} (${v.cp})</option>`
+        ).join('');
+    }
+
+    function addEtape() {
+        const container = document.getElementById('etapes-container');
+        const index = container.children.length;
+        const div = document.createElement('div');
+        div.className = 'row mb-2 align-items-center etape-row';
+        div.innerHTML = `
+        <div class="col-md-5 mb-2">
+            <select name="etapes_ville_id[]" class="form-select bg-light" required>
+                <option value="">Ville de l'étape</option>
+                ${buildVilleOptions()}
+            </select>
+        </div>
+        <div class="col-md-4 mb-2">
+            <input type="time" name="etapes_heure[]" class="form-control bg-light" placeholder="Heure de passage">
+        </div>
+        <div class="col-md-3 mb-2">
+            <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                    onclick="this.closest('.etape-row').remove()">
+                Supprimer
+            </button>
+        </div>
+    `;
+        container.appendChild(div);
+    }
+</script>
 
 <?php require_once __DIR__ . "/../templates/footer.php"; ?>

@@ -3,7 +3,6 @@ require_once __DIR__ . "/vendor/autoload.php";
 require_once __DIR__ . "/lib/session.php";
 require_once __DIR__ . "/lib/pdo.php";
 require_once __DIR__ . "/lib/mongodb.php";
-require_once __DIR__ . "/templates/header.php";
 
 // Récupérer les villes disponibles depuis la base de données
 $villes_depart = [];
@@ -25,22 +24,7 @@ try {
     $villes_arrivee = [];
 }
 
-// Traitement de la recherche
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['search_trajet'])) {
-    $depart = $_POST['depart'] ?? '';
-    $arrivee = $_POST['arrivee'] ?? '';
-    $date = $_POST['date'] ?? '';
-
-    // Redirection vers trajets.php avec les paramètres de recherche
-    $params = http_build_query([
-        'depart' => $depart,
-        'arrivee' => $arrivee,
-        'date' => $date
-    ]);
-
-    header("Location: /pages/trajets.php?$params");
-    exit();
-}
+require_once __DIR__ . "/templates/header.php";
 
 // Récupérer tous les avis validés depuis MongoDB
 $avis_list = [];
@@ -121,6 +105,7 @@ try {
 
 // Récupérer les suggestions de trajets
 $covoiturages_suggestion = [];
+$etapes_by_covoiturage = [];
 try {
     $query_suggestion = $pdo->prepare("
         SELECT c.covoiturage_id,
@@ -144,6 +129,40 @@ try {
     $covoiturages_suggestion = $query_suggestion->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $covoiturages_suggestion = [];
+    $etapes_by_covoiturage = [];
+}
+
+try {
+    if (!empty($covoiturages_suggestion)) {
+        $covoiturage_ids = [];
+        foreach ($covoiturages_suggestion as $trajet) {
+            if (!empty($trajet['covoiturage_id'])) {
+                $covoiturage_ids[] = (int) $trajet['covoiturage_id'];
+            }
+        }
+        $covoiturage_ids = array_values(array_unique($covoiturage_ids));
+        if (!empty($covoiturage_ids)) {
+            $placeholders = implode(',', array_fill(0, count($covoiturage_ids), '?'));
+            $query_etapes = $pdo->prepare("
+                SELECT e.covoiturage_id, e.ordre, v.nom
+                FROM etape e
+                JOIN ville v ON v.ville_id = e.ville_id
+                WHERE e.covoiturage_id IN ($placeholders)
+                ORDER BY e.covoiturage_id ASC, e.ordre ASC
+            ");
+            $query_etapes->execute($covoiturage_ids);
+            $etapes = $query_etapes->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($etapes as $etape) {
+                $cid = (int) $etape['covoiturage_id'];
+                if (!isset($etapes_by_covoiturage[$cid])) {
+                    $etapes_by_covoiturage[$cid] = [];
+                }
+                $etapes_by_covoiturage[$cid][] = $etape['nom'];
+            }
+        }
+    }
+} catch (PDOException $e) {
+    $etapes_by_covoiturage = [];
 }
 
 ?>
@@ -155,7 +174,7 @@ try {
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
         <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
-            <form method="POST" action="">
+            <form method="GET" action="/pages/trajets.php">
                 <div class="search-bar row">
                     <div class="search-field col-md-4">
                         <div class="input-group">
@@ -187,8 +206,9 @@ try {
                     </div>
                 </div>
                 <div class="d-flex justify-content-center mt-3">
-                    <button type="submit" name="search_trajet" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
+                    <button type="submit" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
                 </div>
+
             </form>
         </div>
     </div>
@@ -239,41 +259,58 @@ try {
                     }
                     $prix_personne = isset($covoiturage['prix_personne']) ? number_format((float) $covoiturage['prix_personne'], 0, ',', ' ') : null;
                     ?>
-                    <div class="col-md-4 my-2">
+                    <div class="col-lg-4 col-md-6 my-2">
                         <div class="card h-100">
-                            <div class="card-header bg-secondary">
+                            <div class="card-header bg-dark">
                                 <p class="text-trajet mt-3 text-white">Trajet</p>
                             </div>
-                            <div class="card-body">
-                                <img src="/assets/img/profil.jpg" class="user_profile mb-3" alt="user_profile">
-                                <p class="card-text">
+                            <div class="card-body p-3">
+                                <img src="/assets/img/profil.jpg" class="user_profile mb-2" alt="user_profile">
+                                <p class="card-text mb-2 small">
                                     <strong><?= htmlspecialchars($covoiturage['lieu_depart']) ?></strong>
                                     → <strong><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></strong>
                                 </p>
-                                <p>
+                                <p class="mb-2 small">
                                     Date de départ :
                                     <?= !empty($covoiturage['date_depart']) ? date('d/m/Y', strtotime($covoiturage['date_depart'])) : 'À définir' ?>
                                     <?php if (!empty($covoiturage['heure_depart'])): ?>
                                         à <?= date('H:i', strtotime($covoiturage['heure_depart'])) ?>
                                     <?php endif; ?>
                                 </p>
-                                <p>
+                                <p class="mb-2 small">
                                     Conducteur :
                                     <?= htmlspecialchars(trim(($covoiturage['prenom'] ?? '') . ' ' . ($covoiturage['nom'] ?? ''))) ?: 'Non renseigné' ?>
                                 </p>
+                                <?php
+                                $etapes_trajet = $etapes_by_covoiturage[(int)($covoiturage['covoiturage_id'] ?? 0)] ?? [];
+                                $depart_nom = strtolower(trim((string)($covoiturage['lieu_depart'] ?? '')));
+                                $arrivee_nom = strtolower(trim((string)($covoiturage['lieu_arrivee'] ?? '')));
+                                $etapes_intermediaires = array_values(array_filter($etapes_trajet, static function ($nom) use ($depart_nom, $arrivee_nom) {
+                                    $nom_normalise = strtolower(trim((string)$nom));
+                                    return $nom_normalise !== '' && $nom_normalise !== $depart_nom && $nom_normalise !== $arrivee_nom;
+                                }));
+                                ?>
+                                <?php if (!empty($etapes_intermediaires)): ?>
+                                    <p class="mb-2 small">
+                                        Etape(s) :
+                                        <?= htmlspecialchars(implode(' → ', $etapes_intermediaires)) ?>
+                                    </p>
+                                <?php endif; ?>
                                 <p class="mb-2">
                                     <span class="badge <?= $badge_class ?>">
                                         <i class="bi bi-people me-1"></i>
                                         <?= $nb_places ?> place<?= $nb_places > 1 ? 's' : '' ?>
                                     </span>
                                 </p>
-                                <p>
+                                <p class="mb-0 small">
                                     Tarif :
                                     <?= $prix_personne !== null ? $prix_personne . ' crédits' : 'Non renseigné' ?>
                                 </p>
                             </div>
-                            <div class="card-footer bg-transparent border-0">
-                                <a href="<?= htmlspecialchars($trajet_url) ?>" class="btn btn_card btn-primary">Voir le trajet</a>
+                            <div class="card-footer text-center">
+                                <a href="<?= htmlspecialchars($trajet_url) ?>" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-eye me-1"></i>Voir le détail
+                                </a>
                             </div>
                         </div>
                     </div>

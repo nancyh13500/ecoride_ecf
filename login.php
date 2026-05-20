@@ -10,26 +10,23 @@ $userModel = new User();
 $errors = [];
 
 if (isset($_POST['loginUser'])) {
+    $session->verifyCSRFToken(); // vérification CSRF
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
 
     $user = $userModel->verifyLogin($email, $password);
 
     if ($user) {
-        // Connecter l'utilisateur
         $_SESSION['user'] = $user;
 
-        // Gérer la redirection après connexion
         $redirect = $_GET['redirect'] ?? 'index.php';
 
-        // Construire le chemin de redirection correct
         if ($redirect === 'index.php') {
             $redirect_path = 'index.php';
         } else {
             $redirect_path = 'pages/' . $redirect;
         }
 
-        // Préserver les paramètres GET supplémentaires
         $query_params = [];
         foreach ($_GET as $key => $value) {
             if ($key !== 'redirect') {
@@ -41,7 +38,6 @@ if (isset($_POST['loginUser'])) {
             $redirect_path .= '?' . http_build_query($query_params);
         }
 
-        // Nettoyer le buffer de sortie avant la redirection
         if (ob_get_level()) {
             ob_end_clean();
         }
@@ -53,8 +49,8 @@ if (isset($_POST['loginUser'])) {
     }
 }
 
-// Traitement de l'enregistrement
 if (isset($_POST['registerUser'])) {
+    $session->verifyCSRFToken(); // vérification CSRF
     $nom = filter_input(INPUT_POST, 'nom', FILTER_SANITIZE_SPECIAL_CHARS);
     $prenom = filter_input(INPUT_POST, 'prenom', FILTER_SANITIZE_SPECIAL_CHARS);
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
@@ -66,7 +62,6 @@ if (isset($_POST['registerUser'])) {
     $ville = filter_input(INPUT_POST, 'ville', FILTER_SANITIZE_SPECIAL_CHARS);
     $date_naissance = filter_input(INPUT_POST, 'date_naissance', FILTER_SANITIZE_SPECIAL_CHARS);
 
-    // Validation des données
     if (empty($nom) || empty($prenom) || empty($email) || empty($password) || empty($confirmPassword)) {
         $errors[] = "Les champs nom, prénom, email et mot de passe sont obligatoires.";
     }
@@ -79,12 +74,10 @@ if (isset($_POST['registerUser'])) {
         $errors[] = "L'adresse email n'est pas valide.";
     }
 
-    // Vérifier si l'email existe déjà
     if ($userModel->emailExists($email)) {
         $errors[] = "Cette adresse email est déjà utilisée.";
     }
 
-    // Si pas d'erreurs, on procède à l'enregistrement
     if (empty($errors)) {
         $adresseComplete = trim($adresse . ', ' . $cp . ' ' . $ville);
 
@@ -102,7 +95,6 @@ if (isset($_POST['registerUser'])) {
         if ($userModel->register($userData)) {
             $_SESSION['success'] = "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.";
 
-            // Gérer la redirection après inscription
             $redirect = $_GET['redirect'] ?? 'index.php';
 
             if ($redirect === 'index.php') {
@@ -111,7 +103,6 @@ if (isset($_POST['registerUser'])) {
                 $redirect_path = 'pages/' . $redirect;
             }
 
-            // Préserver les paramètres GET supplémentaires
             $query_params = [];
             foreach ($_GET as $key => $value) {
                 if ($key !== 'redirect') {
@@ -123,7 +114,6 @@ if (isset($_POST['registerUser'])) {
                 $redirect_path .= '?' . http_build_query($query_params);
             }
 
-            // Nettoyer le buffer de sortie avant la redirection
             if (ob_get_level()) {
                 ob_end_clean();
             }
@@ -141,16 +131,13 @@ require_once __DIR__ . "/templates/header.php";
 <section class="hero px-4 py-5">
     <div class="background-login"></div>
     <div class="container login-register mt-5">
-        <?php
-        foreach ($errors as $error) { ?>
+        <?php foreach ($errors as $error) { ?>
             <div class="alert alert-danger" role="alert">
                 <?= $error; ?>
             </div>
-        <?php }
-        ?>
+        <?php } ?>
         <div class="row justify-content-center mb-4">
             <div class="col-md-4">
-
                 <div class="card border-dark">
                     <ul class="nav nav-pills nav-justified" id="ex1" role="tablist">
                         <li class="nav-item ms-3 mt-3 mb-3" role="presentation">
@@ -164,16 +151,15 @@ require_once __DIR__ . "/templates/header.php";
                         <div class="tab-content">
                             <div class="login tab-pane fade show active" id="pills-login" role="tabpanel" aria-labelledby="tab-login">
                                 <form action="" method="post">
+                                    <?php $session->csrfField(); ?> <!-- ← ajout token CSRF -->
                                     <div class="form-outline mb-4">
                                         <input type="email" id="loginUser" name="email" class="form-control border-dark bg-light" placeholder="Email" required>
                                         <label class="form-label" for="loginUser"></label>
                                     </div>
-
                                     <div class="form-outline mb-4">
                                         <input type="password" id="loginPassword" name="password" class="form-control border-dark bg-light" placeholder="Mot de passe" required>
                                         <label class="form-label" for="loginPassword"></label>
                                     </div>
-
                                     <div class="row mb-4">
                                         <div class="col-md-6 d-flex justify-content-center align-items-center">
                                             <div class="form-check-login">
@@ -181,18 +167,17 @@ require_once __DIR__ . "/templates/header.php";
                                                 <label class="form-check-label-login" for="loginCheck">Rester connecté</label>
                                             </div>
                                         </div>
-
                                         <div class="col-md-6 d-flex justify-content-center">
                                             <a href="#">Mot de passe oublié</a>
                                         </div>
                                     </div>
-
                                     <button type="submit" class="btn btn-connect btn-secondary text-dark btn-block mb-4 w-100" name="loginUser">Se connecter</button>
                                 </form>
                             </div>
 
                             <div class="register tab-pane fade" id="pills-register" role="tabpanel" aria-labelledby="tab-register">
                                 <form action="" method="post">
+                                    <?php $session->csrfField(); ?> <!-- ← ajout token CSRF -->
                                     <div class="row">
                                         <div class="col-md-6 form-outline mb-4">
                                             <input type="text" id="registerName" name="nom" class="form-control border-dark bg-light" placeholder="Nom" required>
@@ -203,22 +188,18 @@ require_once __DIR__ . "/templates/header.php";
                                             <label class="form-label" for="registerPrenom"></label>
                                         </div>
                                     </div>
-
                                     <div class="form-outline mb-4">
                                         <input type="email" id="registerEmail" name="email" class="form-control border-dark bg-light" placeholder="Email" required>
                                         <label class="form-label" for="registerEmail"></label>
                                     </div>
-
                                     <div class="form-outline mb-4">
                                         <input type="password" id="registerPassword" name="password" class="form-control border-dark bg-light" placeholder="Mot de passe" required>
                                         <label class="form-label" for="registerPassword"></label>
                                     </div>
-
                                     <div class="form-outline mb-4">
                                         <input type="password" id="registerRepeatPassword" name="confirmPassword" class="form-control border-dark bg-light" placeholder="Confirmer mot de passe" required>
                                         <label class="form-label" for="registerRepeatPassword"></label>
                                     </div>
-
                                     <div class="row">
                                         <div class="col-md-6 form-outline mb-4">
                                             <input type="tel" id="registerPhone" name="telephone" class="form-control border-dark bg-light" placeholder="Téléphone">
@@ -229,12 +210,10 @@ require_once __DIR__ . "/templates/header.php";
                                             <label class="form-label" for="registerBirth"></label>
                                         </div>
                                     </div>
-
                                     <div class="form-outline mb-4">
                                         <input type="text" id="registerAddress" name="adresse" class="form-control border-dark bg-light" placeholder="Adresse">
                                         <label class="form-label" for="registerAddress"></label>
                                     </div>
-
                                     <div class="row">
                                         <div class="col-md-6 form-outline mb-4">
                                             <input type="text" id="registerCP" name="cp" class="form-control border-dark bg-light" placeholder="Code postal">
@@ -245,7 +224,6 @@ require_once __DIR__ . "/templates/header.php";
                                             <label class="form-label" for="registerCity"></label>
                                         </div>
                                     </div>
-
                                     <div class="row check-accept align-items-center">
                                         <div class="form-check col-md-12 d-flex justify-content-center mb-4">
                                             <input class="form-check-input me-2 border-dark" type="checkbox" value="" id="registerCheck" required>
@@ -254,7 +232,6 @@ require_once __DIR__ . "/templates/header.php";
                                             </label>
                                         </div>
                                     </div>
-
                                     <button type="submit" name="registerUser" class="btn btn-connect btn-secondary btn-block mt-3 mb-3 w-100">S'inscrire</button>
                                 </form>
                             </div>
@@ -266,5 +243,4 @@ require_once __DIR__ . "/templates/header.php";
     </div>
 </section>
 
-<?php require_once __DIR__ . "/templates/footer.php";
-?>
+<?php require_once __DIR__ . "/templates/footer.php"; ?>

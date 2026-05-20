@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . "/../templates/header.php";
 require_once __DIR__ . "/../lib/pdo.php";
-require_once __DIR__ . "/../lib/session.php";
 
 // Récupérer tous les trajets disponibles
 $covoiturages_suggestion = [];
@@ -34,16 +33,15 @@ try {
 ?>
 
 
-<!-- Results Section -->
-<div class="result-header text-center" style="margin-top: 100px;">
-    <div class="bg-dark text-white p-5">
-        <h2>Trajets disponibles</h2>
-        <p class="mb-0"><?= $total_suggestions ?> trajet<?= $total_suggestions > 1 ? 's' : '' ?> trouvé<?= $total_suggestions > 1 ? 's' : '' ?></p>
+<!-- En-tête et liste dans une même section pour éviter toute bande entre les deux blocs -->
+<section id="results" class="results bg-light" style="margin-top: 100px;">
+    <div class="container pt-5">
+        <div class="bg-dark text-white p-4 text-center rounded-3">
+            <h2 class="mb-2">Trajets disponibles</h2>
+            <p class="mb-0"><?= $total_suggestions ?> trajet<?= $total_suggestions > 1 ? 's' : '' ?> trouvé<?= $total_suggestions > 1 ? 's' : '' ?></p>
+        </div>
     </div>
-</div>
-
-<section id="results" class="results bg-light py-5">
-    <div class="container">
+    <div class="container py-5">
         <?php if (!empty($covoiturages_suggestion)): ?>
             <div class="suggestions-section">
                 <div class="row">
@@ -89,13 +87,9 @@ try {
                                     </div>
                                 </div>
                                 <div class="card-footer text-center">
-                                    <?php if (isUserConnected()): ?>
-                                        <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm me-2">
-                                            <i class="bi bi-eye me-1"></i>Voir détails
-                                        </a>
-                                    <?php else: ?>
-                                        <a href="../login.php" class="btn btn-secondary btn-sm">Se connecter</a>
-                                    <?php endif; ?>
+                                    <a href="detail_covoiturage.php?id=<?= $covoiturage['covoiturage_id'] ?>" class="btn btn-secondary btn-sm">
+                                        <i class="bi bi-eye me-1"></i>Voir le détail
+                                    </a>
                                 </div>
                             </div>
                         </div>

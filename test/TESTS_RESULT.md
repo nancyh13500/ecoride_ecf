@@ -2,7 +2,7 @@
 
 ## 🎉 Installation réussie !
 
-PHPUnit 10.5.60 a été installé avec succès dans ton projet.
+PHPUnit 10.5.60 a été installé avec succès dans le projet.
 
 ## 📊 Résultat des tests
 
