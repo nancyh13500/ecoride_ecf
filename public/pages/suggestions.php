@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . "/../templates/header.php";
-require_once __DIR__ . "/../lib/pdo.php";
+require_once __DIR__ . "/../../templates/header.php";
+require_once __DIR__ . "/../../lib/pdo.php";
 
 // Récupérer tous les trajets disponibles
 $covoiturages_suggestion = [];
@@ -118,5 +118,5 @@ try {
     </div>
 </section>
 
-<?php require_once __DIR__ . "/../templates/footer.php";
+<?php require_once __DIR__ . "/../../templates/footer.php";
 ?>

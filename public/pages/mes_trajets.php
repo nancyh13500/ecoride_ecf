@@ -1,11 +1,11 @@
 <?php
-require_once __DIR__ . "/../lib/session.php";
-require_once __DIR__ . "/../lib/pdo.php";
+require_once __DIR__ . "/../../lib/session.php";
+require_once __DIR__ . "/../../lib/pdo.php";
 
 
 // Vérifier si l'utilisateur est connecté
 if (!isUserConnected()) {
-    header("Location: ../login.php");
+    header("Location: /login.php");
     exit();
 }
 
@@ -468,7 +468,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stop_trajet_id'])) {
     }
 }
 
-require_once __DIR__ . "/../templates/header.php";
+require_once __DIR__ . "/../../templates/header.php";
 
 // Messages de succès
 $success_message = '';
@@ -1014,4 +1014,4 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
         }
     }
 </script>
-<?php require_once __DIR__ . "/../templates/footer.php"; ?>
+<?php require_once __DIR__ . "/../../templates/footer.php"; ?>

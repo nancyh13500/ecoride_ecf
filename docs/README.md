@@ -73,7 +73,7 @@ docker-compose up -d
 Cette commande va :
 
 - Créer et démarrer les conteneurs (MySQL, Apache/PHP, MongoDB, phpMyAdmin)
-- Importer automatiquement la base de données depuis `ecoride.sql`
+- Importer automatiquement la base de données depuis `database/ecoride.sql`
 - Installer les dépendances Composer si nécessaire
 
 #### 3. Accéder à l'application
@@ -107,7 +107,7 @@ cd ecoride_ecf
 #### 2. Configuration de la base de données
 
 1. Créez une base de données MySQL nommée `ecoride`
-2. Importez le fichier `ecoride.sql` dans votre base de données
+2. Importez le fichier `database/ecoride.sql` dans votre base de données
 3. Configurez les paramètres de connexion dans `lib/pdo.php`
 
 #### 3. Configuration du serveur
@@ -120,38 +120,30 @@ cd ecoride_ecf
 
 ```
 ecoride_ecf/
-├── src/			            	    # Partie orientée objet (POO)
-│   ├── Core/		              	# Classes techniques
-│   │   ├── Database.php	    	# Singleton PDO
-│   │   └── Session.php			    # Session + CSRF
-│   ├── Models/		        	    # Classes métier / modèles
-│   │   └── User.php			      # Modèle utilisateur
-│   ├── Service/			          # Classes de services
-│   │   └── MailerService.php		# Envois d'emails (PHPMailer)
-│   └── Controller/			        # Contrôleurs (en cours)
-├── lib/				                # Couche back-end procédurale historique
-│   ├── config.php		        	# Config BDD + chargement .env
-│   ├── pdo.php		            	# Connexion PDO
-│   ├── mongodb.php		        	# Connexion MongoDB
-│   ├── session.php		        	# Helpers session
-│   └── user.php		          	# Fonctions utilisateur
-├── pages/			              	# Vues + contrôleurs des pages
-├── api			                  	# API REST (api/v1/)
-├── templates/		            	# Header / Footer partagés
-├── assets/			              	# CSS, JS, images
-├── docker/			              	# Dockerfile + config Apache & PHP
-│   ├── php/Dockerfile
-│   ├── php/php.ini
-│   ├── php/init-db.sh
-│   └── apache/000-default.conf
-├── test/				# Tests PHPUnit
-│   └── Unit/                   # Tests unitaires (UserTest, SessionTest)
-├── ecoride.sql                 # Schéma + jeu de données initial
-├── docker-compose.yml          # Orchestration Docker
-├── composer.json               # Dépendances + autoload PSR-4
-└── phpunit.xml                 # Configuration des tests
-└── README.md                   # Ce fichier
+├── public/                 # Point d'entrée web (index, login, pages, assets, api)
+│   ├── index.php
+│   ├── login.php
+│   ├── logout.php
+│   ├── pages/              # Vues + contrôleurs des pages
+│   ├── assets/             # CSS, JS, images
+│   ├── api/                # API REST (v1/)
+│   └── lib/                # Handlers HTTP (formulaires admin, profil)
+├── src/                    # Partie orientée objet (POO)
+├── lib/                    # Couche back-end procédurale (config, pdo, session…)
+├── templates/              # Header / Footer partagés
+├── database/               # Scripts SQL (ecoride.sql, migrations)
+├── docs/                   # Documentation (README, API, déploiement, diagrammes)
+├── scripts/                # Scripts utilitaires CLI
+├── test/                   # Tests PHPUnit
+├── docker/                 # Dockerfile + config Apache & PHP
+├── composer.json
+├── docker-compose.yml
+└── phpunit.xml
 ```
+
+**Architecture (couches / POO) :** [docs/ARCHITECTURE.md](ARCHITECTURE.md)
+
+Documentation complète : voir `docs/README.md`.
 
 ## 🗄️ Structure de la base de données
 
@@ -268,7 +260,7 @@ Ce projet est développé dans le cadre d'un ECF (Épreuve de Contrôle Final) e
 
 Pour toute question ou problème :
 
-- Consultez la documentation dans le dossier `Documentation/`
+- Consultez la documentation dans le dossier `docs/`
 - Vérifiez les logs d'erreur
 - Contactez l'équipe de développement
 
@@ -281,10 +273,6 @@ Pour toute question ou problème :
 - Employé :
   - mail : employe1@mail.com
   - password : password123
-
-- Utilisateur :
-  - mail : nancy@nancy.com, baptiste@mail.com
-  - password : nancy, baptiste
 
 ---
 

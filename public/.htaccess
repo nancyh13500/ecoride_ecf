@@ -8,7 +8,7 @@ RewriteEngine On
 </FilesMatch>
 
 # Protection des fichiers sensibles
-<FilesMatch "^(composer\.(json|lock)|\.git|\.gitignore|DEPLOYMENT\.md|README.*\.md)$">
+<FilesMatch "^(composer\.(json|lock)|\.git|\.gitignore)$">
     Order allow,deny
     Deny from all
 </FilesMatch>

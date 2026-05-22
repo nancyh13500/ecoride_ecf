@@ -1,8 +1,6 @@
 <?php
-require_once __DIR__ . "/vendor/autoload.php";
-require_once __DIR__ . "/lib/session.php";
-require_once __DIR__ . "/lib/pdo.php";
-require_once __DIR__ . "/lib/mongodb.php";
+require_once __DIR__ . '/../bootstrap/app.php';
+require_once __DIR__ . '/../lib/mongodb.php';
 
 // Récupérer les villes disponibles depuis la base de données
 $villes_depart = [];
@@ -24,7 +22,7 @@ try {
     $villes_arrivee = [];
 }
 
-require_once __DIR__ . "/templates/header.php";
+require_once __DIR__ . "/../templates/header.php";
 
 // Récupérer tous les avis validés depuis MongoDB
 $avis_list = [];
@@ -428,5 +426,5 @@ try {
 
 <script src="/assets/js/avis.js"></script>
 
-<?php require_once __DIR__ . "/templates/footer.php";
+<?php require_once __DIR__ . "/../templates/footer.php";
 ?>

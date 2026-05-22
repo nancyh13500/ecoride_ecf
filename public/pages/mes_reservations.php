@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../lib/session.php";
-require_once __DIR__ . "/../lib/pdo.php";
-require_once __DIR__ . "/../vendor/autoload.php";
+require_once __DIR__ . "/../../lib/session.php";
+require_once __DIR__ . "/../../lib/pdo.php";
+require_once __DIR__ . "/../../vendor/autoload.php";
 
 use Ecoride\Ecf\Service\MailerService;
 
@@ -364,7 +364,7 @@ try {
     $trajetsReserves = [];
 }
 
-require_once __DIR__ . "/../templates/header.php";
+require_once __DIR__ . "/../../templates/header.php";
 ?>
 
 <section class="hero count-section py-5">
@@ -699,4 +699,4 @@ require_once __DIR__ . "/../templates/header.php";
 
 <script src="/assets/js/ajax-reservations.js"></script>
 
-<?php require_once __DIR__ . "/../templates/footer.php"; ?>
+<?php require_once __DIR__ . "/../../templates/footer.php"; ?>

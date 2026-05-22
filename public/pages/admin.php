@@ -1,8 +1,8 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../lib/session.php';
-require_once __DIR__ . '/../lib/pdo.php';
-require_once __DIR__ . '/../lib/mongodb.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../lib/session.php';
+require_once __DIR__ . '/../../lib/pdo.php';
+require_once __DIR__ . '/../../lib/mongodb.php';
 
 // Vérification du rôle admin (role_id = 1) ou employé (role_id = 2)
 requireLogin();
@@ -268,7 +268,7 @@ try {
     $site_credits = 0;
 }
 
-require_once __DIR__ . '/../templates/header.php';
+require_once __DIR__ . '/../../templates/header.php';
 ?>
 
 <section class="hero count-section py-5">
@@ -900,4 +900,4 @@ require_once __DIR__ . '/../templates/header.php';
 <!-- Script pour la gestion des avis -->
 <script src="/assets/js/ajax-avis.js"></script>
 
-<?php require_once __DIR__ . '/../templates/footer.php'; ?>
+<?php require_once __DIR__ . '/../../templates/footer.php'; ?>

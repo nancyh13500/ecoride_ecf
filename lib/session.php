@@ -1,79 +1,55 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    if (!headers_sent()) {
-        session_set_cookie_params([
-            'lifetime' => 3600,
-            'path' => '/',
-            'httponly' => true
-        ]);
-        session_start();
-    } else {
-        // Evite les warnings "headers already sent" qui cassent le rendu HTML.
-        if (!isset($_SESSION) || !is_array($_SESSION)) {
-            $_SESSION = [];
-        }
+
+/**
+ * Façade procédurale de compatibilité — délègue à Ecoride\Ecf\Core\Session.
+ */
+
+$autoloadPath = __DIR__ . '/../vendor/autoload.php';
+if (!is_file($autoloadPath)) {
+    die('❌ Dépendances manquantes : exécutez <code>composer install</code> à la racine du projet.');
+}
+require_once $autoloadPath;
+
+use Ecoride\Ecf\Core\Session;
+
+function ecoride_session(): Session
+{
+    static $instance = null;
+    if ($instance === null) {
+        $instance = new Session();
     }
+    return $instance;
 }
 
 function isUserConnected(): bool
 {
-    return isset($_SESSION['user']);
+    return ecoride_session()->isUserConnected();
 }
 
 function requireLogin(): void
 {
-    if (!isUserConnected()) {
-        $_SESSION['error'] = "Vous devez être connecté pour accéder à cette page.";
-        header('Location: ../login.php');
-        exit();
-    }
+    ecoride_session()->requireLogin();
 }
-/** génère ou récupère un token CSRF pour la session
- * @return string */
 
 function generateCSRFToken(): string
 {
-    if (!isset($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
+    return ecoride_session()->generateCSRFToken();
 }
-
-/** valide un token csrf 
-@param string
-@return bool
- */
 
 function validateCSRFToken(string $token): bool
 {
-    if (!isset($_SESSION['csrf_token']))
-        return false;
-    // comparaison sécurisée
-    return hash_equals($_SESSION['csrf_token'], $token);
+    return ecoride_session()->validateCSRFToken($token);
 }
-
-
-/** vérifie et valide le token csrf depuis post ou get
-@param string
-@return void */
 
 function verifyCSRFToken(string $tokenName = 'csrf_token'): void
 {
-    $token = $_POST[$tokenName] ?? $_GET[$tokenName] ?? '';
-
-    if (empty($token) || !validateCSRFToken($token)) {
-        $_SESSION['error'] = "Token CSRF invalide. Veuillez résessayer.";
-        header('location: /index.php');
-        exit();
-    }
+    ecoride_session()->verifyCSRFToken($tokenName);
 }
-
-/**affiche le champ hidden avec le token
-@param string
-@return void*/
 
 function csrfField(string $tokenName = 'csrf_token'): void
 {
-    $token = generateCSRFToken();
-    echo '<input type="hidden" name="' . $tokenName . '" value="' . $token . '">';
+    ecoride_session()->csrfField($tokenName);
 }
+
+// Démarre la session dès l'inclusion (comportement attendu par header.php et les pages)
+ecoride_session();

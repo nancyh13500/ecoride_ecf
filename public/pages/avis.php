@@ -1,8 +1,8 @@
 <?php
-require_once __DIR__ . "/../vendor/autoload.php";
-require_once __DIR__ . "/../templates/header.php";
-require_once __DIR__ . "/../lib/pdo.php";
-require_once __DIR__ . "/../lib/mongodb.php";
+require_once __DIR__ . "/../../vendor/autoload.php";
+require_once __DIR__ . "/../../templates/header.php";
+require_once __DIR__ . "/../../lib/pdo.php";
+require_once __DIR__ . "/../../lib/mongodb.php";
 
 // Récupérer les avis validés depuis MongoDB
 $avis_list = [];
@@ -238,5 +238,5 @@ try {
     </div>
 </section>
 
-<?php require_once __DIR__ . "/../templates/footer.php";
+<?php require_once __DIR__ . "/../../templates/footer.php";
 ?>

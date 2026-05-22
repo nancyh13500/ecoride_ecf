@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . "/session.php";
-require_once __DIR__ . "/pdo.php";
+require_once __DIR__ . "/../../lib/session.php";
+require_once __DIR__ . "/../../lib/pdo.php";
 
 // Vérifier si l'utilisateur est connecté et est administrateur
 if (!isset($_SESSION['user']) || $_SESSION['user']['role_id'] != 1) {

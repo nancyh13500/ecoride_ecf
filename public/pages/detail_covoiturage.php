@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . "/../templates/header.php";
-require_once __DIR__ . "/../lib/pdo.php";
-require_once __DIR__ . "/../lib/session.php";
+require_once __DIR__ . "/../../templates/header.php";
+require_once __DIR__ . "/../../lib/pdo.php";
+require_once __DIR__ . "/../../lib/session.php";
 
 // Vérifier si l'utilisateur est connecté (optionnel pour voir les détails)
 $user = null;
@@ -647,5 +647,5 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
     </script>
 <?php endif; ?>
 
-<?php require_once __DIR__ . "/../templates/footer.php";
+<?php require_once __DIR__ . "/../../templates/footer.php";
 ?>
