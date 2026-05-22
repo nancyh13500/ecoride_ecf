@@ -7,10 +7,10 @@ ini_set('display_errors', 0); // Ne pas afficher les erreurs directement
 header('Content-Type: application/json; charset=utf-8');
 
 try {
-    require_once __DIR__ . "/../vendor/autoload.php";
-    require_once __DIR__ . "/../lib/session.php";
-    require_once __DIR__ . "/../lib/pdo.php";
-    require_once __DIR__ . "/../lib/mongodb.php";
+    require_once __DIR__ . "/../../vendor/autoload.php";
+    require_once __DIR__ . "/../../lib/session.php";
+    require_once __DIR__ . "/../../lib/pdo.php";
+    require_once __DIR__ . "/../../lib/mongodb.php";
 
     // Vérifier si l'utilisateur est connecté et a le rôle admin (role_id = 1) ou employé (role_id = 2)
     requireLogin();

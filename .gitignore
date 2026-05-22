@@ -1,6 +1,7 @@
 # Dépendances
 vendor/
 node_modules/
+bin/composer.phar
 
 # Variables d'environnement
 .env
@@ -8,13 +9,12 @@ node_modules/
 .env.*.local
 *.env
 
-# Fichiers Markdown (sauf guides)
+# Fichiers Markdown (sauf guides et readme racine)
 *.md
-!GUIDE-DOCKER-COMMANDS.md
-!GUIDE-VOIR-AVIS-MONGODB.md
-!README-Docker.md
-!README-MongoDB.md
 !readme.md
+!docs/README.md
+!docs/README-Docker.md
+!docs/README-MongoDB.md
 
 # Fichiers système
 .DS_Store

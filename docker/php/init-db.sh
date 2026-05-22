@@ -9,7 +9,7 @@ DB_NAME="${DB_NAME:-ecoride}"
 DB_USER="${DB_USER:-ecoride_user}"
 DB_PASS="${DB_PASS:-ecoride_pass}"
 # Le fichier SQL est copié dans l'image avec le code
-SQL_FILE="${SQL_FILE:-/var/www/html/ecoride.sql}"
+SQL_FILE="${SQL_FILE:-/var/www/html/database/ecoride.sql}"
 
 echo "=========================================="
 echo "Initialisation de la base de données"

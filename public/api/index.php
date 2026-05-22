@@ -92,7 +92,7 @@ header('Content-Type: text/html; charset=utf-8');
         </div>
 
         <h2 class="mt-5">📖 Documentation complète</h2>
-        <p>Consulte le fichier <code>API_DOCUMENTATION.md</code> pour la documentation complète avec exemples.</p>
+        <p>Consulte le fichier <code>docs/API_DOCUMENTATION.md</code> pour la documentation complète avec exemples.</p>
 
         <h2 class="mt-5">🧪 Tester l'API</h2>
         <div class="card">

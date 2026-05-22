@@ -1,10 +1,10 @@
 <?php
-require_once __DIR__ . "/../lib/session.php";
-require_once __DIR__ . "/../lib/pdo.php";
+require_once __DIR__ . "/../../lib/session.php";
+require_once __DIR__ . "/../../lib/pdo.php";
 
 // Vérifier si l'utilisateur est connecté
 if (!isUserConnected()) {
-    header("Location: ../login.php");
+    header("Location: /login.php");
     exit();
 }
 
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_selection'])) 
     }
 }
 
-require_once __DIR__ . "/../templates/header.php";
+require_once __DIR__ . "/../../templates/header.php";
 ?>
 
 <section class="hero count-section py-5">
@@ -289,4 +289,4 @@ require_once __DIR__ . "/../templates/header.php";
     </div>
 </section>
 
-<?php require_once __DIR__ . "/../templates/footer.php"; ?>
+<?php require_once __DIR__ . "/../../templates/footer.php"; ?>

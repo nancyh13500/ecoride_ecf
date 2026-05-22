@@ -1,12 +1,12 @@
 <?php
-require_once __DIR__ . "/../vendor/autoload.php";
-require_once __DIR__ . "/../lib/session.php";
-require_once __DIR__ . "/../lib/pdo.php";
-require_once __DIR__ . "/../lib/mongodb.php";
+require_once __DIR__ . "/../../vendor/autoload.php";
+require_once __DIR__ . "/../../lib/session.php";
+require_once __DIR__ . "/../../lib/pdo.php";
+require_once __DIR__ . "/../../lib/mongodb.php";
 
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user'])) {
-    header("Location: ../login.php");
+    header("Location: /login.php");
     exit();
 }
 
@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
 
 $user_avis = null;
 
-require_once __DIR__ . "/../templates/header.php";
+require_once __DIR__ . "/../../templates/header.php";
 ?>
 
 <section class="hero count-section py-5">
@@ -259,4 +259,4 @@ require_once __DIR__ . "/../templates/header.php";
 
 <script src="/assets/js/rating.js"></script>
 
-<?php require_once __DIR__ . "/../templates/footer.php"; ?>
+<?php require_once __DIR__ . "/../../templates/footer.php"; ?>

@@ -1,8 +1,8 @@
 <?php
-require_once __DIR__ . "/../vendor/autoload.php";
-require_once __DIR__ . "/../lib/session.php";
-require_once __DIR__ . "/../lib/pdo.php";
-require_once __DIR__ . "/../lib/mongodb.php";
+require_once __DIR__ . "/../../vendor/autoload.php";
+require_once __DIR__ . "/../../lib/session.php";
+require_once __DIR__ . "/../../lib/pdo.php";
+require_once __DIR__ . "/../../lib/mongodb.php";
 
 // Vérifier si l'utilisateur est connecté et est admin ou employé
 requireLogin();
@@ -12,7 +12,7 @@ $isEmploye = isset($_SESSION['user']) && ($_SESSION['user']['role_id'] == 2);
 
 if (!$isAdmin && !$isEmploye) {
     $_SESSION['error'] = "Accès refusé. Cette page est réservée aux administrateurs et employés.";
-    header('Location: ../index.php');
+    header('Location: /index.php');
     exit();
 }
 
@@ -99,7 +99,7 @@ try {
     $error_message = "Erreur lors de la récupération des avis : " . $e->getMessage();
 }
 
-require_once __DIR__ . "/../templates/header.php";
+require_once __DIR__ . "/../../templates/header.php";
 ?>
 
 <section class="hero count-section py-5">
@@ -276,4 +276,4 @@ require_once __DIR__ . "/../templates/header.php";
     </div>
 </section>
 
-<?php require_once __DIR__ . "/../templates/footer.php"; ?>
+<?php require_once __DIR__ . "/../../templates/footer.php"; ?>

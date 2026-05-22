@@ -1,21 +1,7 @@
 <?php
 ob_start();
-require_once __DIR__ . "/../templates/header.php";
-require_once __DIR__ . "/../vendor/autoload.php";
-
-use Ecoride\Ecf\Core\Session;
-
-// Connexion PDO
-try {
-    $pdo = new PDO(
-        "mysql:host=" . getenv('DB_HOST') . ";dbname=" . getenv('DB_NAME') . ";charset=utf8",
-        getenv('DB_USER'),
-        getenv('DB_PASS')
-    );
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Erreur de connexion : " . $e->getMessage());
-}
+require_once __DIR__ . '/../../bootstrap/app.php';
+require_once __DIR__ . "/../../templates/header.php";
 
 // Vérifier si l'utilisateur est connecté (fonction isUserConnected() définie dans lib/session.php)
 if (!isUserConnected()) {
@@ -443,4 +429,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
     }
 </script>
 
-<?php require_once __DIR__ . "/../templates/footer.php"; ?>
+<?php require_once __DIR__ . "/../../templates/footer.php"; ?>

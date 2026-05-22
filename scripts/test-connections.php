@@ -11,7 +11,7 @@ echo "========================================\n\n";
 // Test MySQL
 echo "[1/2] Test de la connexion MySQL...\n";
 try {
-    require_once __DIR__ . '/lib/pdo.php';
+    require_once __DIR__ . '/../lib/pdo.php';
     echo "✅ MySQL : Connexion réussie\n";
     echo "   - Host: " . DB_HOST . "\n";
     echo "   - Database: " . DB_NAME . "\n";
@@ -31,7 +31,7 @@ echo "\n";
 echo "[2/2] Test de la connexion MongoDB...\n";
 try {
     require_once __DIR__ . '/vendor/autoload.php';
-    require_once __DIR__ . '/lib/mongodb.php';
+    require_once __DIR__ . '/../lib/mongodb.php';
     
     $collection = getAvisCollection();
     if ($collection !== null) {

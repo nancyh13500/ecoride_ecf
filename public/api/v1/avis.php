@@ -10,10 +10,10 @@
  * DELETE /api/v1/avis/{id}     → Supprime un avis
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/../../lib/session.php';
-require_once __DIR__ . '/../../lib/pdo.php';
-require_once __DIR__ . '/../../lib/mongodb.php';
+require_once __DIR__ . '/../../../vendor/autoload.php';
+require_once __DIR__ . '/../../../lib/session.php';
+require_once __DIR__ . '/../../../lib/pdo.php';
+require_once __DIR__ . '/../../../lib/mongodb.php';
 
 // Définir le header JSON
 header('Content-Type: application/json; charset=utf-8');

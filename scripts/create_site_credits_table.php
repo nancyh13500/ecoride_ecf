@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/lib/pdo.php';
+require_once __DIR__ . '/../lib/pdo.php';
 
 try {
     // Vérifier si la table existe déjà

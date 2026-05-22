@@ -11,7 +11,6 @@ class Database
 
     private function __construct()
     {
-        // Empêche l'instanciation directe (pattern Singleton)
     }
 
     public static function getInstance(): PDO
@@ -22,7 +21,7 @@ class Database
                 self::$instance = new PDO(DB_DSN, DB_USER, DB_PASS, DB_OPTIONS);
                 self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } catch (PDOException $e) {
-                die("❌ Erreur de connexion : " . $e->getMessage());
+                die('❌ Erreur de connexion : ' . $e->getMessage());
             }
         }
         return self::$instance;

@@ -7,14 +7,14 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: ecoride
       MYSQL_USER: ecoride_user
-      MYSQL_PASSWORD: ecoride_passS
+      MYSQL_PASSWORD: ecoride_pass
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./ecoride.sql:/docker-entrypoint-initdb.d/01_ecoride.sql
-      - ./create_site_credits.sql:/docker-entrypoint-initdb.d/02_create_site_credits.sql
-      - ./alter_covoiturage.sql:/docker-entrypoint-initdb.d/03_alter_covoiturage.sql
+      - ./database/ecoride.sql:/docker-entrypoint-initdb.d/01_ecoride.sql
+      - ./database/create_site_credits.sql:/docker-entrypoint-initdb.d/02_create_site_credits.sql
+      - ./database/alter_covoiturage.sql:/docker-entrypoint-initdb.d/03_alter_covoiturage.sql
     networks:
       - ecoride
     restart: unless-stopped
@@ -26,7 +26,7 @@ services:
 
   # Base de données MongoDB
   mongodb:
-    image: mongo:4.4
+    image: mongo:7.0
     container_name: ecoride_mongodb
     environment:
       MONGO_INITDB_ROOT_USERNAME: mongodb_user
