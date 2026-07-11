@@ -236,6 +236,26 @@ Les sessions sont gérées automatiquement par `lib/session.php`
 
 Consultez les logs de votre serveur web pour plus de détails sur les erreurs.
 
+## 🌱 Évolutions au-delà du référentiel ECF
+
+Fonctionnalités bonus implémentées pour la soutenance :
+
+| Phase | Contenu |
+|-------|---------|
+| **Cœur métier** | Débit crédits passager à la confirmation, calcul OSRM (distance, CO₂, durée), chronomètre trajet |
+| **Différenciation** | Tableau de bord « Mon espace », API REST covoiturages/réservations, tests d'intégration |
+| **Polish soutenance** | Métriques écologiques (admin / employé), documentation architecture |
+
+Documentation détaillée : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+
+### Captures d'écran recommandées pour le dossier
+
+1. Pages **Administration** et **Espace Employé** — section **Impact écologique**
+2. Fiche trajet (distance, CO₂, durée)
+3. **Mon espace** (`user_count.php`) — tableau de bord
+4. Validation réservation + historique crédits
+5. API : `GET /api/v1/covoiturages`
+
 ## 📝 Licence
 
 Ce projet est développé dans le cadre d'un ECF (Épreuve de Contrôle Final) en 2025.

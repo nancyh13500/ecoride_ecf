@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . "/../../lib/session.php";
 require_once __DIR__ . "/../../lib/pdo.php";
+require_once __DIR__ . "/../../lib/duree_trajet.php";
+
+use Ecoride\Ecf\Service\TrajetMetricsService;
 
 
 // Vérifier si l'utilisateur est connecté
@@ -10,6 +13,20 @@ if (!isUserConnected()) {
 }
 
 $user = $_SESSION['user'];
+
+ensureDureeTrajetColumns($pdo);
+
+// Trajets déjà « en cours » sans horodatage : initialiser pour le chronomètre
+try {
+    $fixDebutStmt = $pdo->prepare("
+        UPDATE covoiturage
+        SET debut_trajet_at = NOW()
+        WHERE statut = 2 AND debut_trajet_at IS NULL AND user_id = :user_id
+    ");
+    $fixDebutStmt->execute(['user_id' => (int) $user['user_id']]);
+} catch (PDOException) {
+    // Colonne pas encore disponible
+}
 
 // Récupérer les trajets de l'utilisateur
 $query_trajets = $pdo->prepare("
@@ -213,6 +230,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_trajet'])) {
 
                 $pdo->commit();
 
+                $metricsService = new TrajetMetricsService($pdo);
+                $metricsService->updateCovoiturageMetrics($trajet_id);
+
                 header("Location: mes_trajets.php?edit_success=1");
                 exit();
             }
@@ -311,6 +331,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_trajet'])) {
 
         $pdo->commit();
 
+        $metricsService = new TrajetMetricsService($pdo);
+        $metricsService->updateCovoiturageMetrics($covoiturage_id);
+
         // Les crédits seront versés au chauffeur et au site uniquement à la fin du trajet
         header("Location: mes_trajets.php?success=1");
         exit();
@@ -344,12 +367,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_selection'])) 
     }
 }
 
+// Enregistrer la durée réelle mesurée (chronomètre JS)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_duree_trajet_id'])) {
+    $trajet_id = (int) $_POST['update_duree_trajet_id'];
+    $duree_minutes = isset($_POST['duree_minutes']) ? (int) $_POST['duree_minutes'] : 0;
+
+    if ($trajet_id > 0 && $duree_minutes > 0) {
+        enregistrerDureeTrajet($pdo, $trajet_id, (int) $user['user_id'], $duree_minutes);
+    }
+
+    header("Location: mes_trajets.php");
+    exit();
+}
+
 // Gérer le démarrage du trajet
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['start_trajet_id'])) {
     $trajet_id = intval($_POST['start_trajet_id']);
-    $query = $pdo->prepare("UPDATE covoiturage SET statut = 2 WHERE covoiturage_id = :id AND user_id = :user_id");
-    $query->execute(['id' => $trajet_id, 'user_id' => $user['user_id']]);
-
+    demarrerChronometreTrajet($pdo, $trajet_id, (int) $user['user_id']);
 
     header("Location: mes_trajets.php");
     exit();
@@ -459,6 +493,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stop_trajet_id'])) {
                 // Ne pas bloquer l'exécution si erreur avec site_credits
                 error_log("Erreur lors de la gestion des crédits du site: " . $e->getMessage());
             }
+
+            if (isset($_POST['duree_minutes']) && (int) $_POST['duree_minutes'] > 0) {
+                enregistrerDureeTrajet($pdo, $trajet_id, (int) $user['user_id'], (int) $_POST['duree_minutes']);
+            }
         }
 
         header("Location: mes_trajets.php");
@@ -493,7 +531,7 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
         <?php if (!empty($success_message)): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($success_message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
             </div>
         <?php endif; ?>
 
@@ -571,7 +609,8 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                                                 <th>Etape(s)</th>
                                                 <th>Crédits</th>
                                                 <th>Voiture</th>
-                                                <!-- <th>Durée</th> --> <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
+                                                <th>Durée</th>
+                                                <th>Distance / CO₂</th>
                                                 <th>Statut et action</th>
                                             </tr>
                                         </thead>
@@ -625,22 +664,49 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
                                                     </td>
                                                     <td><?= htmlspecialchars($trajet['prix_personne']) ?></td>
                                                     <td><?= htmlspecialchars($trajet['modele']) ?> (<?= htmlspecialchars($trajet['immatriculation']) ?>)</td>
-                                                    <!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
-                                                    <!--
                                                     <td>
-                                                        <?php if ($trajet['duree']): ?>
-                                                            <?php
-                                                            $heures = floor($trajet['duree'] / 60);
-                                                            $minutes = $trajet['duree'] % 60;
-                                                            echo $heures > 0 ? "{$heures}h {$minutes}min" : "{$minutes}min";
-                                                            ?>
-                                                        <?php elseif ($statut == 2): ?>
-                                                            <span id="temps-<?= $trajet['covoiturage_id'] ?>" class="text-primary">En cours...</span>
+                                                        <?php
+                                                        $dureeEstimee = getDureeEstimeeMinutes($trajet);
+                                                        $trajetId = (int) $trajet['covoiturage_id'];
+                                                        $debutTrajetIso = !empty($trajet['debut_trajet_at'])
+                                                            ? date('c', strtotime((string) $trajet['debut_trajet_at']))
+                                                            : '';
+                                                        ?>
+                                                        <?php if ($statut == 2): ?>
+                                                            <span
+                                                                id="temps-<?= $trajetId ?>"
+                                                                class="temps-trajet-live text-dark d-block"
+                                                                data-trajet-id="<?= $trajetId ?>"
+                                                                <?php if ($debutTrajetIso !== ''): ?>data-debut="<?= htmlspecialchars($debutTrajetIso, ENT_QUOTES, 'UTF-8') ?>" <?php endif; ?>
+                                                                <?php if ($dureeEstimee !== null): ?>data-duree-estimee="<?= $dureeEstimee ?>" <?php endif; ?>>En cours...</span>
+                                                            <?php if ($dureeEstimee !== null): ?>
+                                                                <small class="text-dark d-block mt-1">Estimée : <?= htmlspecialchars(formaterDureeMinutes($dureeEstimee)) ?></small>
+                                                            <?php endif; ?>
+                                                        <?php elseif ($statut == 3 && !empty($trajet['duree'])): ?>
+                                                            <?= htmlspecialchars(formaterDureeMinutes((int) $trajet['duree'])) ?>
+                                                            <small class="text-darkd d-block">(réelle)</small>
+                                                            <?php if ($dureeEstimee !== null && $dureeEstimee !== (int) $trajet['duree']): ?>
+                                                                <small class="text-dark d-block">Estimée : <?= htmlspecialchars(formaterDureeMinutes($dureeEstimee)) ?></small>
+                                                            <?php endif; ?>
+                                                        <?php elseif ($dureeEstimee !== null): ?>
+                                                            <?= htmlspecialchars(formaterDureeMinutes($dureeEstimee)) ?>
+                                                            <small class="text-dark d-block">(estimée)</small>
+                                                        <?php else: ?>
+                                                            <span class="text-dark">-</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php if (!empty($trajet['distance_km']) || !empty($trajet['co2_economise_kg'])): ?>
+                                                            <?php if (!empty($trajet['distance_km'])): ?>
+                                                                <small><?= number_format((float) $trajet['distance_km'], 1, ',', ' ') ?> km</small><br>
+                                                            <?php endif; ?>
+                                                            <?php if (!empty($trajet['co2_economise_kg'])): ?>
+                                                                <small class="text-success"><?= number_format((float) $trajet['co2_economise_kg'], 2, ',', ' ') ?> kg CO₂/passager</small>
+                                                            <?php endif; ?>
                                                         <?php else: ?>
                                                             <span class="text-muted">-</span>
                                                         <?php endif; ?>
                                                     </td>
-                                                    -->
                                                     <td>
                                                         <?php
                                                         echo '<span class="badge bg-secondary me-2">' . (isset($statutLabels[$statut]) ? $statutLabels[$statut] : 'Inconnu') . '</span>';
@@ -866,8 +932,7 @@ if (isset($_GET['started']) && $_GET['started'] == '1') {
     </div>
 </div>
 
-<!-- CALCUL DU TEMPS DE COVOITURAGE - DÉSACTIVÉ -->
-<!-- <script src="/assets/js/temps_trajet.js"></script> -->
+<script src="/assets/js/temps_trajet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var editModal = document.getElementById('editTrajetModal');

@@ -26,6 +26,41 @@ class MailerService
     }
 
     /**
+     * Envoie un email de réinitialisation de mot de passe
+     *
+     * @param array $data email, name, reset_url, expires_hours
+     */
+    public function sendPasswordResetEmail(array $data): bool
+    {
+        $mail = new PHPMailer(true);
+
+        try {
+            $mail->isSMTP();
+            $mail->Host = $this->smtpHost;
+            $mail->SMTPAuth = true;
+            $mail->Username = $this->smtpUser;
+            $mail->Password = $this->smtpPassword;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = $this->smtpPort;
+            $mail->CharSet = 'UTF-8';
+
+            $mail->setFrom($this->fromEmail, $this->fromName);
+            $mail->addAddress($data['email'], $data['name']);
+
+            $mail->isHTML(true);
+            $mail->Subject = 'Réinitialisation de votre mot de passe - Ecoride';
+            $mail->Body = $this->getPasswordResetEmailTemplate($data);
+            $mail->AltBody = $this->getPasswordResetPlainTextEmail($data);
+
+            $mail->send();
+            return true;
+        } catch (Exception $e) {
+            error_log("Erreur d'envoi email réinitialisation: {$mail->ErrorInfo}");
+            return false;
+        }
+    }
+
+    /**
      * Envoie un email de contact
      * 
      * @param array $data Données du formulaire (name, email, subject, message)
@@ -141,6 +176,66 @@ class MailerService
             error_log("Erreur notification chauffeur: {$mail->ErrorInfo}");
             return false;
         }
+    }
+
+    /**
+     * Template HTML de l'email de réinitialisation de mot de passe
+     */
+    private function getPasswordResetEmailTemplate(array $data): string
+    {
+        $name = htmlspecialchars($data['name'] ?: 'Utilisateur');
+        $resetUrl = htmlspecialchars($data['reset_url']);
+        $hours = (int)($data['expires_hours'] ?? 1);
+
+        return "
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+                    .content { background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; }
+                    .btn { display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+                    .warning { font-size: 13px; color: #666; margin-top: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <div class='header'>
+                        <h2 style='margin: 0;'>🔐 Réinitialisation de mot de passe</h2>
+                    </div>
+                    <div class='content'>
+                        <p>Bonjour <strong>{$name}</strong>,</p>
+                        <p>Vous avez demandé la réinitialisation de votre mot de passe sur Ecoride.</p>
+                        <p>Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe :</p>
+                        <p style='text-align: center;'>
+                            <a href='{$resetUrl}' class='btn'>Réinitialiser mon mot de passe</a>
+                        </p>
+                        <p class='warning'>
+                            Ce lien est valable {$hours} heure(s). Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.
+                        </p>
+                        <p class='warning'>
+                            Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+                            {$resetUrl}
+                        </p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        ";
+    }
+
+    private function getPasswordResetPlainTextEmail(array $data): string
+    {
+        $hours = (int)($data['expires_hours'] ?? 1);
+
+        return "=== Réinitialisation de mot de passe Ecoride ===\n\n" .
+            "Bonjour " . ($data['name'] ?: 'Utilisateur') . ",\n\n" .
+            "Vous avez demandé la réinitialisation de votre mot de passe.\n\n" .
+            "Cliquez sur le lien suivant pour choisir un nouveau mot de passe :\n" .
+            $data['reset_url'] . "\n\n" .
+            "Ce lien est valable {$hours} heure(s).\n" .
+            "Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.\n";
     }
 
     /**

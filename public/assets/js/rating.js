@@ -1,13 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Compteur de caractères pour le commentaire
     const commentaireTextarea = document.getElementById('commentaire');
     const charCountSpan = document.getElementById('charCount');
 
     if (commentaireTextarea && charCountSpan) {
-        // Initialiser le compteur avec le contenu existant
         charCountSpan.textContent = commentaireTextarea.value.length;
 
-        // Mettre à jour le compteur à chaque saisie
         commentaireTextarea.addEventListener('input', function() {
             charCountSpan.textContent = this.value.length;
         });
@@ -16,10 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const ratingStars = document.querySelectorAll('.rating-stars input[type="radio"]');
     const starLabels = document.querySelectorAll('.star-label');
 
-    // Fonction pour mettre à jour l'affichage des étoiles
     function updateStars(selectedValue) {
         starLabels.forEach((label, index) => {
-            const starIndex = 5 - index; // Inversé car flex-direction: row-reverse
+            const starIndex = 5 - index;
             const icon = label.querySelector('i');
 
             if (starIndex <= selectedValue) {
@@ -32,14 +28,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Gérer le clic sur les étoiles
     ratingStars.forEach(radio => {
         radio.addEventListener('change', function() {
-            updateStars(parseInt(this.value));
+            updateStars(parseInt(this.value, 10));
         });
     });
 
-    // Gérer le survol des étoiles
     starLabels.forEach((label, index) => {
         const starIndex = 5 - index;
 
@@ -55,21 +49,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Réinitialiser au survol de la zone de notation
     const ratingContainer = document.querySelector('.rating-stars');
-    ratingContainer.addEventListener('mouseleave', function() {
-        const checkedRadio = document.querySelector('.rating-stars input[type="radio"]:checked');
-        if (checkedRadio) {
-            updateStars(parseInt(checkedRadio.value));
-        } else {
-            updateStars(0);
-        }
-    });
+    if (ratingContainer) {
+        ratingContainer.addEventListener('mouseleave', function() {
+            const checkedRadio = document.querySelector('.rating-stars input[type="radio"]:checked');
+            if (checkedRadio) {
+                updateStars(parseInt(checkedRadio.value, 10));
+            } else {
+                updateStars(0);
+            }
+        });
+    }
 
-    // Initialiser l'affichage au chargement
     const checkedRadio = document.querySelector('.rating-stars input[type="radio"]:checked');
     if (checkedRadio) {
-        updateStars(parseInt(checkedRadio.value));
+        updateStars(parseInt(checkedRadio.value, 10));
     }
 });
-

@@ -1,7 +1,9 @@
 <?php
-require_once __DIR__ . "/../../templates/header.php";
 require_once __DIR__ . "/../../lib/pdo.php";
 require_once __DIR__ . "/../../lib/session.php";
+require_once __DIR__ . "/../../lib/duree_trajet.php";
+
+use Ecoride\Ecf\Service\CreditService;
 
 // Vérifier si l'utilisateur est connecté (optionnel pour voir les détails)
 $user = null;
@@ -25,7 +27,7 @@ if ($covoiturage_id <= 0) {
 }
 
 // Reprise de la recherche trajets.php (passée en query depuis les liens « Voir le détail »)
-$trajets_retour_keys = ['depart', 'arrivee', 'date', 'etape', 'credit_min', 'note_min'];
+$trajets_retour_keys = ['depart', 'arrivee', 'date', 'etape', 'credit_min', 'note_min', 'eco'];
 $trajets_retour_q = [];
 foreach ($trajets_retour_keys as $rk) {
     if (!isset($_GET[$rk]) || $_GET[$rk] === '') {
@@ -75,6 +77,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reserver'])) {
 
             if ((int)$covoiturageRow['nb_place'] <= 0) {
                 throw new Exception("Plus de places disponibles pour ce covoiturage.");
+            }
+
+            $prixRequis = (int) round((float) $covoiturageRow['prix_personne']);
+            $creditService = new CreditService($pdo);
+            if (!$creditService->hasSufficientCredits((int) $user['user_id'], $prixRequis)) {
+                throw new Exception(
+                    "Crédits insuffisants pour réserver ce trajet ("
+                    . number_format($prixRequis, 0, ',', ' ')
+                    . " crédits requis, solde : "
+                    . number_format($creditService->getBalance((int) $user['user_id']), 0, ',', ' ')
+                    . ")."
+                );
             }
 
             $checkReservation = $pdo->prepare("
@@ -311,17 +325,33 @@ if ($isConnected && $user) {
     $peutReserver = !$estMonCovoiturage && !$dejaReserve && (int)$covoiturage['statut'] === 1 && $nb_places > 0;
 }
 
+$soldeCreditsUtilisateur = null;
+$creditsInsuffisants = false;
+if ($isConnected && $user) {
+    $creditServiceDisplay = new CreditService($pdo);
+    $soldeCreditsUtilisateur = $creditServiceDisplay->getBalance((int) $user['user_id']);
+    $prixTrajet = (int) round((float) ($covoiturage['prix_personne'] ?? 0));
+    $creditsInsuffisants = $peutReserver && $soldeCreditsUtilisateur < $prixTrajet;
+    if ($creditsInsuffisants) {
+        $peutReserver = false;
+    }
+}
+
 // Variable pour savoir si on peut afficher le bouton réserver (même sans être connecté)
 $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 0;
+
+$pageTitle = 'Détail du covoiturage';
+require_once __DIR__ . "/../../templates/header.php";
 ?>
 
 <section class="hero w-100 px-4 py-5">
     <div class="w-100">
         <div class="mx-auto" style="max-width: 1200px;">
+            <h1 class="visually-hidden">Détail du covoiturage</h1>
             <!-- Bouton retour -->
             <div class="mb-4">
                 <a href="trajets.php" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>Retour aux trajets
+                    <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Retour aux trajets
                 </a>
             </div>
 
@@ -367,6 +397,29 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                             <p class="fs-5 mb-0"><?= date('d/m/Y', strtotime($covoiturage['date_arrivee'])) ?></p>
                                             <small class="fs-5">à <?= date('H:i', strtotime($covoiturage['heure_arrivee'])) ?></small>
                                         </div>
+                                        <?php if (!empty($covoiturage['distance_km']) || !empty($covoiturage['duree']) || !empty($covoiturage['co2_economise_kg'])): ?>
+                                        <div class="col-12 mb-3">
+                                            <h6 class="text-muted mb-2"><i class="bi bi-speedometer2 me-1"></i>Impact &amp; durée</h6>
+                                            <div class="d-flex flex-wrap gap-3">
+                                                <?php if (!empty($covoiturage['distance_km'])): ?>
+                                                    <span class="badge bg-light text-dark border">
+                                                        <i class="bi bi-signpost-split me-1"></i><?= number_format((float) $covoiturage['distance_km'], 1, ',', ' ') ?> km
+                                                    </span>
+                                                <?php endif; ?>
+                                                <?php if (!empty($covoiturage['duree'])): ?>
+                                                    <span class="badge bg-light text-dark border">
+                                                        <i class="bi bi-clock me-1"></i><?= htmlspecialchars(formaterDureeMinutes((int) $covoiturage['duree'])) ?>
+                                                        <?= (int) $covoiturage['statut'] === 3 ? '(réelle)' : '(estimée)' ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                                <?php if (!empty($covoiturage['co2_economise_kg'])): ?>
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-tree me-1"></i><?= number_format((float) $covoiturage['co2_economise_kg'], 2, ',', ' ') ?> kg CO₂ évités / passager
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <?php endif; ?>
                                         <div class="col-12 mb-1">
                                             <h6 class="text-muted mb-2"><i class="bi bi-signpost-2 me-1"></i>Étape(s) intermédiaire(s)</h6>
                                             <?php if (!empty($etapes_intermediaires)): ?>
@@ -427,9 +480,15 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                         <i class="bi bi-map me-2"></i>Carte du trajet
                                     </h3>
                                     <?php if ($map_show): ?>
-                                        <div id="map-trajet" class="rounded border" style="height: 380px; min-height: 260px; z-index: 1;"></div>
-                                        <p class="text-muted small mt-2 mb-0">
-                                            Aperçu du parcours entre les villes enregistrées (ligne reliant les points&nbsp;; ce n’est pas un calcul d’itinéraire routier).
+                                        <?php
+                                        $map_aria_label = 'Carte du trajet de '
+                                            . htmlspecialchars($covoiturage['lieu_depart'], ENT_QUOTES, 'UTF-8')
+                                            . ' à '
+                                            . htmlspecialchars($covoiturage['lieu_arrivee'], ENT_QUOTES, 'UTF-8');
+                                        ?>
+                                        <div id="map-trajet" class="rounded border" style="height: 380px; min-height: 260px; z-index: 1;" tabindex="0" role="application" aria-label="<?= $map_aria_label ?>"></div>
+                                        <p class="text-muted small mt-2 mb-0" id="map-trajet-desc">
+                                            Aperçu du parcours entre les villes enregistrées (ligne reliant les points&nbsp;; ce n’est pas un calcul d’itinéraire routier). Utilisez Tab pour accéder à la carte, puis les flèches pour la déplacer.
                                         </p>
                                     <?php else: ?>
                                         <p class="text-muted mb-0">
@@ -510,6 +569,10 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                         <div class="col-md-6 col-lg-6 mb-3">
                                             <h6 class="text-muted mb-2"><i class="bi bi-coin me-1"></i>Crédits par personne</h6>
                                             <p class="fs-5 fw-bold text-dark"><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</p>
+                                            <?php if ($isConnected && $soldeCreditsUtilisateur !== null): ?>
+                                                <small class="text-muted">Votre solde : <?= number_format($soldeCreditsUtilisateur, 0, ',', ' ') ?> crédits</small>
+                                                <br><small class="text-muted">Débités à la confirmation par le chauffeur.</small>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <?php
@@ -561,6 +624,10 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                         <i class="bi bi-check-circle me-2"></i>Réserver une place
                                     </button>
                                 </form>
+                            <?php elseif ($creditsInsuffisants): ?>
+                                <button class="btn btn-outline-danger" disabled>
+                                    <i class="bi bi-wallet2 me-2"></i>Crédits insuffisants
+                                </button>
                             <?php elseif ($dejaReserve): ?>
                                 <button class="btn btn-success" disabled>
                                     <i class="bi bi-check-circle me-2"></i>Déjà réservé

@@ -161,25 +161,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Fonction pour afficher des messages (toast/alerte)
 function showMessage(message, type) {
-    // Créer une alerte Bootstrap
+    if (typeof window.showAccessibleAlert === 'function') {
+        window.showAccessibleAlert(message, type);
+        return;
+    }
     const alertDiv = document.createElement('div');
+    alertDiv.setAttribute('role', 'alert');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
     alertDiv.style.zIndex = '9999';
     alertDiv.style.minWidth = '300px';
     alertDiv.innerHTML = `
-            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+            <span aria-hidden="true"><i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i></span>
             ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
         `;
 
     document.body.appendChild(alertDiv);
 
-    // Retirer automatiquement après 3 secondes
     setTimeout(() => {
         if (alertDiv.parentNode) {
             alertDiv.remove();
         }
-    }, 3000);
+    }, 5000);
 }
 
 // Fonction pour mettre à jour les compteurs dans les onglets

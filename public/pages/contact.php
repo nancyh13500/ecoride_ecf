@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 extract($viewData, EXTR_SKIP);
 
+$pageTitle = 'Contact';
 require_once __DIR__ . '/../../templates/header.php';
 require_once __DIR__ . '/../../templates/pages/contact.php';
 require_once __DIR__ . '/../../templates/footer.php';

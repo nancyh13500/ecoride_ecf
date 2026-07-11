@@ -15,6 +15,7 @@ services:
       - ./database/ecoride.sql:/docker-entrypoint-initdb.d/01_ecoride.sql
       - ./database/create_site_credits.sql:/docker-entrypoint-initdb.d/02_create_site_credits.sql
       - ./database/alter_covoiturage.sql:/docker-entrypoint-initdb.d/03_alter_covoiturage.sql
+      - ./database/create_password_reset_tokens.sql:/docker-entrypoint-initdb.d/04_create_password_reset_tokens.sql
     networks:
       - ecoride
     restart: unless-stopped

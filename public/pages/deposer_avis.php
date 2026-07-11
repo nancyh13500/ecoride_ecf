@@ -13,6 +13,7 @@ if (!isset($_SESSION['user'])) {
 $user = $_SESSION['user'];
 $success_message = '';
 $error_message = '';
+$preselectCovoiturageId = isset($_GET['covoiturage_id']) ? (int) $_GET['covoiturage_id'] : 0;
 
 // Récupérer les covoiturages auxquels l'utilisateur a participé
 $covoiturages = [];
@@ -125,6 +126,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
 
                 if ($covoiturage_id !== null) {
                     $avisDocument['covoiturage_id'] = $covoiturage_id;
+                    $chauffeurStmt = $pdo->prepare('SELECT user_id FROM covoiturage WHERE covoiturage_id = :id LIMIT 1');
+                    $chauffeurStmt->execute(['id' => $covoiturage_id]);
+                    $chauffeurId = (int) $chauffeurStmt->fetchColumn();
+                    if ($chauffeurId > 0) {
+                        $avisDocument['chauffeur_id'] = $chauffeurId;
+                    }
                 }
 
                 $result = $avisCollection->insertOne($avisDocument);
@@ -145,6 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
 
 $user_avis = null;
 
+$pageTitle = 'Déposer un avis';
 require_once __DIR__ . "/../../templates/header.php";
 ?>
 
@@ -209,7 +217,8 @@ require_once __DIR__ . "/../../templates/header.php";
                                                 $label .= ')';
                                             }
                                             ?>
-                                            <option value="<?= htmlspecialchars((string)$cov['covoiturage_id']) ?>">
+                                            <option value="<?= htmlspecialchars((string)$cov['covoiturage_id']) ?>"
+                                                <?= $preselectCovoiturageId === (int) $cov['covoiturage_id'] ? 'selected' : '' ?>>
                                                 <?= $label ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -218,30 +227,31 @@ require_once __DIR__ . "/../../templates/header.php";
                                 <small class="text-avis">Sélectionnez un covoiturage auquel vous avez participé, ou laissez "Avis général" pour un avis global</small>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Votre note globale :</label>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <small class="text-avis mb-0">Cliquez sur les étoiles pour donner votre note</small>
-                                    <div class="rating-stars">
+                            <fieldset class="mb-4 border-0 p-0">
+                                <legend class="form-label fw-bold">Votre note globale</legend>
+                                <p id="rating-help" class="text-avis mb-2">Cliquez sur les étoiles pour donner votre note</p>
+                                <div class="d-flex align-items-center justify-content-end">
+                                    <div class="rating-stars" role="radiogroup" aria-labelledby="rating-help">
                                         <?php for ($i = 5; $i >= 1; $i--): ?>
                                             <input type="radio" name="note" value="<?= $i ?>" id="star<?= $i ?>" required>
                                             <label for="star<?= $i ?>" class="star-label">
-                                                <i class="bi bi-star text-warning"></i>
+                                                <span class="visually-hidden"><?= $i ?> étoile<?= $i > 1 ? 's' : '' ?></span>
+                                                <i class="bi bi-star text-warning" aria-hidden="true"></i>
                                             </label>
                                         <?php endfor; ?>
                                     </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
                             <div class="mb-4">
                                 <label for="commentaire" class="form-label fw-bold">Votre commentaire :</label>
                                 <textarea class="form-control" id="commentaire" name="commentaire" rows="5"
                                     placeholder="Partagez votre expérience avec EcoRide..." maxlength="250" required></textarea>
-                                <small class="text-avis">Entre 10 et 250 caractères (<span id="charCount">0</span>/250)</small>
+                                <small class="text-avis">Entre 10 et 250 caractères (<span id="charCount" aria-live="polite">0</span>/250)</small>
                             </div>
 
                             <div class="d-flex justify-content-between align-items-center">
-                                <a href="/pages/avis.php" class="btn">
+                                <a href="/pages/avis.php" class="btn btn-secondary">
                                     <i class="bi bi-arrow-left me-2"></i>Retour aux avis
                                 </a>
                                 <button type="submit" name="submit_avis" class="btn btn-primary">

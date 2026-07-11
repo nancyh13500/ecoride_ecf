@@ -3,6 +3,8 @@ ob_start();
 require_once __DIR__ . '/../../bootstrap/app.php';
 require_once __DIR__ . "/../../templates/header.php";
 
+use Ecoride\Ecf\Service\TrajetMetricsService;
+
 // Vérifier si l'utilisateur est connecté (fonction isUserConnected() définie dans lib/session.php)
 if (!isUserConnected()) {
     header("Location: /login.php");
@@ -191,6 +193,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_covoiturage'])) {
             ]);
 
             $pdo->commit();
+
+            $metricsService = new TrajetMetricsService($pdo);
+            $metricsService->updateCovoiturageMetrics((int) $covoiturage_id);
+
             header("Location: mes_trajets.php?success=1");
             exit();
         } catch (PDOException $e) {

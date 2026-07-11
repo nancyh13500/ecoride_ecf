@@ -8,6 +8,8 @@ $session = ecoride_session();
 $userModel = new User();
 
 $errors = [];
+$successMessage = $_SESSION['success'] ?? '';
+unset($_SESSION['success']);
 
 if (isset($_POST['loginUser'])) {
     $session->verifyCSRFToken(); // vérification CSRF
@@ -18,6 +20,8 @@ if (isset($_POST['loginUser'])) {
 
     if ($user) {
         $_SESSION['user'] = $user;
+        $rememberMe = isset($_POST['rememberMe']);
+        $session->persistLogin($rememberMe);
 
         $redirect = $_GET['redirect'] ?? 'index.php';
 
@@ -126,11 +130,18 @@ if (isset($_POST['registerUser'])) {
     }
 }
 
+$pageTitle = 'Connexion';
 require_once __DIR__ . "/../templates/header.php";
 ?>
 <section class="hero px-4 py-5">
     <div class="background-login"></div>
     <div class="container login-register mt-5">
+        <h1 class="visually-hidden">Connexion et inscription</h1>
+        <?php if ($successMessage) { ?>
+            <div class="alert alert-success" role="alert">
+                <?= htmlspecialchars($successMessage) ?>
+            </div>
+        <?php } ?>
         <?php foreach ($errors as $error) { ?>
             <div class="alert alert-danger" role="alert">
                 <?= $error; ?>
@@ -153,22 +164,22 @@ require_once __DIR__ . "/../templates/header.php";
                                 <form action="" method="post">
                                     <?php $session->csrfField(); ?> <!-- ← ajout token CSRF -->
                                     <div class="form-outline mb-4">
-                                        <input type="email" id="loginUser" name="email" class="form-control border-dark bg-light" placeholder="Email" required>
-                                        <label class="form-label" for="loginUser"></label>
+                                        <label class="form-label" for="loginUser">Adresse e-mail</label>
+                                        <input type="email" id="loginUser" name="email" class="form-control border-dark bg-light" autocomplete="email" required>
                                     </div>
                                     <div class="form-outline mb-4">
-                                        <input type="password" id="loginPassword" name="password" class="form-control border-dark bg-light" placeholder="Mot de passe" required>
-                                        <label class="form-label" for="loginPassword"></label>
+                                        <label class="form-label" for="loginPassword">Mot de passe</label>
+                                        <input type="password" id="loginPassword" name="password" class="form-control border-dark bg-light" autocomplete="current-password" required>
                                     </div>
                                     <div class="row mb-4">
                                         <div class="col-md-6 d-flex justify-content-center align-items-center">
                                             <div class="form-check-login">
-                                                <input class="form-check-input-login border-dark" type="checkbox" value="" id="loginCheck">
+                                                <input class="form-check-input-login border-dark" type="checkbox" name="rememberMe" value="1" id="loginCheck">
                                                 <label class="form-check-label-login" for="loginCheck">Rester connecté</label>
                                             </div>
                                         </div>
                                         <div class="col-md-6 d-flex justify-content-center">
-                                            <a href="#">Mot de passe oublié</a>
+                                            <a href="/mot_de_passe_oublie.php">Mot de passe oublié</a>
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-connect btn-secondary text-dark btn-block mb-4 w-100" name="loginUser">Se connecter</button>
@@ -180,48 +191,48 @@ require_once __DIR__ . "/../templates/header.php";
                                     <?php $session->csrfField(); ?> <!-- ← ajout token CSRF -->
                                     <div class="row">
                                         <div class="col-md-6 form-outline mb-4">
-                                            <input type="text" id="registerName" name="nom" class="form-control border-dark bg-light" placeholder="Nom" required>
-                                            <label class="form-label" for="registerName"></label>
+                                            <label class="form-label" for="registerName">Nom</label>
+                                            <input type="text" id="registerName" name="nom" class="form-control border-dark bg-light" autocomplete="family-name" required>
                                         </div>
                                         <div class="col-md-6 form-outline mb-4">
-                                            <input type="text" id="registerPrenom" name="prenom" class="form-control border-dark bg-light" placeholder="Prénom" required>
-                                            <label class="form-label" for="registerPrenom"></label>
+                                            <label class="form-label" for="registerPrenom">Prénom</label>
+                                            <input type="text" id="registerPrenom" name="prenom" class="form-control border-dark bg-light" autocomplete="given-name" required>
                                         </div>
                                     </div>
                                     <div class="form-outline mb-4">
-                                        <input type="email" id="registerEmail" name="email" class="form-control border-dark bg-light" placeholder="Email" required>
-                                        <label class="form-label" for="registerEmail"></label>
+                                        <label class="form-label" for="registerEmail">Adresse e-mail</label>
+                                        <input type="email" id="registerEmail" name="email" class="form-control border-dark bg-light" autocomplete="email" required>
                                     </div>
                                     <div class="form-outline mb-4">
-                                        <input type="password" id="registerPassword" name="password" class="form-control border-dark bg-light" placeholder="Mot de passe" required>
-                                        <label class="form-label" for="registerPassword"></label>
+                                        <label class="form-label" for="registerPassword">Mot de passe</label>
+                                        <input type="password" id="registerPassword" name="password" class="form-control border-dark bg-light" autocomplete="new-password" required>
                                     </div>
                                     <div class="form-outline mb-4">
-                                        <input type="password" id="registerRepeatPassword" name="confirmPassword" class="form-control border-dark bg-light" placeholder="Confirmer mot de passe" required>
-                                        <label class="form-label" for="registerRepeatPassword"></label>
+                                        <label class="form-label" for="registerRepeatPassword">Confirmer le mot de passe</label>
+                                        <input type="password" id="registerRepeatPassword" name="confirmPassword" class="form-control border-dark bg-light" autocomplete="new-password" required>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6 form-outline mb-4">
-                                            <input type="tel" id="registerPhone" name="telephone" class="form-control border-dark bg-light" placeholder="Téléphone">
-                                            <label class="form-label" for="registerPhone"></label>
+                                            <label class="form-label" for="registerPhone">Téléphone <span class="text-muted">(facultatif)</span></label>
+                                            <input type="tel" id="registerPhone" name="telephone" class="form-control border-dark bg-light" autocomplete="tel">
                                         </div>
                                         <div class="col-md-6 form-outline mb-4">
+                                            <label class="form-label" for="registerBirth">Date de naissance <span class="text-muted">(facultatif)</span></label>
                                             <input type="date" id="registerBirth" name="date_naissance" class="form-control border-dark bg-light">
-                                            <label class="form-label" for="registerBirth"></label>
                                         </div>
                                     </div>
                                     <div class="form-outline mb-4">
-                                        <input type="text" id="registerAddress" name="adresse" class="form-control border-dark bg-light" placeholder="Adresse">
-                                        <label class="form-label" for="registerAddress"></label>
+                                        <label class="form-label" for="registerAddress">Adresse <span class="text-muted">(facultatif)</span></label>
+                                        <input type="text" id="registerAddress" name="adresse" class="form-control border-dark bg-light" autocomplete="street-address">
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6 form-outline mb-4">
-                                            <input type="text" id="registerCP" name="cp" class="form-control border-dark bg-light" placeholder="Code postal">
-                                            <label class="form-label" for="registerCP"></label>
+                                            <label class="form-label" for="registerCP">Code postal <span class="text-muted">(facultatif)</span></label>
+                                            <input type="text" id="registerCP" name="cp" class="form-control border-dark bg-light" autocomplete="postal-code">
                                         </div>
                                         <div class="col-md-6 form-outline mb-4">
-                                            <input type="text" id="registerCity" name="ville" class="form-control border-dark bg-light" placeholder="Ville">
-                                            <label class="form-label" for="registerCity"></label>
+                                            <label class="form-label" for="registerCity">Ville <span class="text-muted">(facultatif)</span></label>
+                                            <input type="text" id="registerCity" name="ville" class="form-control border-dark bg-light" autocomplete="address-level2">
                                         </div>
                                     </div>
                                     <div class="row check-accept align-items-center">

@@ -236,6 +236,10 @@ Les sessions sont gérées automatiquement par `lib/session.php`
 
 Consultez les logs de votre serveur web pour plus de détails sur les erreurs.
 
+## 🌱 Évolutions au-delà du référentiel ECF
+
+Voir [docs/ARCHITECTURE.md](ARCHITECTURE.md) — section « Évolutions au-delà du référentiel ECF ».
+
 ## 📝 Licence
 
 Ce projet est développé dans le cadre d'un ECF (Épreuve de Contrôle Final) en 2025.

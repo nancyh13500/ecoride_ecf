@@ -51,5 +51,10 @@ function csrfField(string $tokenName = 'csrf_token'): void
     ecoride_session()->csrfField($tokenName);
 }
 
+function logoutUser(): void
+{
+    ecoride_session()->logout();
+}
+
 // Démarre la session dès l'inclusion (comportement attendu par header.php et les pages)
 ecoride_session();

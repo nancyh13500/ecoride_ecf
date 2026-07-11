@@ -4,6 +4,8 @@ require_once __DIR__ . "/../../lib/session.php";
 require_once __DIR__ . "/../../lib/pdo.php";
 require_once __DIR__ . "/../../lib/mongodb.php";
 
+use Ecoride\Ecf\Service\ImpactEcologiqueService;
+
 // Vérifier si l'utilisateur est connecté et a le rôle employé (role_id = 2)
 requireLogin();
 
@@ -125,7 +127,7 @@ try {
                 'statut' => $avis['statut'],
                 'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
             ];
-            
+
             // Ajouter le covoiturage_id si présent
             if (isset($avis['covoiturage_id'])) {
                 $avisArray['covoiturage_id'] = $avis['covoiturage_id'];
@@ -161,14 +163,14 @@ try {
                 $avisArray['telephone'] = '';
                 $avisArray['photo'] = null;
             }
-            
+
             // Récupérer les informations du covoiturage si présent
             if (isset($avisArray['covoiturage_id'])) {
                 try {
                     $covQuery = $pdo->prepare("SELECT lieu_depart, lieu_arrivee, date_depart, heure_depart FROM covoiturage WHERE covoiturage_id = :covoiturage_id LIMIT 1");
                     $covQuery->execute(['covoiturage_id' => $avisArray['covoiturage_id']]);
                     $covData = $covQuery->fetch(PDO::FETCH_ASSOC);
-                    
+
                     if ($covData) {
                         $avisArray['covoiturage_lieu_depart'] = $covData['lieu_depart'];
                         $avisArray['covoiturage_lieu_arrivee'] = $covData['lieu_arrivee'];
@@ -211,7 +213,7 @@ try {
                 'statut' => $avis['statut'],
                 'created_at' => isset($avis['created_at']) ? $avis['created_at']->toDateTime()->format('Y-m-d H:i:s') : ''
             ];
-            
+
             // Ajouter le covoiturage_id si présent
             if (isset($avis['covoiturage_id'])) {
                 $avisArray['covoiturage_id'] = $avis['covoiturage_id'];
@@ -247,14 +249,14 @@ try {
                 $avisArray['telephone'] = '';
                 $avisArray['photo'] = null;
             }
-            
+
             // Récupérer les informations du covoiturage si présent
             if (isset($avisArray['covoiturage_id'])) {
                 try {
                     $covQuery = $pdo->prepare("SELECT lieu_depart, lieu_arrivee, date_depart, heure_depart FROM covoiturage WHERE covoiturage_id = :covoiturage_id LIMIT 1");
                     $covQuery->execute(['covoiturage_id' => $avisArray['covoiturage_id']]);
                     $covData = $covQuery->fetch(PDO::FETCH_ASSOC);
-                    
+
                     if ($covData) {
                         $avisArray['covoiturage_lieu_depart'] = $covData['lieu_depart'];
                         $avisArray['covoiturage_lieu_arrivee'] = $covData['lieu_arrivee'];
@@ -322,6 +324,8 @@ try {
     $reservations = [];
 }
 
+$impactStats = (new ImpactEcologiqueService($pdo))->getStatistiquesGlobales();
+
 require_once __DIR__ . "/../../templates/header.php";
 ?>
 
@@ -333,7 +337,7 @@ require_once __DIR__ . "/../../templates/header.php";
                 <li class="breadcrumb-item active" aria-current="page">Espace Employé</li>
             </ol>
             <div class="col text-end me-3 pb-3">
-                <a href="user_count.php" class="btn btn-primary btn-sm d-md-inline-block">Retour Mon compte
+                <a href="user_count.php" class="btn btn-primary bi-arrow-left btn-md d-inline-block"> Retour Mon compte
                 </a>
             </div>
         </nav>
@@ -367,6 +371,8 @@ require_once __DIR__ . "/../../templates/header.php";
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
+
+        <?php require __DIR__ . '/../../templates/partials/impact_ecologique.php'; ?>
 
         <!-- Onglets -->
         <ul class="nav nav-tabs mb-4" id="employeTabs" role="tablist">
