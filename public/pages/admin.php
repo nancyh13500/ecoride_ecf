@@ -4,6 +4,8 @@ require_once __DIR__ . '/../../lib/session.php';
 require_once __DIR__ . '/../../lib/pdo.php';
 require_once __DIR__ . '/../../lib/mongodb.php';
 
+use Ecoride\Ecf\Service\ImpactEcologiqueService;
+
 // Vérification du rôle admin (role_id = 1) ou employé (role_id = 2)
 requireLogin();
 
@@ -268,6 +270,8 @@ try {
     $site_credits = 0;
 }
 
+$impactStats = (new ImpactEcologiqueService($pdo))->getStatistiquesGlobales();
+
 require_once __DIR__ . '/../../templates/header.php';
 ?>
 
@@ -313,6 +317,8 @@ require_once __DIR__ . '/../../templates/header.php';
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
+
+        <?php require __DIR__ . '/../../templates/partials/impact_ecologique.php'; ?>
 
         <!-- Statistiques générales -->
         <div class="row mb-4">

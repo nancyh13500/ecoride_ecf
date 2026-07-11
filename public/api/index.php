@@ -84,6 +84,44 @@ header('Content-Type: text/html; charset=utf-8');
 
         <div class="endpoint">
             <div class="d-flex align-items-center mb-2">
+                <span class="method get">GET</span>
+                <code class="ms-3">/api/v1/covoiturages</code>
+            </div>
+            <p class="mb-1"><strong>Description :</strong> Liste des covoiturages disponibles</p>
+            <p class="mb-1"><strong>Paramètres :</strong> <code>?depart=Paris&arrivee=Lyon&date=2026-07-15&limit=20</code></p>
+            <p class="mb-0"><strong>Authentification :</strong> Non requise</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="d-flex align-items-center mb-2">
+                <span class="method get">GET</span>
+                <code class="ms-3">/api/v1/covoiturages/{id}</code>
+            </div>
+            <p class="mb-1"><strong>Description :</strong> Détail d'un covoiturage (étapes, véhicule, conducteur)</p>
+            <p class="mb-0"><strong>Authentification :</strong> Non requise</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="d-flex align-items-center mb-2">
+                <span class="method get">GET</span>
+                <code class="ms-3">/api/v1/reservations</code>
+            </div>
+            <p class="mb-1"><strong>Description :</strong> Réservations de l'utilisateur connecté</p>
+            <p class="mb-0"><strong>Authentification :</strong> Requise (session)</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="d-flex align-items-center mb-2">
+                <span class="method post">POST</span>
+                <code class="ms-3">/api/v1/reservations</code>
+            </div>
+            <p class="mb-1"><strong>Description :</strong> Créer une réservation</p>
+            <p class="mb-1"><strong>Body :</strong> <code>{"covoiturage_id": 12}</code></p>
+            <p class="mb-0"><strong>Authentification :</strong> Requise (session)</p>
+        </div>
+
+        <div class="endpoint">
+            <div class="d-flex align-items-center mb-2">
                 <span class="method delete">DELETE</span>
                 <code class="ms-3">/api/v1/avis/{id}</code>
             </div>

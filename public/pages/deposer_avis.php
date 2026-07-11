@@ -13,6 +13,7 @@ if (!isset($_SESSION['user'])) {
 $user = $_SESSION['user'];
 $success_message = '';
 $error_message = '';
+$preselectCovoiturageId = isset($_GET['covoiturage_id']) ? (int) $_GET['covoiturage_id'] : 0;
 
 // Récupérer les covoiturages auxquels l'utilisateur a participé
 $covoiturages = [];
@@ -210,7 +211,8 @@ require_once __DIR__ . "/../../templates/header.php";
                                                 $label .= ')';
                                             }
                                             ?>
-                                            <option value="<?= htmlspecialchars((string)$cov['covoiturage_id']) ?>">
+                                            <option value="<?= htmlspecialchars((string)$cov['covoiturage_id']) ?>"
+                                                <?= $preselectCovoiturageId === (int) $cov['covoiturage_id'] ? 'selected' : '' ?>>
                                                 <?= $label ?>
                                             </option>
                                         <?php endforeach; ?>

@@ -2,6 +2,9 @@
 require_once __DIR__ . "/../../lib/session.php";
 require_once __DIR__ . "/../../lib/pdo.php";
 
+use Ecoride\Ecf\Service\DashboardService;
+use Ecoride\Ecf\Service\CreditService;
+
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user'])) {
     header("Location: /login.php");
@@ -29,13 +32,23 @@ $error_message = $_SESSION['error'] ?? '';
 
 // Récupérer les crédits à jour depuis la base (la session peut ne pas être synchronisée)
 $credits = 0;
+$currentUserId = (int) $_SESSION['user']['user_id'];
 try {
-    $stmtCredits = $pdo->prepare("SELECT credits FROM user WHERE user_id = :id");
-    $stmtCredits->execute(['id' => $_SESSION['user']['user_id']]);
-    $credits = (int) ($stmtCredits->fetchColumn() ?? 0);
-} catch (PDOException $e) {
+    $creditService = new CreditService($pdo);
+    $credits = $creditService->getBalance($currentUserId);
+} catch (Throwable $e) {
     $credits = (int) ($_SESSION['user']['credits'] ?? 0);
 }
+
+// Tableau de bord unifié
+$dashboard = new DashboardService($pdo);
+$dashboardStats = $dashboard->getStats($currentUserId);
+$trajetsChauffeur = $dashboard->getUpcomingTripsAsDriver($currentUserId, 5);
+$trajetsPassager = $dashboard->getUpcomingTripsAsPassenger($currentUserId, 5);
+$historiqueCredits = $dashboard->getCreditHistory($currentUserId, 8);
+$avisEnAttente = $dashboard->getTripsPendingReview($currentUserId, 5);
+
+$statutTrajetLabels = [1 => 'Disponible', 2 => 'En cours', 3 => 'Terminé'];
 
 // Nettoyer les messages de session
 unset($_SESSION['success'], $_SESSION['error']);
@@ -108,13 +121,139 @@ require_once __DIR__ . "/../../templates/header.php";
 
             <!-- Contenu principal -->
             <div class="col-md-9">
-                <!-- Mes crédits -->
-                <div class="card mb-4">
-                    <div class="card-body d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-coin me-2"></i>Mes crédits</h5>
-                        <span class="badge credits-badge bg-success me-3"><?= htmlspecialchars((string)$credits) ?></span>
+                <?php if (!isset($_GET['create_employee'])): ?>
+                    <!-- Tableau de bord -->
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-header bg-dark text-white">
+                            <h4 class="mb-0"><i class="bi bi-grid-1x2 me-2"></i>Mon espace</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3 mb-4">
+                                <div class="col-6 col-md-3">
+                                    <div class="card bg-light h-100 text-center">
+                                        <div class="card-body py-3">
+                                            <div class="fs-4 fw-bold text-success"><?= $credits ?></div>
+                                            <small class="text-muted">Crédits</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="card bg-light h-100 text-center">
+                                        <div class="card-body py-3">
+                                            <div class="fs-4 fw-bold text-primary"><?= (int) $dashboardStats['trajets_a_venir_chauffeur'] ?></div>
+                                            <small class="text-muted">Trajets chauffeur</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="card bg-light h-100 text-center">
+                                        <div class="card-body py-3">
+                                            <div class="fs-4 fw-bold text-info"><?= (int) $dashboardStats['trajets_a_venir_passager'] ?></div>
+                                            <small class="text-muted">Trajets passager</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="card bg-light h-100 text-center">
+                                        <div class="card-body py-3">
+                                            <div class="fs-4 fw-bold text-warning"><?= (int) $dashboardStats['reservations_en_attente'] ?></div>
+                                            <small class="text-muted">Résa. à valider</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-lg-6">
+                                    <h5 class="h6 text-muted mb-3"><i class="bi bi-car-front me-1"></i>Prochains trajets (chauffeur)</h5>
+                                    <?php if (empty($trajetsChauffeur)): ?>
+                                        <p class="text-muted small mb-0">Aucun trajet à venir. <a href="/pages/mes_trajets.php">Publier un trajet</a></p>
+                                    <?php else: ?>
+                                        <ul class="list-group list-group-flush">
+                                            <?php foreach ($trajetsChauffeur as $trajet): ?>
+                                                <li class="list-group-item px-0">
+                                                    <strong><?= htmlspecialchars($trajet['lieu_depart']) ?> → <?= htmlspecialchars($trajet['lieu_arrivee']) ?></strong><br>
+                                                    <small class="text-muted">
+                                                        <?= date('d/m/Y', strtotime($trajet['date_depart'])) ?>
+                                                        à <?= date('H:i', strtotime($trajet['heure_depart'])) ?>
+                                                        · <?= (int) $trajet['nb_place'] ?> place(s)
+                                                        · <span class="badge bg-secondary"><?= $statutTrajetLabels[(int) $trajet['statut']] ?? '—' ?></span>
+                                                    </small>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="col-lg-6">
+                                    <h5 class="h6 text-muted mb-3"><i class="bi bi-person-walking me-1"></i>Prochains trajets (passager)</h5>
+                                    <?php if (empty($trajetsPassager)): ?>
+                                        <p class="text-muted small mb-0">Aucune réservation à venir. <a href="/pages/trajets.php">Rechercher un trajet</a></p>
+                                    <?php else: ?>
+                                        <ul class="list-group list-group-flush">
+                                            <?php foreach ($trajetsPassager as $trajet): ?>
+                                                <li class="list-group-item px-0">
+                                                    <strong><?= htmlspecialchars($trajet['lieu_depart']) ?> → <?= htmlspecialchars($trajet['lieu_arrivee']) ?></strong><br>
+                                                    <small class="text-muted">
+                                                        <?= date('d/m/Y', strtotime($trajet['date_depart'])) ?>
+                                                        · Réservation : <?= htmlspecialchars($trajet['reservation_statut'] ?? '') ?>
+                                                    </small>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <?php if (!empty($avisEnAttente)): ?>
+                                <div class="mt-4 pt-3 border-top">
+                                    <h5 class="h6 text-muted mb-3"><i class="bi bi-star me-1"></i>Avis à déposer (<?= count($avisEnAttente) ?>)</h5>
+                                    <ul class="list-group list-group-flush">
+                                        <?php foreach ($avisEnAttente as $trajet): ?>
+                                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                                <span>
+                                                    <?= htmlspecialchars($trajet['lieu_depart']) ?> → <?= htmlspecialchars($trajet['lieu_arrivee']) ?>
+                                                    <small class="text-muted">(<?= htmlspecialchars($trajet['role'] ?? '') ?>)</small>
+                                                </span>
+                                                <a href="/pages/deposer_avis.php?covoiturage_id=<?= (int) $trajet['covoiturage_id'] ?>" class="btn btn-sm btn-secondary">Déposer un avis</a>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($historiqueCredits)): ?>
+                                <div class="mt-4 pt-3 border-top">
+                                    <h5 class="h6 text-muted mb-3"><i class="bi bi-clock-history me-1"></i>Historique crédits</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Opération</th>
+                                                    <th class="text-end">Montant</th>
+                                                    <th class="text-end">Solde</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($historiqueCredits as $tx): ?>
+                                                    <tr>
+                                                        <td><small><?= date('d/m/Y H:i', strtotime($tx['date_transaction'])) ?></small></td>
+                                                        <td><small><?= htmlspecialchars($tx['description'] ?: $tx['type_operation']) ?></small></td>
+                                                        <td class="text-end <?= (int) $tx['montant'] >= 0 ? 'text-success' : 'text-danger' ?>">
+                                                            <?= (int) $tx['montant'] >= 0 ? '+' : '' ?><?= (int) $tx['montant'] ?>
+                                                        </td>
+                                                        <td class="text-end"><small><?= (int) $tx['solde_apres'] ?></small></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                </div>
+                <?php endif; ?>
+
                 <!-- Section création d'employé (visible seulement pour les administrateurs) -->
                 <?php if (($_SESSION['user']['role_id'] ?? 3) == 1): ?>
                     <div class="<?= isset($_GET['create_employee']) ? '' : 'collapse' ?>" id="creer-employe-section" <?= isset($_GET['create_employee']) ? 'style="display: block !important;"' : '' ?>>

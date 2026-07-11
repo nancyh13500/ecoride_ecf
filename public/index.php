@@ -114,10 +114,15 @@ try {
                c.heure_depart,
                c.nb_place,
                c.prix_personne,
+               c.distance_km,
+               c.co2_economise_kg,
                u.nom,
-               u.prenom
+               u.prenom,
+               e.libelle AS energie_libelle
         FROM covoiturage c
         LEFT JOIN user u ON c.user_id = u.user_id
+        LEFT JOIN voiture v ON v.voiture_id = c.voiture_id
+        LEFT JOIN energie e ON e.energie_id = v.energie_id
         WHERE c.statut = 1
           AND c.nb_place > 0
           AND c.date_depart >= CURDATE()
@@ -312,6 +317,22 @@ try {
                                     Tarif :
                                     <?= $prix_personne !== null ? $prix_personne . ' crédits' : 'Non renseigné' ?>
                                 </p>
+                                <?php
+                                $isElectrique = stripos((string) ($covoiturage['energie_libelle'] ?? ''), 'lectrique') !== false;
+                                ?>
+                                <?php if (!empty($covoiturage['distance_km']) || !empty($covoiturage['co2_economise_kg']) || $isElectrique): ?>
+                                    <div class="mt-2 d-flex flex-wrap gap-1 justify-content-center">
+                                        <?php if ($isElectrique): ?>
+                                            <span class="badge bg-success"><i class="bi bi-lightning-charge me-1"></i>Électrique</span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($covoiturage['distance_km'])): ?>
+                                            <span class="badge bg-light text-dark border"><?= number_format((float) $covoiturage['distance_km'], 0, ',', ' ') ?> km</span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($covoiturage['co2_economise_kg'])): ?>
+                                            <span class="badge bg-success bg-opacity-75"><?= number_format((float) $covoiturage['co2_economise_kg'], 1, ',', ' ') ?> kg CO₂</span>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                             <div class="card-footer text-center">
                                 <a href="<?= htmlspecialchars($trajet_url) ?>" class="btn btn-primary btn-sm">

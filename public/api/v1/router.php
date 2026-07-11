@@ -24,15 +24,11 @@ switch ($resource) {
         break;
     
     case 'covoiturages':
-        // À implémenter plus tard
-        http_response_code(501);
-        echo json_encode(['error' => 'Endpoint non implémenté']);
+        require_once __DIR__ . '/covoiturages.php';
         break;
-    
+
     case 'reservations':
-        // À implémenter plus tard
-        http_response_code(501);
-        echo json_encode(['error' => 'Endpoint non implémenté']);
+        require_once __DIR__ . '/reservations.php';
         break;
     
     default:

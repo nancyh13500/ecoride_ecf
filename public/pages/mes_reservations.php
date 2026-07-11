@@ -4,6 +4,7 @@ require_once __DIR__ . "/../../lib/pdo.php";
 require_once __DIR__ . "/../../vendor/autoload.php";
 
 use Ecoride\Ecf\Service\MailerService;
+use Ecoride\Ecf\Service\CreditService;
 
 requireLogin();
 
@@ -135,7 +136,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
             $validation_error = "Réservation invalide.";
         } else {
             try {
-                // Récupérer toutes les infos nécessaires pour les emails
+                if (!$pdo->inTransaction()) {
+                    $pdo->beginTransaction();
+                }
+
                 $reservationDetailStmt = $pdo->prepare("
                     SELECT 
                         r.*,
@@ -150,6 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
                         passager.nom AS passager_nom,
                         passager.prenom AS passager_prenom,
                         passager.pseudo AS passager_pseudo,
+                        passager.credits AS passager_credits,
                         chauffeur.email AS chauffeur_email,
                         chauffeur.nom AS chauffeur_nom,
                         chauffeur.prenom AS chauffeur_prenom,
@@ -161,23 +166,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
                     JOIN user chauffeur ON chauffeur.user_id = c.user_id
                     LEFT JOIN voiture v ON v.voiture_id = c.voiture_id
                     WHERE r.reservation_id = :id
-                    LIMIT 1
+                    FOR UPDATE
                 ");
                 $reservationDetailStmt->execute([':id' => $reservationId]);
                 $reservationRow = $reservationDetailStmt->fetch(PDO::FETCH_ASSOC);
 
                 if (!$reservationRow || (int) $reservationRow['chauffeur_id'] !== $currentUserId) {
-                    $validation_error = "Réservation introuvable ou non autorisée.";
-                } else {
-                    // Mettre à jour le statut
-                    $updateStmt = $pdo->prepare("
-                        UPDATE {$reservationSupport}
-                        SET statut = 'confirmée'
-                        WHERE reservation_id = :id
-                    ");
-                    $updateStmt->execute([':id' => $reservationId]);
+                    throw new Exception("Réservation introuvable ou non autorisée.");
+                }
 
-                    // Préparer les données pour les emails
+                $statutActuel = mb_strtolower($reservationRow['statut'] ?? '', 'UTF-8');
+                if ($statutActuel === 'confirmée') {
+                    throw new Exception("Cette réservation est déjà confirmée.");
+                }
+                if ($statutActuel === 'annulée') {
+                    throw new Exception("Cette réservation a été annulée.");
+                }
+
+                $nbPlacesReservees = isset($reservationRow['nb_places_reservees']) ? (int) $reservationRow['nb_places_reservees'] : 1;
+                $prixTotal = (float) ($reservationRow['prix_total'] ?? 0);
+                if ($prixTotal <= 0) {
+                    $prixTotal = (float) ($reservationRow['prix_personne'] ?? 0) * $nbPlacesReservees;
+                }
+                $montantDebit = (int) round($prixTotal);
+
+                $creditService = new CreditService($pdo);
+                $creditService->debit(
+                    (int) $reservationRow['user_id'],
+                    $montantDebit,
+                    'debit_reservation',
+                    $reservationId,
+                    'Paiement réservation #' . $reservationId
+                );
+
+                $updateStmt = $pdo->prepare("
+                    UPDATE {$reservationSupport}
+                    SET statut = 'confirmée'
+                    WHERE reservation_id = :id
+                ");
+                $updateStmt->execute([':id' => $reservationId]);
+
+                $pdo->commit();
+
+                // Préparer les données pour les emails
                     $passagerNomComplet = trim(($reservationRow['passager_prenom'] ?? '') . ' ' . ($reservationRow['passager_nom'] ?? ''));
                     if ($passagerNomComplet === '') {
                         $passagerNomComplet = $reservationRow['passager_pseudo'] ?? 'Passager';
@@ -259,8 +290,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['validate_reservation'
 
                     header("Location: mes_reservations.php?{$messageSucces}");
                     exit();
-                }
             } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 $validation_error = "Erreur lors de la validation : " . $e->getMessage();
             }
         }
