@@ -41,7 +41,7 @@ class User
 
     public function findByEmail(string $email): ?array
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM user WHERE email = :email");
+        $stmt = $this->pdo->prepare("SELECT * FROM user WHERE LOWER(email) = LOWER(:email)");
         $stmt->execute(['email' => $email]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
@@ -75,5 +75,14 @@ class User
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM user WHERE email = :email");
         $stmt->execute(['email' => $email]);
         return $stmt->fetchColumn() > 0;
+    }
+
+    public function updatePassword(int $userId, string $password): bool
+    {
+        $stmt = $this->pdo->prepare('UPDATE user SET password = :password WHERE user_id = :user_id');
+        return $stmt->execute([
+            'password' => password_hash($password, PASSWORD_DEFAULT),
+            'user_id' => $userId,
+        ]);
     }
 }

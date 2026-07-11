@@ -8,6 +8,8 @@ $session = ecoride_session();
 $userModel = new User();
 
 $errors = [];
+$successMessage = $_SESSION['success'] ?? '';
+unset($_SESSION['success']);
 
 if (isset($_POST['loginUser'])) {
     $session->verifyCSRFToken(); // vérification CSRF
@@ -133,6 +135,11 @@ require_once __DIR__ . "/../templates/header.php";
     <div class="background-login"></div>
     <div class="container login-register mt-5">
         <h1 class="visually-hidden">Connexion et inscription</h1>
+        <?php if ($successMessage) { ?>
+            <div class="alert alert-success" role="alert">
+                <?= htmlspecialchars($successMessage) ?>
+            </div>
+        <?php } ?>
         <?php foreach ($errors as $error) { ?>
             <div class="alert alert-danger" role="alert">
                 <?= $error; ?>
@@ -170,7 +177,7 @@ require_once __DIR__ . "/../templates/header.php";
                                             </div>
                                         </div>
                                         <div class="col-md-6 d-flex justify-content-center">
-                                            <a href="#">Mot de passe oublié</a>
+                                            <a href="/mot_de_passe_oublie.php">Mot de passe oublié</a>
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-connect btn-secondary text-dark btn-block mb-4 w-100" name="loginUser">Se connecter</button>
