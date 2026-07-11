@@ -89,19 +89,22 @@ class TempsTrajet {
     }
 
     afficherNotification(message, type = 'info') {
-        // Créer une notification temporaire
+        if (typeof window.showAccessibleAlert === 'function') {
+            window.showAccessibleAlert(message, type);
+            return;
+        }
         const notification = document.createElement('div');
+        notification.setAttribute('role', 'alert');
         notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
         notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
         
         notification.innerHTML = `
             ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
         `;
         
         document.body.appendChild(notification);
         
-        // Supprimer automatiquement après 5 secondes
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);

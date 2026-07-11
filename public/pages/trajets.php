@@ -356,6 +356,7 @@ try {
     $etapes_by_covoiturage = [];
 }
 
+$pageTitle = 'Trajets';
 require_once __DIR__ . "/../../templates/header.php";
 
 ?>
@@ -367,12 +368,14 @@ require_once __DIR__ . "/../../templates/header.php";
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
         <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
-            <form method="POST" action="">
+            <form method="POST" action="" aria-labelledby="search-form-title-trajets">
+                <h2 id="search-form-title-trajets" class="visually-hidden">Rechercher un covoiturage</h2>
                 <div class="search-bar row">
                     <div class="search-field col-md-4">
+                        <label for="trajets-depart" class="form-label visually-hidden">Ville de départ</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-primary"></i></span>
-                            <input type="text" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" list="villes-depart" required>
+                            <span class="input-group-text bg-white border-end-0" aria-hidden="true"><i class="bi bi-geo-alt-fill text-primary"></i></span>
+                            <input type="text" id="trajets-depart" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" list="villes-depart" value="<?= htmlspecialchars($search_depart, ENT_QUOTES, 'UTF-8') ?>" autocomplete="off" required>
                             <datalist id="villes-depart">
                                 <?php foreach ($villes_depart as $ville): ?>
                                     <option value="<?= htmlspecialchars($ville) ?>">
@@ -381,9 +384,10 @@ require_once __DIR__ . "/../../templates/header.php";
                         </div>
                     </div>
                     <div class="search-field col-md-4">
+                        <label for="trajets-arrivee" class="form-label visually-hidden">Ville d'arrivée</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
-                            <input type="text" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" list="villes-arrivee" required>
+                            <span class="input-group-text bg-white border-end-0" aria-hidden="true"><i class="bi bi-geo-alt text-primary"></i></span>
+                            <input type="text" id="trajets-arrivee" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" list="villes-arrivee" value="<?= htmlspecialchars($search_arrivee, ENT_QUOTES, 'UTF-8') ?>" autocomplete="off" required>
                             <datalist id="villes-arrivee">
                                 <?php foreach ($villes_arrivee as $ville): ?>
                                     <option value="<?= htmlspecialchars($ville) ?>">
@@ -392,14 +396,18 @@ require_once __DIR__ . "/../../templates/header.php";
                         </div>
                     </div>
                     <div class="search-field col-md-4">
+                        <label for="trajets-date" class="form-label visually-hidden">Date du trajet</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar text-primary"></i></span>
-                            <input type="date" name="date" class="form-control border-start-0 text-center">
+                            <span class="input-group-text bg-white border-end-0" aria-hidden="true"><i class="bi bi-calendar text-primary"></i></span>
+                            <input type="date" id="trajets-date" name="date" class="form-control border-start-0 text-center" value="<?= htmlspecialchars($search_date, ENT_QUOTES, 'UTF-8') ?>">
                         </div>
                     </div>
                 </div>
                 <div class="d-flex justify-content-center mt-3">
-                    <button type="submit" name="search_trajet" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
+                    <button type="submit" name="search_trajet" class="btn btn-primary w-50">
+                        Lancer la recherche
+                        <i class="bi bi-search ms-2" aria-hidden="true"></i>
+                    </button>
                 </div>
             </form>
         </div>
@@ -463,8 +471,10 @@ require_once __DIR__ . "/../../templates/header.php";
                         </select>
                     </div>
                     <div class="col-md-3 d-flex justify-content-center align-items-end">
+                        <p id="filtre-aide" class="visually-hidden">Saisissez un tarif minimum ou choisissez une note, ou effectuez une recherche par départ et arrivée pour activer le filtre.</p>
                         <button type="submit" id="btnFiltrerTrajets" class="btn btn-filtre text-dark btn-secondary w-50"
-                            <?= !$filter_form_submit_ok ? ' disabled title="Saisissez un tarif minimum ou choisissez une note, ou effectuez une recherche."' : '' ?>>Filtrer</button>
+                            aria-describedby="filtre-aide"
+                            <?= !$filter_form_submit_ok ? ' disabled' : '' ?>>Filtrer</button>
                     </div>
                 </div>
             </form>
@@ -484,9 +494,9 @@ require_once __DIR__ . "/../../templates/header.php";
                         var ok = hasSearch || creditOk || noteOk;
                         btn.disabled = !ok;
                         if (!ok) {
-                            btn.setAttribute('title', 'Saisissez un tarif minimum ou choisissez une note, ou effectuez une recherche.');
+                            btn.setAttribute('aria-disabled', 'true');
                         } else {
-                            btn.removeAttribute('title');
+                            btn.removeAttribute('aria-disabled');
                         }
                     }
                     credit.addEventListener('input', sync);

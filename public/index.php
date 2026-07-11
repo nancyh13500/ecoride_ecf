@@ -22,6 +22,7 @@ try {
     $villes_arrivee = [];
 }
 
+$pageTitle = 'Accueil';
 require_once __DIR__ . "/../templates/header.php";
 
 // Récupérer tous les avis validés depuis MongoDB
@@ -172,12 +173,14 @@ try {
         <h1 class="fw-bold">Trouvez un covoiturage</h1>
         <p class="lead mb-4">La solution accessible et durable pour tous.</p>
         <div class="col-lg-6 mx-auto">
-            <form method="GET" action="/pages/trajets.php">
+            <form method="GET" action="/pages/trajets.php" aria-labelledby="search-form-title">
+                <h2 id="search-form-title" class="visually-hidden">Rechercher un covoiturage</h2>
                 <div class="search-bar row">
                     <div class="search-field col-md-4">
+                        <label for="search-depart" class="form-label visually-hidden">Ville de départ</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-primary"></i></span>
-                            <input type="text" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" list="villes-depart" required>
+                            <span class="input-group-text bg-white border-end-0" aria-hidden="true"><i class="bi bi-geo-alt-fill text-primary"></i></span>
+                            <input type="text" id="search-depart" name="depart" class="form-control border-start-0 text-center" placeholder="Ville de départ" list="villes-depart" autocomplete="off" required>
                             <datalist id="villes-depart">
                                 <?php foreach ($villes_depart as $ville): ?>
                                     <option value="<?= htmlspecialchars($ville) ?>">
@@ -186,9 +189,10 @@ try {
                         </div>
                     </div>
                     <div class="search-field col-md-4">
+                        <label for="search-arrivee" class="form-label visually-hidden">Ville d'arrivée</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
-                            <input type="text" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" list="villes-arrivee" required>
+                            <span class="input-group-text bg-white border-end-0" aria-hidden="true"><i class="bi bi-geo-alt text-primary"></i></span>
+                            <input type="text" id="search-arrivee" name="arrivee" class="form-control border-start-0 text-center" placeholder="Ville d'arrivée" list="villes-arrivee" autocomplete="off" required>
                             <datalist id="villes-arrivee">
                                 <?php foreach ($villes_arrivee as $ville): ?>
                                     <option value="<?= htmlspecialchars($ville) ?>">
@@ -197,14 +201,18 @@ try {
                         </div>
                     </div>
                     <div class="search-field col-md-4">
+                        <label for="search-date" class="form-label visually-hidden">Date du trajet</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar text-primary"></i></span>
-                            <input type="date" name="date" class="form-control border-start-0 text-center">
+                            <span class="input-group-text bg-white border-end-0" aria-hidden="true"><i class="bi bi-calendar text-primary"></i></span>
+                            <input type="date" id="search-date" name="date" class="form-control border-start-0 text-center">
                         </div>
                     </div>
                 </div>
                 <div class="d-flex justify-content-center mt-3">
-                    <button type="submit" class="btn btn-primary w-50">Lancer la recherche<i class="bi bi-search ms-2"></i></button>
+                    <button type="submit" class="btn btn-primary w-50">
+                        Lancer la recherche
+                        <i class="bi bi-search ms-2" aria-hidden="true"></i>
+                    </button>
                 </div>
 
             </form>
@@ -218,10 +226,10 @@ try {
     <div class="col-xxl-12 px-4 py-5">
         <div class="row flex-lg justify-content-center align-items-center">
             <div class="card_img col-lg-6">
-                <img src="/assets/img/friends-car.jpg" class="d-flex mx-lg-auto img-fluid rounded" alt="friends-car" width="700" height="500" loading="lazy" id="imageFriends">
+                <img src="/assets/img/friends-car.jpg" class="d-flex mx-lg-auto img-fluid rounded" alt="Amis partageant un trajet en voiture" width="700" height="500" loading="lazy" id="imageFriends">
             </div>
             <div class="card_text col-lg-6 pt-2 pb-2">
-                <h1 class="fw-bold text-center text-white mb-3">Pourquoi choisir EcoRide ?</h1>
+                <h2 class="fw-bold text-center text-white mb-3">Pourquoi choisir EcoRide ?</h2>
                 <p class="text text-center text-white">Notre mission : rendre les déplacements quotidiens accessibles, pratiques et durables pour tous.
                     Découvrez comment nous accompagnons les employeurs et les collectivités vers une mobilité décarbonée.<br><br>
 
@@ -263,7 +271,7 @@ try {
                                 <p class="text-trajet mt-3 text-white">Trajet</p>
                             </div>
                             <div class="card-body p-3">
-                                <img src="/assets/img/profil.jpg" class="user_profile mb-2" alt="user_profile">
+                                <img src="/assets/img/profil.jpg" class="user_profile mb-2" alt="" role="presentation">
                                 <p class="card-text mb-2 small">
                                     <strong><?= htmlspecialchars($covoiturage['lieu_depart']) ?></strong>
                                     → <strong><?= htmlspecialchars($covoiturage['lieu_arrivee']) ?></strong>
@@ -330,10 +338,10 @@ try {
 <section class="suggesting_route">
     <div class="row flex-lg-row-reverse justify-content-center align-items-center py-5 text-white text-center">
         <div class="img_covoiturage d-flex col-sm-12 col-md-6 col-lg-6 justify-content-center align-items-center">
-            <img src="/assets/img/covoiturage.jpg" class="image-fluid rounded" alt="covoiturage" width="400" height="250" id="img_covoiturage">
+            <img src="/assets/img/covoiturage.jpg" class="image-fluid rounded" alt="Conducteur proposant des places en covoiturage" width="400" height="250" id="img_covoiturage">
         </div>
         <div class="col-sm-12 col-md-6 col-lg-6">
-            <h1 class="display-5 fw-bold mt-3 mb-3">Vous avez une voiture ?</h1>
+            <h2 class="display-5 fw-bold mt-3 mb-3">Vous avez une voiture ?</h2>
             <p class="lead">Faites des économies, publiez une annonce.</p>
             <div class="d-flex mt-5 justify-content-center">
                 <a type="button" href="<?= isset($_SESSION['user']) ? '/pages/covoiturage.php' : '/pages/publish.php' ?>" role="button" class="btn_route btn btn-secondary btn-lg px-4">Proposer des places</a>
@@ -346,24 +354,22 @@ try {
 <!-- section avis -->
 <section class="avis">
     <div class="container py-5">
-        <h1 class="text-center mb-5">Chaque avis nous donne un peu plus envie</h1>
+        <h2 class="text-center mb-5">Chaque avis nous donne un peu plus envie</h2>
         <?php if (!empty($avis_list)): ?>
-            <div id="avisCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div id="avisCarousel" class="carousel slide" data-bs-ride="carousel" aria-label="Carousel des avis clients">
                 <div class="carousel-inner">
                     <?php foreach ($avis_list as $index => $avis): ?>
                         <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
                             <div class="row justify-content-center g-0">
                                 <div class="col-12 col-md-4 d-flex justify-content-center">
                                     <div class="card p-3 shadow-sm avis-card">
-                                        <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark">
-                                            <?php
-                                            $note = isset($avis['note']) ? (int)$avis['note'] : 5;
-                                            for ($i = 1; $i <= 5; $i++):
-                                            ?>
+                                        <?php $note = isset($avis['note']) ? (int)$avis['note'] : 5; ?>
+                                        <div class="d-flex justify-content-center mb-3 text-warning border-bottom border-dark" role="img" aria-label="Note : <?= $note ?> sur 5">
+                                            <?php for ($i = 1; $i <= 5; $i++): ?>
                                                 <?php if ($i <= $note): ?>
-                                                    <i class="bi bi-star-fill"></i>
+                                                    <i class="bi bi-star-fill" aria-hidden="true"></i>
                                                 <?php else: ?>
-                                                    <i class="bi bi-star"></i>
+                                                    <i class="bi bi-star" aria-hidden="true"></i>
                                                 <?php endif; ?>
                                             <?php endfor; ?>
                                         </div>
@@ -384,7 +390,12 @@ try {
                     <?php endforeach; ?>
                 </div>
                 <?php if (count($avis_list) > 1): ?>
-                    <button class="carousel-control-prev d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="prev" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; left: -80px;">
+                    <div class="carousel-indicators position-static mb-3">
+                        <?php foreach ($avis_list as $index => $avis): ?>
+                            <button type="button" data-bs-target="#avisCarousel" data-bs-slide-to="<?= $index ?>" class="<?= $index === 0 ? 'active' : '' ?>" aria-label="Afficher l'avis <?= $index + 1 ?> sur <?= count($avis_list) ?>"<?= $index === 0 ? ' aria-current="true"' : '' ?>></button>
+                        <?php endforeach; ?>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#avisCarousel" data-bs-slide="prev" style="width: 48px; height: 48px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none;">
                         <span aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-left" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
@@ -392,7 +403,7 @@ try {
                         </span>
                         <span class="visually-hidden">Précédent</span>
                     </button>
-                    <button class="carousel-control-next d-none d-md-flex" type="button" data-bs-target="#avisCarousel" data-bs-slide="next" style="width: 60px; height: 60px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none; right: -80px;">
+                    <button class="carousel-control-next" type="button" data-bs-target="#avisCarousel" data-bs-slide="next" style="width: 48px; height: 48px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border-radius: 50%; border: none;">
                         <span aria-hidden="true">
                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-chevron-right" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />

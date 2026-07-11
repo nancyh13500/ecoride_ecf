@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . "/../../templates/header.php";
 require_once __DIR__ . "/../../lib/pdo.php";
 require_once __DIR__ . "/../../lib/session.php";
 
@@ -313,15 +312,19 @@ if ($isConnected && $user) {
 
 // Variable pour savoir si on peut afficher le bouton réserver (même sans être connecté)
 $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 0;
+
+$pageTitle = 'Détail du covoiturage';
+require_once __DIR__ . "/../../templates/header.php";
 ?>
 
 <section class="hero w-100 px-4 py-5">
     <div class="w-100">
         <div class="mx-auto" style="max-width: 1200px;">
+            <h1 class="visually-hidden">Détail du covoiturage</h1>
             <!-- Bouton retour -->
             <div class="mb-4">
                 <a href="trajets.php" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>Retour aux trajets
+                    <i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Retour aux trajets
                 </a>
             </div>
 
@@ -427,9 +430,15 @@ $peutAfficherBoutonReserver = (int)$covoiturage['statut'] === 1 && $nb_places > 
                                         <i class="bi bi-map me-2"></i>Carte du trajet
                                     </h3>
                                     <?php if ($map_show): ?>
-                                        <div id="map-trajet" class="rounded border" style="height: 380px; min-height: 260px; z-index: 1;"></div>
-                                        <p class="text-muted small mt-2 mb-0">
-                                            Aperçu du parcours entre les villes enregistrées (ligne reliant les points&nbsp;; ce n’est pas un calcul d’itinéraire routier).
+                                        <?php
+                                        $map_aria_label = 'Carte du trajet de '
+                                            . htmlspecialchars($covoiturage['lieu_depart'], ENT_QUOTES, 'UTF-8')
+                                            . ' à '
+                                            . htmlspecialchars($covoiturage['lieu_arrivee'], ENT_QUOTES, 'UTF-8');
+                                        ?>
+                                        <div id="map-trajet" class="rounded border" style="height: 380px; min-height: 260px; z-index: 1;" tabindex="0" role="application" aria-label="<?= $map_aria_label ?>"></div>
+                                        <p class="text-muted small mt-2 mb-0" id="map-trajet-desc">
+                                            Aperçu du parcours entre les villes enregistrées (ligne reliant les points&nbsp;; ce n’est pas un calcul d’itinéraire routier). Utilisez Tab pour accéder à la carte, puis les flèches pour la déplacer.
                                         </p>
                                     <?php else: ?>
                                         <p class="text-muted mb-0">
