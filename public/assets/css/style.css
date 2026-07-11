@@ -5,10 +5,11 @@
     --dark: #565554;
     --white: #FFFFFF;
     --warning: #EAFF80;
+    --bs-primary: #29C886;
+    --bs-primary-rgb: 41, 200, 134;
     --bs-nav-link-color: var(--primary);
     --bs-link-color: var(--primary);
     --bs-link-hover-color: var(--secondary);
-    --bs-primary-rgb: 102, 198, 186;
 }
 
 .bg-light {
@@ -17,6 +18,23 @@
 
 .bg-dark {
     background-color: var(--dark) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary) !important;
+}
+
+.text-primary {
+    color: var(--primary) !important;
+}
+
+.badge.bg-primary {
+    background-color: var(--primary) !important;
+    color: #fff !important;
+}
+
+.text-muted .badge.bg-primary {
+    color: #fff !important;
 }
 
 
@@ -663,6 +681,26 @@ nav {
     font-size: 0.9rem;
 }
 
+.filters .form-check-eco {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.5rem;
+    height: 100%;
+}
+
+.filters .form-check-eco .form-check-label-eco {
+    margin-bottom: 0;
+}
+
+.filters .form-check-eco .form-check-input {
+    float: none;
+    margin: 0;
+    position: static;
+}
+
 .filters .form-check-input {
     transform: scale(1.2);
 }
@@ -723,15 +761,26 @@ nav {
         margin-bottom: 1rem;
     }
 
-    .filters .form-check {
+    .filters .form-check-eco {
         flex-direction: row;
+        flex-wrap: wrap;
         justify-content: center;
         align-items: center;
+        gap: 0.35rem 0.5rem;
     }
 
-    .filters .form-check-label-eco {
+    .filters .form-check-eco .form-check-label-eco {
         margin-bottom: 0;
-        margin-right: 0.5rem;
+        order: 1;
+    }
+
+    .filters .form-check-eco .form-check-input {
+        order: 2;
+    }
+
+    .filters .form-check-eco small {
+        flex-basis: 100%;
+        order: 3;
     }
 
     .filters .btn-filtre {

@@ -177,8 +177,17 @@ require_once __DIR__ . "/../../templates/header.php";
                                                         <?= date('d/m/Y', strtotime($trajet['date_depart'])) ?>
                                                         à <?= date('H:i', strtotime($trajet['heure_depart'])) ?>
                                                         · <?= (int) $trajet['nb_place'] ?> place(s)
-                                                        · <span class="badge bg-secondary"><?= $statutTrajetLabels[(int) $trajet['statut']] ?? '—' ?></span>
                                                     </small>
+                                                    <?php
+                                                    $statutTrajet = (int) ($trajet['statut'] ?? 0);
+                                                    $badgeStatutClass = match ($statutTrajet) {
+                                                        1 => 'bg-primary',
+                                                        2 => 'bg-warning text-dark',
+                                                        3 => 'bg-secondary',
+                                                        default => 'bg-secondary',
+                                                    };
+                                                    ?>
+                                                    <span class="badge <?= $badgeStatutClass ?> ms-1"><?= $statutTrajetLabels[$statutTrajet] ?? '—' ?></span>
                                                 </li>
                                             <?php endforeach; ?>
                                         </ul>

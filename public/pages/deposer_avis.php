@@ -126,6 +126,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_avis'])) {
 
                 if ($covoiturage_id !== null) {
                     $avisDocument['covoiturage_id'] = $covoiturage_id;
+                    $chauffeurStmt = $pdo->prepare('SELECT user_id FROM covoiturage WHERE covoiturage_id = :id LIMIT 1');
+                    $chauffeurStmt->execute(['id' => $covoiturage_id]);
+                    $chauffeurId = (int) $chauffeurStmt->fetchColumn();
+                    if ($chauffeurId > 0) {
+                        $avisDocument['chauffeur_id'] = $chauffeurId;
+                    }
                 }
 
                 $result = $avisCollection->insertOne($avisDocument);

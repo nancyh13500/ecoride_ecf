@@ -27,7 +27,7 @@ if ($covoiturage_id <= 0) {
 }
 
 // Reprise de la recherche trajets.php (passée en query depuis les liens « Voir le détail »)
-$trajets_retour_keys = ['depart', 'arrivee', 'date', 'etape', 'credit_min', 'note_min'];
+$trajets_retour_keys = ['depart', 'arrivee', 'date', 'etape', 'credit_min', 'note_min', 'eco'];
 $trajets_retour_q = [];
 foreach ($trajets_retour_keys as $rk) {
     if (!isset($_GET[$rk]) || $_GET[$rk] === '') {

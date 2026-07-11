@@ -61,6 +61,16 @@ $detail_href = 'detail_covoiturage.php?' . http_build_query($detail_url_params);
                 ?>
                 <span class="badge <?= $badge_class ?>"><i class="bi bi-people me-1"></i><?= $nb_places ?> place<?= $nb_places > 1 ? 's' : '' ?></span>
                 <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i><?= number_format($covoiturage['prix_personne'], 0) ?> crédits</span>
+                <?php if (function_exists('trajet_est_vehicule_electrique') && isset($pdo) && trajet_est_vehicule_electrique($covoiturage, $pdo)): ?>
+                    <span class="badge bg-success"><i class="bi bi-lightning-charge me-1"></i>Électrique</span>
+                <?php elseif (!empty($covoiturage['energie_libelle']) || !empty($covoiturage['energie'])): ?>
+                    <?php
+                    $energieAff = (string) ($covoiturage['energie_libelle'] ?? $covoiturage['energie']);
+                    if ($energieAff !== ''):
+                    ?>
+                    <span class="badge bg-light text-dark border"><?= htmlspecialchars($energieAff) ?></span>
+                    <?php endif; ?>
+                <?php endif; ?>
             </div>
         </div>
         <div class="card-footer text-center">

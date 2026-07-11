@@ -5,40 +5,170 @@ require_once __DIR__ . "/../../lib/pdo.php";
 require_once __DIR__ . "/../../lib/mongodb.php";
 
 /**
- * Moyennes des notes MongoDB par trajet (avis validés, avec covoiturage_id).
+ * Moyennes des notes MongoDB par chauffeur (avis validés liés à un covoiturage).
  *
- * @return array<int,float>
+ * @return array<int,float> user_id chauffeur => moyenne
  */
-function trajets_moyennes_notes_par_covoiturage(): array
+function trajets_moyennes_notes_par_chauffeur(PDO $pdo): array
 {
     try {
         $coll = getAvisCollection();
         if ($coll === null) {
             return [];
         }
-        $cursor = $coll->aggregate([
+
+        $cursor = $coll->find(
             [
-                '$match' => [
-                    'statut' => 'valide',
-                    'covoiturage_id' => ['$exists' => true, '$ne' => null],
+                'statut' => 'valide',
+                '$or' => [
+                    ['chauffeur_id' => ['$exists' => true, '$ne' => null]],
+                    ['covoiturage_id' => ['$exists' => true, '$ne' => null]],
                 ],
             ],
             [
-                '$group' => [
-                    '_id' => '$covoiturage_id',
-                    'moyenne' => ['$avg' => '$note'],
+                'projection' => [
+                    'note' => 1,
+                    'covoiturage_id' => 1,
+                    'chauffeur_id' => 1,
                 ],
-            ],
-        ]);
-        $out = [];
-        foreach ($cursor as $row) {
-            $out[(int)$row['_id']] = round((float)$row['moyenne'], 2);
+            ]
+        );
+
+        $notesParChauffeurDirect = [];
+        $notesParCovoiturage = [];
+        foreach ($cursor as $doc) {
+            $note = (float) ($doc['note'] ?? 0);
+            if ($note <= 0) {
+                continue;
+            }
+
+            $chauffeurId = (int) ($doc['chauffeur_id'] ?? 0);
+            if ($chauffeurId > 0) {
+                if (!isset($notesParChauffeurDirect[$chauffeurId])) {
+                    $notesParChauffeurDirect[$chauffeurId] = [];
+                }
+                $notesParChauffeurDirect[$chauffeurId][] = $note;
+                continue;
+            }
+
+            $cid = (int) ($doc['covoiturage_id'] ?? 0);
+            if ($cid <= 0) {
+                continue;
+            }
+            if (!isset($notesParCovoiturage[$cid])) {
+                $notesParCovoiturage[$cid] = [];
+            }
+            $notesParCovoiturage[$cid][] = $note;
         }
+
+        $notesParChauffeur = $notesParChauffeurDirect;
+
+        if ($notesParCovoiturage !== []) {
+            $covoiturageIds = array_keys($notesParCovoiturage);
+            $placeholders = implode(',', array_fill(0, count($covoiturageIds), '?'));
+            $stmt = $pdo->prepare("
+                SELECT covoiturage_id, user_id
+                FROM covoiturage
+                WHERE covoiturage_id IN ({$placeholders})
+            ");
+            $stmt->execute($covoiturageIds);
+
+            $chauffeurParCovoiturage = [];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $chauffeurParCovoiturage[(int) $row['covoiturage_id']] = (int) $row['user_id'];
+            }
+
+            foreach ($notesParCovoiturage as $cid => $notes) {
+                $chauffeurId = $chauffeurParCovoiturage[$cid] ?? 0;
+                if ($chauffeurId <= 0) {
+                    continue;
+                }
+                if (!isset($notesParChauffeur[$chauffeurId])) {
+                    $notesParChauffeur[$chauffeurId] = [];
+                }
+                array_push($notesParChauffeur[$chauffeurId], ...$notes);
+            }
+        }
+
+        $out = [];
+        foreach ($notesParChauffeur as $chauffeurId => $notes) {
+            if ($notes === []) {
+                continue;
+            }
+            $out[$chauffeurId] = round(array_sum($notes) / count($notes), 2);
+        }
+
         return $out;
     } catch (Throwable $e) {
-        error_log('trajets_moyennes_notes_par_covoiturage: ' . $e->getMessage());
+        error_log('trajets_moyennes_notes_par_chauffeur: ' . $e->getMessage());
+
         return [];
     }
+}
+
+/** energie_id « Electrique » dans la table energie (ecoride.sql). */
+const TRAJETS_ENERGIE_ELECTRIQUE_ID = 3;
+
+/**
+ * IDs energie considérés comme électriques (libellé contenant « lectrique »).
+ *
+ * @return int[]
+ */
+function trajets_ids_energie_electrique(PDO $pdo): array
+{
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+    try {
+        $stmt = $pdo->query("SELECT energie_id FROM energie WHERE LOWER(TRIM(libelle)) LIKE '%lectrique%'");
+        $cache = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    } catch (PDOException) {
+        $cache = [];
+    }
+    if ($cache === []) {
+        $cache = [TRAJETS_ENERGIE_ELECTRIQUE_ID];
+    }
+
+    return $cache;
+}
+
+/**
+ * Vérifie si le véhicule lié au trajet est électrique.
+ */
+function trajet_est_vehicule_electrique(array $row, PDO $pdo): bool
+{
+    if (in_array((int) ($row['energie_id'] ?? 0), trajets_ids_energie_electrique($pdo), true)) {
+        return true;
+    }
+
+    $libelle = strtolower(trim((string) ($row['energie_libelle'] ?? $row['energie'] ?? '')));
+
+    return $libelle !== '' && str_contains($libelle, 'lectrique');
+}
+
+/**
+ * Condition SQL : voiture électrique (energie_id ou libellé).
+ */
+function trajets_sql_condition_voiture_electrique(PDO $pdo): string
+{
+    $ids = implode(',', trajets_ids_energie_electrique($pdo));
+
+    return "(
+        v.energie_id IN ({$ids})
+        OR LOWER(COALESCE(e.libelle, v.energie, '')) LIKE '%lectrique%'
+    )";
+}
+
+/**
+ * Jointures SQL voiture + energie pour les trajets écologiques.
+ */
+function trajets_sql_voiture_electrique(): string
+{
+    return "
+            INNER JOIN voiture v ON c.voiture_id = v.voiture_id
+            LEFT JOIN energie e ON e.energie_id = v.energie_id
+    ";
 }
 
 // Gérer le démarrage du trajet depuis cette page
@@ -145,41 +275,77 @@ if ($filter_credit_min !== null) {
 if ($filter_note_min !== null) {
     $trajets_retour_query['note_min'] = (string)$filter_note_min;
 }
+$filter_eco = isset($_GET['eco']) && (string) $_GET['eco'] === '1';
+if ($filter_eco) {
+    $trajets_retour_query['eco'] = '1';
+}
 
-// Rechercher les covoiturages selon les critères de recherche
+// Rechercher les covoiturages selon les critères de recherche, écologique ou filtres crédit/note
 $covoiturages_recherche = [];
 $has_search_criteria = !empty($search_depart) && !empty($search_arrivee);
+$has_affinage_filters = ($filter_credit_min !== null || $filter_note_min !== null);
+$show_unfiltered_results = $has_search_criteria || $filter_eco;
+$show_results_section = $show_unfiltered_results || $has_affinage_filters;
+$browse_par_filtres_only = $has_affinage_filters && !$show_unfiltered_results;
 
 // Bouton Filtrer : actif si recherche en cours et/ou critères de filtre dans l’URL
 $filter_form_submit_ok = $has_search_criteria
     || $filter_credit_min !== null
-    || $filter_note_min !== null;
+    || $filter_note_min !== null
+    || $filter_eco;
 
-$has_active_filters = ($filter_credit_min !== null || $filter_note_min !== null);
+$has_active_filters = $filter_eco || $has_affinage_filters;
 $filtres_actifs_libelles = [];
+if ($filter_eco) {
+    $filtres_actifs_libelles[] = 'voitures électriques et trajets associés';
+}
 if ($filter_credit_min !== null) {
     $filtres_actifs_libelles[] = 'crédit minimum : ' . number_format($filter_credit_min, 0, ',', ' ') . ' C';
 }
 if ($filter_note_min !== null) {
-    $filtres_actifs_libelles[] = 'note minimale : ' . $filter_note_min . ' étoile(s) et plus';
+    $filtres_actifs_libelles[] = 'note minimale chauffeur : ' . $filter_note_min . ' étoile(s) et plus';
 }
 
-if ($has_search_criteria) {
+if ($show_results_section) {
     try {
-        $query_sql = "
-            SELECT c.*, u.nom, u.prenom, v.modele, m.libelle AS marque_libelle
-            FROM covoiturage c
-            LEFT JOIN user u ON c.user_id = u.user_id
+        $join_voiture = $filter_eco
+            ? trajets_sql_voiture_electrique()
+            : "
             LEFT JOIN voiture v ON c.voiture_id = v.voiture_id
-            LEFT JOIN marque m ON v.marque_id = m.marque_id
-            WHERE c.statut = 1 AND c.nb_place > 0 
-            AND c.lieu_depart LIKE :depart 
-            AND c.lieu_arrivee LIKE :arrivee
-            AND c.date_depart >= CURDATE()
+            LEFT JOIN energie e ON e.energie_id = v.energie_id
         ";
 
+        $query_sql = "
+            SELECT c.*, u.nom, u.prenom, v.modele, v.energie, v.energie_id,
+                   m.libelle AS marque_libelle, e.libelle AS energie_libelle
+            FROM covoiturage c
+            LEFT JOIN user u ON c.user_id = u.user_id
+            {$join_voiture}
+            LEFT JOIN marque m ON v.marque_id = m.marque_id
+            WHERE c.statut = 1 AND c.nb_place > 0
+        ";
+
+        if ($filter_eco) {
+            $query_sql .= ' AND ' . trajets_sql_condition_voiture_electrique($pdo);
+            // Trajets récents encore publiés (évite d'exclure un Tesla daté de la veille)
+            $query_sql .= ' AND c.date_depart >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)';
+        } else {
+            $query_sql .= ' AND c.date_depart >= CURDATE()';
+        }
+
+        $params = [];
+
+        if ($has_search_criteria) {
+            $query_sql .= "
+                AND c.lieu_depart LIKE :depart
+                AND c.lieu_arrivee LIKE :arrivee
+            ";
+            $params['depart'] = '%' . $search_depart . '%';
+            $params['arrivee'] = '%' . $search_arrivee . '%';
+        }
+
         // Filtre optionnel sur une ville d'étape (départ/arrivée compris via table etape)
-        if (!empty($search_etape)) {
+        if ($has_search_criteria && !empty($search_etape)) {
             $query_sql .= "
                 AND EXISTS (
                     SELECT 1
@@ -189,39 +355,34 @@ if ($has_search_criteria) {
                     AND v_etape.nom LIKE :etape
                 )
             ";
-        }
-
-        // Ajouter la condition de date si spécifiée
-        if (!empty($search_date)) {
-            $query_sql .= " AND c.date_depart = :date_search";
-        }
-
-        $query_search = $pdo->prepare($query_sql);
-        $params = [
-            'depart' => '%' . $search_depart . '%',
-            'arrivee' => '%' . $search_arrivee . '%'
-        ];
-
-        if (!empty($search_date)) {
-            $params['date_search'] = $search_date;
-        }
-        if (!empty($search_etape)) {
             $params['etape'] = '%' . $search_etape . '%';
         }
 
+        if ($has_search_criteria && !empty($search_date)) {
+            $query_sql .= " AND c.date_depart = :date_search";
+            $params['date_search'] = $search_date;
+        }
+
+        if (!$has_search_criteria && ($filter_eco || $has_affinage_filters)) {
+            $query_sql .= ' ORDER BY c.date_depart ASC, c.heure_depart ASC';
+        }
+
+        $query_search = $pdo->prepare($query_sql);
         $query_search->execute($params);
 
         $covoiturages_recherche = $query_search->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
+        error_log('trajets.php recherche: ' . $e->getMessage());
         $covoiturages_recherche = [];
     }
 }
 
 /**
  * Résultats après application des filtres crédit / note (sous-ensemble des résultats de recherche).
+ * Le filtre écologique s’applique déjà sur $covoiturages_recherche (requête SQL).
  */
 $covoiturages_filtres = [];
-if ($has_search_criteria && $has_active_filters && !empty($covoiturages_recherche)) {
+if ($show_results_section && $has_affinage_filters && !empty($covoiturages_recherche)) {
     $covoiturages_filtres = $covoiturages_recherche;
     if ($filter_credit_min !== null) {
         $seuil_credit = (float)$filter_credit_min;
@@ -233,19 +394,20 @@ if ($has_search_criteria && $has_active_filters && !empty($covoiturages_recherch
         ));
     }
     if ($filter_note_min !== null && $covoiturages_filtres !== []) {
-        $notes_par_cov = trajets_moyennes_notes_par_covoiturage();
-        $seuil = (float)$filter_note_min;
+        $notes_par_chauffeur = trajets_moyennes_notes_par_chauffeur($pdo);
+        $seuil = (float) $filter_note_min;
         $covoiturages_filtres = array_values(array_filter(
             $covoiturages_filtres,
-            static function (array $row) use ($notes_par_cov, $seuil): bool {
-                $cid = (int)($row['covoiturage_id'] ?? 0);
-                if ($cid <= 0) {
+            static function (array $row) use ($notes_par_chauffeur, $seuil): bool {
+                $chauffeurId = (int) ($row['user_id'] ?? 0);
+                if ($chauffeurId <= 0) {
                     return false;
                 }
-                if (!isset($notes_par_cov[$cid])) {
-                    return true;
+                if (!isset($notes_par_chauffeur[$chauffeurId])) {
+                    return false;
                 }
-                return $notes_par_cov[$cid] >= $seuil - 1e-9;
+
+                return $notes_par_chauffeur[$chauffeurId] >= $seuil - 1e-9;
             }
         ));
     }
@@ -424,6 +586,12 @@ require_once __DIR__ . "/../../templates/header.php";
                     <?php if (!empty($search_date)): ?>
                         <p class="mb-0">Date : <?= date('d/m/Y', strtotime($search_date)) ?></p>
                     <?php endif; ?>
+                <?php elseif ($filter_eco): ?>
+                    <h2>Trajets en voiture électrique</h2>
+                    <p class="mb-0">Covoiturages proposés avec des véhicules électriques</p>
+                <?php elseif ($browse_par_filtres_only): ?>
+                    <h2>Trajets filtrés</h2>
+                    <p class="mb-0">Selon vos critères de crédit et/ou de note chauffeur</p>
                 <?php else: ?>
                     <h2>Découvrez les trajets disponibles</h2>
                 <?php endif; ?>
@@ -445,14 +613,18 @@ require_once __DIR__ . "/../../templates/header.php";
                     <?php endif; ?>
                 <?php else: ?>
                     <p class="text-center small mb-3">
-                        Indiquez un tarif minimum et/ou une note minimale, ou lancez d’abord une recherche (départ et arrivée) pour afficher des trajets filtrés.
+                        Cochez <strong>voyage écologique</strong> pour voir tous les trajets en véhicule électrique, ou indiquez un tarif / une note, ou lancez une recherche par départ et arrivée.
                     </p>
                 <?php endif; ?>
                 <div class="row">
                     <div class="col-md-2 text-center">
                         <div class="form-check d-flex flex-column justify-content-center align-items-center">
                             <label class="form-check-label-eco mb-2" for="ecoTrip">Voyage écologique</label>
-                            <input class="form-check-input mt-3 border-dark align-items-end" type="checkbox" id="ecoTrip" disabled>
+                            <input class="form-check-input mt-3 border-dark" type="checkbox"
+                                name="eco" value="1" id="ecoTrip"
+                                <?= $filter_eco ? 'checked' : '' ?>
+                                aria-describedby="ecoTripHelp">
+                            <small id="ecoTripHelp" class="text-dark mt-1">Véhicules électriques</small>
                         </div>
                     </div>
                     <div class="col-md-2 text-center">
@@ -462,16 +634,17 @@ require_once __DIR__ . "/../../templates/header.php";
                             value="<?= $filter_credit_min !== null ? htmlspecialchars((string)$filter_credit_min, ENT_QUOTES, 'UTF-8') : '' ?>">
                     </div>
                     <div class="col-md-3 text-center">
-                        <label class="form-label note" for="note_min">Note minimale</label>
-                        <select name="note_min" id="note_min" class="form-select">
+                        <label class="form-label note" for="note_min">Note minimale chauffeur</label>
+                        <select name="note_min" id="note_min" class="form-select" aria-describedby="noteMinHelp">
                             <option value="" <?= $filter_note_min === null ? 'selected' : '' ?>>Toutes les notes</option>
                             <option value="5" <?= $filter_note_min === 5 ? 'selected' : '' ?>>5 étoiles</option>
                             <option value="4" <?= $filter_note_min === 4 ? 'selected' : '' ?>>4 étoiles et plus</option>
                             <option value="3" <?= $filter_note_min === 3 ? 'selected' : '' ?>>3 étoiles et plus</option>
                         </select>
+                        <small id="noteMinHelp" class="text-muted d-block mt-1">Moyenne des avis sur le conducteur</small>
                     </div>
-                    <div class="col-md-3 d-flex justify-content-center align-items-end">
-                        <p id="filtre-aide" class="visually-hidden">Saisissez un tarif minimum ou choisissez une note, ou effectuez une recherche par départ et arrivée pour activer le filtre.</p>
+                    <div class="col-md-3 d-flex justify-content-center align-items-center">
+                        <p id="filtre-aide" class="visually-hidden">Saisissez un tarif minimum, choisissez une note, cochez voyage écologique, ou effectuez une recherche par départ et arrivée pour activer le filtre.</p>
                         <button type="submit" id="btnFiltrerTrajets" class="btn btn-filtre text-dark btn-secondary w-50"
                             aria-describedby="filtre-aide"
                             <?= !$filter_form_submit_ok ? ' disabled' : '' ?>>Filtrer</button>
@@ -484,14 +657,16 @@ require_once __DIR__ . "/../../templates/header.php";
                     var btn = document.getElementById('btnFiltrerTrajets');
                     var credit = document.getElementById('credit_min');
                     var note = document.getElementById('note_min');
-                    if (!form || !btn || !credit || !note) return;
+                    var eco = document.getElementById('ecoTrip');
+                    if (!form || !btn || !credit || !note || !eco) return;
                     var hasSearch = form.getAttribute('data-has-search') === '1';
 
                     function sync() {
                         var c = parseFloat(String(credit.value).replace(',', '.'));
                         var creditOk = String(credit.value).trim() !== '' && !isNaN(c) && c > 0;
                         var noteOk = String(note.value).trim() !== '';
-                        var ok = hasSearch || creditOk || noteOk;
+                        var ecoOk = eco.checked;
+                        var ok = hasSearch || creditOk || noteOk || ecoOk;
                         btn.disabled = !ok;
                         if (!ok) {
                             btn.setAttribute('aria-disabled', 'true');
@@ -501,29 +676,42 @@ require_once __DIR__ . "/../../templates/header.php";
                     }
                     credit.addEventListener('input', sync);
                     note.addEventListener('change', sync);
+                    eco.addEventListener('change', sync);
                     sync();
                 })();
             </script>
         </div>
 
         <!-- Résultats de recherche (indépendants des filtres crédit / note) -->
-        <?php if ($has_search_criteria): ?>
+        <?php if ($show_results_section): ?>
+            <?php if ($show_unfiltered_results): ?>
             <section id="section-resultats-recherche" class="search-results-trajets mb-5" aria-labelledby="titre-resultats-recherche">
                 <header class="bg-white border rounded-3 shadow-sm px-4 py-3 mb-4">
                     <h3 id="titre-resultats-recherche" class="h5 mb-2 text-center text-dark">
-                        <i class="bi bi-search text-primary me-2" aria-hidden="true"></i>
-                        Résultats de recherche
+                        <i class="bi bi-<?= $has_search_criteria ? 'search' : 'lightning-charge' ?> text-primary me-2" aria-hidden="true"></i>
+                        <?= $has_search_criteria ? 'Résultats de recherche' : 'Trajets en voiture électrique' ?>
                     </h3>
                     <p class="text-center small mb-0 text-muted">
-                        Selon départ, arrivée<?= !empty($search_date) ? ', date' : '' ?><?= !empty($search_etape) ? ', étape' : '' ?> — sans critère de crédit ni de note.
-                    </p>
-                    <p class="text-center small mt-2 mb-0">
-                        <strong><?= htmlspecialchars($search_depart) ?></strong>
-                        → <strong><?= htmlspecialchars($search_arrivee) ?></strong>
-                        <?php if (!empty($search_date)): ?>
-                            · <?= date('d/m/Y', strtotime($search_date)) ?>
+                        <?php if ($has_search_criteria): ?>
+                            Selon départ, arrivée<?= !empty($search_date) ? ', date' : '' ?><?= !empty($search_etape) ? ', étape' : '' ?><?= $filter_eco ? ' — uniquement les trajets en voiture électrique' : '' ?> — sans critère de crédit ni de note.
+                        <?php else: ?>
+                            Covoiturages à venir proposés avec une voiture électrique enregistrée sur la plateforme.
                         <?php endif; ?>
                     </p>
+                    <?php if ($filter_eco): ?>
+                        <p class="text-center small mt-2 mb-0">
+                            <span class="badge bg-success"><i class="bi bi-lightning-charge me-1"></i>Voyage écologique actif</span>
+                        </p>
+                    <?php endif; ?>
+                    <?php if ($has_search_criteria): ?>
+                        <p class="text-center small mt-2 mb-0">
+                            <strong><?= htmlspecialchars($search_depart) ?></strong>
+                            → <strong><?= htmlspecialchars($search_arrivee) ?></strong>
+                            <?php if (!empty($search_date)): ?>
+                                · <?= date('d/m/Y', strtotime($search_date)) ?>
+                            <?php endif; ?>
+                        </p>
+                    <?php endif; ?>
                 </header>
 
                 <h4 class="text-center mb-3">
@@ -544,34 +732,50 @@ require_once __DIR__ . "/../../templates/header.php";
                     <div class="alert bg-dark text-white text-center" role="alert">
                         <i class="bi bi-info-circle me-2"></i>
                         <strong>Aucun trajet trouvé</strong><br>
-                        Aucun covoiturage ne correspond à votre recherche pour le trajet <strong><?= htmlspecialchars($search_depart) ?> → <?= htmlspecialchars($search_arrivee) ?></strong>
-                        <?php if (!empty($search_date)): ?>
-                            le <?= date('d/m/Y', strtotime($search_date)) ?>
+                        <?php if ($has_search_criteria): ?>
+                            Aucun covoiturage ne correspond à votre recherche pour le trajet <strong><?= htmlspecialchars($search_depart) ?> → <?= htmlspecialchars($search_arrivee) ?></strong>
+                            <?php if (!empty($search_date)): ?>
+                                le <?= date('d/m/Y', strtotime($search_date)) ?>
+                            <?php endif; ?>
+                            <?php if ($filter_eco): ?>
+                                <br>Aucun véhicule électrique disponible pour ce trajet.
+                            <?php endif; ?>
+                        <?php else: ?>
+                            Aucun covoiturage en voiture électrique n’est disponible pour le moment.
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </section>
+            <?php endif; ?>
 
             <!-- Filtres : sous-ensemble des résultats de recherche uniquement -->
+            <?php if ($has_affinage_filters): ?>
             <section id="section-resultats-filtres" class="filter-search-results mb-5" aria-labelledby="titre-resultats-filtres">
                 <header class="bg-white border rounded-3 shadow-sm px-4 py-3 mb-4">
                     <h3 id="titre-resultats-filtres" class="h5 mb-2 text-center text-dark">
                         <i class="bi bi-funnel-fill text-primary me-2" aria-hidden="true"></i>
-                        Affinage par filtres
+                        <?= $browse_par_filtres_only ? 'Résultats filtrés' : 'Affinage par filtres' ?>
                     </h3>
                     <p class="text-center small mb-0 text-muted">
-                        Les critères <strong>crédit minimum</strong> et <strong>note minimale</strong> (formulaire ci-dessus) ne modifient que cette liste.
+                        <?php if ($browse_par_filtres_only): ?>
+                            Trajets disponibles filtrés selon la <strong>note moyenne du chauffeur</strong> et/ou le <strong>crédit minimum</strong>.
+                        <?php else: ?>
+                            Les critères <strong>crédit minimum</strong> et <strong>note minimale chauffeur</strong> (formulaire ci-dessus) affinent la liste ci-dessous.
+                            <?php if ($filter_eco): ?>
+                                Le <strong>voyage écologique</strong> est déjà appliqué sur les résultats de recherche.
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </p>
                 </header>
 
-                <?php if (!$has_active_filters): ?>
-                    <p class="text-center small text-muted mb-0">
-                        Définissez un tarif et/ou une note minimale, puis cliquez sur <strong>Filtrer</strong> pour afficher ici les trajets correspondants parmi les résultats de recherche.
-                    </p>
-                <?php elseif (empty($covoiturages_filtres)): ?>
+                <?php if (empty($covoiturages_filtres)): ?>
                     <div class="alert alert-warning text-center mb-0" role="alert">
                         <i class="bi bi-exclamation-triangle me-2"></i>
-                        Aucun trajet des résultats de recherche ne correspond à ces filtres.
+                        <?php if ($browse_par_filtres_only): ?>
+                            Aucun trajet disponible ne correspond à ces critères (note moyenne du chauffeur ou crédit minimum).
+                        <?php else: ?>
+                            Aucun trajet des résultats de recherche ne correspond à ces filtres.
+                        <?php endif; ?>
                     </div>
                 <?php else: ?>
                     <p class="text-center mb-2 small">
@@ -595,6 +799,7 @@ require_once __DIR__ . "/../../templates/header.php";
                     </div>
                 <?php endif; ?>
             </section>
+            <?php endif; ?>
         <?php endif; ?>
 
         <!-- Section Suggestions - Trajets en attente (après les résultats) -->
