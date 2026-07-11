@@ -20,6 +20,8 @@ if (isset($_POST['loginUser'])) {
 
     if ($user) {
         $_SESSION['user'] = $user;
+        $rememberMe = isset($_POST['rememberMe']);
+        $session->persistLogin($rememberMe);
 
         $redirect = $_GET['redirect'] ?? 'index.php';
 
@@ -172,7 +174,7 @@ require_once __DIR__ . "/../templates/header.php";
                                     <div class="row mb-4">
                                         <div class="col-md-6 d-flex justify-content-center align-items-center">
                                             <div class="form-check-login">
-                                                <input class="form-check-input-login border-dark" type="checkbox" value="" id="loginCheck">
+                                                <input class="form-check-input-login border-dark" type="checkbox" name="rememberMe" value="1" id="loginCheck">
                                                 <label class="form-check-label-login" for="loginCheck">Rester connecté</label>
                                             </div>
                                         </div>
