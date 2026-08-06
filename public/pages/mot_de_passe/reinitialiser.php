@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../bootstrap/app.php';
+require_once __DIR__ . '/../../../bootstrap/app.php';
 
 use Ecoride\Ecf\Service\PasswordResetService;
 
@@ -48,7 +48,7 @@ if (isset($_POST['resetPassword'])) {
 }
 
 $pageTitle = 'Réinitialiser le mot de passe';
-require_once __DIR__ . '/../templates/header.php';
+require_once __DIR__ . '/../../../templates/header.php';
 ?>
 <section class="hero px-4 py-5">
     <div class="background-login"></div>
@@ -68,7 +68,7 @@ require_once __DIR__ . '/../templates/header.php';
                             <div class="alert alert-warning" role="alert">
                                 Ce lien de réinitialisation est invalide ou a expiré.
                             </div>
-                            <a href="/mot_de_passe_oublie.php" class="btn btn-connect btn-secondary text-dark w-100 mb-3">
+                            <a href="/pages/mot_de_passe/oublie.php" class="btn btn-connect btn-secondary text-dark w-100 mb-3">
                                 Demander un nouveau lien
                             </a>
                             <a href="/login.php" class="btn btn-outline-secondary w-100">Retour à la connexion</a>
@@ -118,4 +118,4 @@ require_once __DIR__ . '/../templates/header.php';
     </div>
 </section>
 
-<?php require_once __DIR__ . '/../templates/footer.php'; ?>
+<?php require_once __DIR__ . '/../../../templates/footer.php'; ?>

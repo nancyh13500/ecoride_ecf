@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../bootstrap/app.php';
+require_once __DIR__ . '/../../../bootstrap/app.php';
 
 use Ecoride\Ecf\Service\PasswordResetService;
 
@@ -23,7 +23,7 @@ if (isset($_POST['requestReset'])) {
 }
 
 $pageTitle = 'Mot de passe oublié';
-require_once __DIR__ . '/../templates/header.php';
+require_once __DIR__ . '/../../../templates/header.php';
 ?>
 <section class="hero px-4 py-5">
     <div class="background-login"></div>
@@ -76,4 +76,4 @@ require_once __DIR__ . '/../templates/header.php';
     </div>
 </section>
 
-<?php require_once __DIR__ . '/../templates/footer.php'; ?>
+<?php require_once __DIR__ . '/../../../templates/footer.php'; ?>
