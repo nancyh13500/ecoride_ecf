@@ -179,7 +179,7 @@ require_once __DIR__ . "/../templates/header.php";
                                             </div>
                                         </div>
                                         <div class="col-md-6 d-flex justify-content-center">
-                                            <a href="/mot_de_passe_oublie.php">Mot de passe oublié</a>
+                                            <a href="/pages/mot_de_passe/oublie.php">Mot de passe oublié</a>
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-connect btn-secondary text-dark btn-block mb-4 w-100" name="loginUser">Se connecter</button>

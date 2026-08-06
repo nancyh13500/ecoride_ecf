@@ -36,7 +36,7 @@ class PasswordResetService
         }
 
         $token = $this->createToken($user);
-        $resetUrl = getAppUrl() . '/reinitialiser_mot_de_passe.php?token=' . urlencode($token);
+        $resetUrl = getAppUrl() . '/pages/mot_de_passe/reinitialiser.php?token=' . urlencode($token);
 
         $this->mailer->sendPasswordResetEmail([
             'email' => $user['email'],
