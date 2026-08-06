@@ -264,8 +264,8 @@ require_once __DIR__ . "/../../templates/header.php";
                 <?php endif; ?>
 
                 <!-- Section création d'employé (visible seulement pour les administrateurs) -->
-                <?php if (($_SESSION['user']['role_id'] ?? 3) == 1): ?>
-                    <div class="<?= isset($_GET['create_employee']) ? '' : 'collapse' ?>" id="creer-employe-section" <?= isset($_GET['create_employee']) ? 'style="display: block !important;"' : '' ?>>
+                <?php if (($_SESSION['user']['role_id'] ?? 3) == 1 && isset($_GET['create_employee'])): ?>
+                    <div id="creer-employe-section">
                         <div class="card mb-4">
                             <div class="card-header bg-light text-dark">
                                 <h4 class="mb-0">
@@ -274,37 +274,37 @@ require_once __DIR__ . "/../../templates/header.php";
                                 </h4>
                             </div>
                             <div class="card-body">
-                                <form method="POST" action="/lib/create_employee.php" enctype="multipart/form-data">
+                                <form method="POST" action="/lib/create_employee.php" enctype="multipart/form-data" autocomplete="off">
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label for="emp_nom" class="form-label">Nom</label>
-                                            <input type="text" class="form-control" id="emp_nom" name="nom" required>
+                                            <input type="text" class="form-control" id="emp_nom" name="nom" autocomplete="family-name" required>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="emp_prenom" class="form-label">Prénom</label>
-                                            <input type="text" class="form-control" id="emp_prenom" name="prenom" required>
+                                            <input type="text" class="form-control" id="emp_prenom" name="prenom" autocomplete="given-name" required>
                                         </div>
                                     </div>
 
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label for="emp_email" class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="emp_email" name="email" required>
+                                            <input type="email" class="form-control" id="emp_email" name="email" autocomplete="off" required>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="emp_telephone" class="form-label">Téléphone</label>
-                                            <input type="tel" class="form-control" id="emp_telephone" name="telephone">
+                                            <input type="tel" class="form-control" id="emp_telephone" name="telephone" autocomplete="tel">
                                         </div>
                                     </div>
 
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label for="emp_password" class="form-label">Mot de passe</label>
-                                            <input type="password" class="form-control" id="emp_password" name="password" required>
+                                            <input type="password" class="form-control" id="emp_password" name="password" autocomplete="new-password" required>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="emp_pseudo" class="form-label">Pseudo</label>
-                                            <input type="text" class="form-control" id="emp_pseudo" name="pseudo" required>
+                                            <input type="text" class="form-control" id="emp_pseudo" name="pseudo" autocomplete="username" required>
                                         </div>
                                     </div>
 
@@ -337,7 +337,7 @@ require_once __DIR__ . "/../../templates/header.php";
                             <h4 class="mb-0">Mes informations personnelles</h4>
                         </div>
                         <div class="card-body">
-                            <form method="POST" action="/lib/update_user.php" enctype="multipart/form-data">
+                            <form method="POST" action="/lib/update_user.php" enctype="multipart/form-data" autocomplete="on">
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="nom" class="form-label">Nom</label>
@@ -352,7 +352,7 @@ require_once __DIR__ . "/../../templates/header.php";
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="email" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email" value="<?= htmlspecialchars($_SESSION['user']['email']) ?>" required>
+                                        <input type="email" class="form-control" id="email" name="email" value="<?= htmlspecialchars($_SESSION['user']['email']) ?>" autocomplete="email" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="telephone" class="form-label">Téléphone</label>
@@ -455,7 +455,7 @@ require_once __DIR__ . "/../../templates/header.php";
 
                                     <div class="col-md-6">
                                         <label for="password" class="form-label">Nouveau mot de passe</label>
-                                        <input type="password" class="form-control" id="password" name="password">
+                                        <input type="password" class="form-control" id="password" name="password" autocomplete="new-password">
                                         <small class="text-muted">Laissez vide pour ne pas changer le mot de passe</small>
                                     </div>
                                 </div>

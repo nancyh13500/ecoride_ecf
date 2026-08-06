@@ -52,6 +52,16 @@ function getAppUrl(): string
     return $scheme . '://' . $host;
 }
 
+function getAppSecret(): string
+{
+    $secret = getEnvVar('APP_SECRET', '');
+    if ($secret !== '') {
+        return $secret;
+    }
+
+    return hash('sha256', DB_NAME . DB_HOST . DB_USER . 'ecoride-app-secret');
+}
+
 // Fonction helper pour récupérer les variables d'environnement
 function getEnvVar($key, $default = '')
 {
