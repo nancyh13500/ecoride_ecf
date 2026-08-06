@@ -17,13 +17,8 @@ if (isset($_POST['requestReset'])) {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Veuillez saisir une adresse e-mail valide.";
     } else {
-        try {
-            $passwordResetService->requestReset($email);
-            $success = true;
-        } catch (\PDOException $e) {
-            error_log('Erreur mot de passe oublié : ' . $e->getMessage());
-            $errors[] = "Une erreur est survenue. Veuillez réessayer plus tard.";
-        }
+        $passwordResetService->requestReset($email);
+        $success = true;
     }
 }
 

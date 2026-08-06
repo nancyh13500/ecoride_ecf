@@ -13,9 +13,6 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/ecoride.sql:/docker-entrypoint-initdb.d/01_ecoride.sql
-      - ./database/create_site_credits.sql:/docker-entrypoint-initdb.d/02_create_site_credits.sql
-      - ./database/alter_covoiturage.sql:/docker-entrypoint-initdb.d/03_alter_covoiturage.sql
-      - ./database/create_password_reset_tokens.sql:/docker-entrypoint-initdb.d/04_create_password_reset_tokens.sql
     networks:
       - ecoride
     restart: unless-stopped
@@ -43,10 +40,8 @@ services:
 
   # Serveur Apache + PHP
   app:
-    image: nancy13500/ecoride-app:latest
+    image: nancy13500/ecoride-app:v2026-08-06-2
     container_name: ecoride_app
-    volumes:
-      - ./:/var/www/html
     environment:
       - DOCKER_ENV=1
       - DB_HOST=db
@@ -66,7 +61,7 @@ services:
     ports:
       - "8001:80"
     entrypoint: []
-    command: 
+    command: ["apache2-foreground"]
     networks:
       - ecoride
     restart: unless-stopped

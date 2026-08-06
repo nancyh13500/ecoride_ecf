@@ -3,27 +3,20 @@
 namespace Ecoride\Ecf\Service;
 
 use Ecoride\Ecf\Models\User;
-use PDO;
 
 class PasswordResetService
 {
     private const TOKEN_VALIDITY_HOURS = 1;
 
-    private PDO $pdo;
     private User $userModel;
     private MailerService $mailer;
 
-    public function __construct(?PDO $pdo = null, ?User $userModel = null, ?MailerService $mailer = null)
+    public function __construct(?User $userModel = null, ?MailerService $mailer = null)
     {
-        $this->pdo = $pdo ?? \Ecoride\Ecf\Core\Database::getInstance();
         $this->userModel = $userModel ?? new User();
         $this->mailer = $mailer ?? new MailerService();
     }
 
-    /**
-     * Demande une réinitialisation de mot de passe.
-     * Retourne toujours true pour ne pas révéler si l'email existe.
-     */
     public function requestReset(string $email): bool
     {
         $email = trim(strtolower($email));
@@ -42,22 +35,7 @@ class PasswordResetService
             return true;
         }
 
-        $token = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $token);
-        $expiresAt = (new \DateTimeImmutable('+' . self::TOKEN_VALIDITY_HOURS . ' hour'))->format('Y-m-d H:i:s');
-
-        $this->pdo->prepare('DELETE FROM password_reset_tokens WHERE user_id = :user_id')
-            ->execute(['user_id' => $user['user_id']]);
-
-        $stmt = $this->pdo->prepare(
-            'INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES (:user_id, :token_hash, :expires_at)'
-        );
-        $stmt->execute([
-            'user_id' => $user['user_id'],
-            'token_hash' => $tokenHash,
-            'expires_at' => $expiresAt,
-        ]);
-
+        $token = $this->createToken($user);
         $resetUrl = getAppUrl() . '/reinitialiser_mot_de_passe.php?token=' . urlencode($token);
 
         $this->mailer->sendPasswordResetEmail([
@@ -72,22 +50,52 @@ class PasswordResetService
 
     public function findValidToken(string $token): ?array
     {
-        if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
+        if ($token === '') {
             return null;
         }
 
-        $tokenHash = hash('sha256', $token);
+        $decoded = $this->base64UrlDecode($token);
+        if ($decoded === false) {
+            return null;
+        }
 
-        $stmt = $this->pdo->prepare(
-            'SELECT prt.*, u.email, u.prenom, u.nom
-             FROM password_reset_tokens prt
-             INNER JOIN user u ON u.user_id = prt.user_id
-             WHERE prt.token_hash = :token_hash AND prt.expires_at > NOW()'
-        );
-        $stmt->execute(['token_hash' => $tokenHash]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $parts = explode('|', $decoded, 3);
+        if (count($parts) !== 3) {
+            return null;
+        }
 
-        return $row ?: null;
+        [$userId, $expires, $signature] = $parts;
+
+        if (!ctype_digit($userId) || !ctype_digit($expires)) {
+            return null;
+        }
+
+        if ((int)$expires < time()) {
+            return null;
+        }
+
+        $user = $this->userModel->findById((int)$userId);
+        if (!$user) {
+            return null;
+        }
+
+        if (isset($user['suspended']) && (int)$user['suspended'] === 1) {
+            return null;
+        }
+
+        $payload = $userId . '|' . $expires;
+        $expectedSignature = $this->sign($payload, $user['password']);
+
+        if (!hash_equals($expectedSignature, $signature)) {
+            return null;
+        }
+
+        return [
+            'user_id' => (int)$userId,
+            'email' => $user['email'],
+            'prenom' => $user['prenom'] ?? '',
+            'nom' => $user['nom'] ?? '',
+        ];
     }
 
     public function resetPassword(string $token, string $password): bool
@@ -102,13 +110,37 @@ class PasswordResetService
             return false;
         }
 
-        if (!$this->userModel->updatePassword((int)$tokenData['user_id'], $password)) {
-            return false;
+        return $this->userModel->updatePassword((int)$tokenData['user_id'], $password);
+    }
+
+    private function createToken(array $user): string
+    {
+        $expires = time() + (self::TOKEN_VALIDITY_HOURS * 3600);
+        $payload = (int)$user['user_id'] . '|' . $expires;
+        $signature = $this->sign($payload, $user['password']);
+
+        return $this->base64UrlEncode($payload . '|' . $signature);
+    }
+
+    private function sign(string $payload, string $passwordHash): string
+    {
+        return hash_hmac('sha256', $payload . '|' . $passwordHash, getAppSecret());
+    }
+
+    private function base64UrlEncode(string $data): string
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    private function base64UrlDecode(string $data): string|false
+    {
+        $padding = strlen($data) % 4;
+        if ($padding > 0) {
+            $data .= str_repeat('=', 4 - $padding);
         }
 
-        $this->pdo->prepare('DELETE FROM password_reset_tokens WHERE user_id = :user_id')
-            ->execute(['user_id' => $tokenData['user_id']]);
+        $decoded = base64_decode(strtr($data, '-_', '+/'), true);
 
-        return true;
+        return $decoded === false ? false : $decoded;
     }
 }

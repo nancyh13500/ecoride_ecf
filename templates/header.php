@@ -30,7 +30,8 @@ $siteName = 'EcoRide';
                 <a class="navbar-brand d-flex align-items-center" href="/index.php" aria-label="EcoRide — Retour à l'accueil">
                     <img src="/assets/logo/logo.png" alt="" width="80" aria-hidden="true">
                 </a>
-                <button class="navbar-toggler me-4" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Ouvrir ou fermer le menu de navigation">
+                <button class="navbar-toggler me-4" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Ouvrir ou fermer le menu de navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
